@@ -10,6 +10,8 @@ import (
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
 	"go.uber.org/zap"
+
+	"common/logger"
 )
 
 // Validatable 可验证接口
@@ -50,8 +52,9 @@ func ValidateError(c *gin.Context, params interface{}, err error, logger *zap.Lo
 }
 
 // handleError 处理验证错误
-func handleError(c *gin.Context, params interface{}, err error, logger *zap.Logger, trans ut.Translator) {
-	logger.Error("invalid params",
+func handleError(c *gin.Context, params interface{}, err error, zapLogger *zap.Logger, trans ut.Translator) {
+	ctx := c.Request.Context()
+	logger.Error(zapLogger, ctx, "invalid params",
 		zap.Error(err),
 		zap.String("url", c.Request.URL.String()),
 		zap.Any("params", params),
@@ -87,31 +90,6 @@ func respondWithError(c *gin.Context, code int, message string, errors interface
 	}
 
 	c.JSON(code, response)
-}
-
-// getFieldName 获取字段名称（优先使用label，其次json，最后使用字段名）
-func getFieldName(params interface{}, err validator.FieldError) string {
-	t := reflect.TypeOf(params)
-	if t.Kind() == reflect.Ptr {
-		t = t.Elem()
-	}
-
-	field, found := t.FieldByName(err.StructField())
-	if !found {
-		return err.Field()
-	}
-
-	// 优先使用 label 标签
-	if label := field.Tag.Get(LabelTag); label != "" {
-		return label
-	}
-
-	// 其次使用 json 标签
-	if jsonName := strings.SplitN(field.Tag.Get(JSONTag), ",", 2)[0]; jsonName != "" {
-		return jsonName
-	}
-
-	return field.Name
 }
 
 // removeTopStruct 移除顶层结构体名称，提取错误信息

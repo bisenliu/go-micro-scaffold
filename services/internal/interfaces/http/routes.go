@@ -1,6 +1,8 @@
 package http
 
 import (
+	"common/middleware"
+
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 
@@ -14,6 +16,8 @@ func SetupRoutesFinal(
 	healthHandler *handler.HealthHandler,
 	zapLogger *zap.Logger,
 ) {
+	engine.Use(middleware.TraceIDMiddleware(zapLogger))
+
 	// 1. 系统路由（无需认证）
 	setupSystemRoutesFinal(engine, healthHandler, zapLogger)
 
