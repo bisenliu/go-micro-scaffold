@@ -27,7 +27,8 @@ var SupportedLocales = map[string]bool{
 }
 
 // NewValidator 创建一个新的验证器实例
-func NewValidator(locale string) (*Validator, error) {
+func NewLocalizedValidator(locale string) (*Validator, error) {
+
 	// 验证语言环境是否支持
 	if !SupportedLocales[locale] {
 		return nil, fmt.Errorf("unsupported locale: %s", locale)
@@ -75,6 +76,22 @@ func NewValidator(locale string) (*Validator, error) {
 		return nil, fmt.Errorf("failed to register translations: %w", err)
 	}
 
+	//在校验器注册自定义的校验方法
+	if err := v.RegisterValidation("enum", ValidateEnum); err != nil {
+		return nil, fmt.Errorf("failed to register validation: %w", err)
+	}
+
+	//注意！因为这里会使用到trans实例
+	//所以这一步注册要放到trans初始化的后面
+	if err := v.RegisterTranslation(
+		"enum",
+		trans,
+		registerTranslator("enum", "{0}不合法"),
+		translate,
+	); err != nil {
+		return nil, fmt.Errorf("failed to register translation: %w", err)
+	}
+
 	return &Validator{
 		uni:      uni,
 		validate: v,
@@ -92,29 +109,21 @@ func (v *Validator) GetValidate() *validator.Validate {
 	return v.validate
 }
 
-// TranslateError 翻译验证错误为可读的错误信息
-func (v *Validator) TranslateError(err error) map[string]string {
-	if err == nil {
+// registerTranslator为自定义字段添加翻译功能
+func registerTranslator(tag string, msg string) validator.RegisterTranslationsFunc {
+	return func(trans ut.Translator) error {
+		if err := trans.Add(tag, msg, false); err != nil {
+			return err
+		}
 		return nil
 	}
+}
 
-	errors := make(map[string]string)
-
-	if validationErrors, ok := err.(validator.ValidationErrors); ok {
-		for _, e := range validationErrors {
-			errors[e.Field()] = e.Translate(v.trans)
-		}
+// translate 自定义字段的翻译方法
+func translate(trans ut.Translator, fe validator.FieldError) string {
+	msg, err := trans.T(fe.Tag(), fe.Field())
+	if err != nil {
+		panic(fmt.Errorf("translator failed: %w", fe.(error)))
 	}
-
-	return errors
-}
-
-// ValidateStruct 验证结构体
-func (v *Validator) ValidateStruct(s interface{}) error {
-	return v.validate.Struct(s)
-}
-
-// ValidateVar 验证单个变量
-func (v *Validator) ValidateVar(field interface{}, tag string) error {
-	return v.validate.Var(field, tag)
+	return msg
 }
