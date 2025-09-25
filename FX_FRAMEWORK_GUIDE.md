@@ -329,11 +329,11 @@ app := fx.New(
     // 其他选项...
 )
 
-// 使用 fx.Visualize 生成依赖图
-fmt.Println(fx.Visualize(app))
-
-// 检查依赖关系
+// 使用 fx.VisualizeError 可视化错误信息
 if err := app.Err(); err != nil {
+    if visualization, verr := fx.VisualizeError(err); verr == nil {
+        fmt.Println(visualization)
+    }
     log.Fatal("Failed to build dependencies:", err)
 }
 ```
@@ -352,13 +352,14 @@ if err := app.Err(); err != nil {
 ```go
 package main
 
+
 import (
     "context"
     "fmt"
     "log"
     "net/http"
     "time"
-  
+
     "go.uber.org/fx"
     "go.uber.org/fx/fxevent"
     "go.uber.org/zap"
@@ -414,12 +415,12 @@ type Server struct {
 func NewServer(handler *Handler, logger *zap.Logger, config Config) *Server {
     mux := http.NewServeMux()
     mux.HandleFunc("/", handler.Handle)
-  
+
     server := &http.Server{
         Addr:    fmt.Sprintf("%s:%d", config.Host, config.Port),
         Handler: mux,
     }
-  
+      
     return &Server{
         server: server,
         logger: logger,
@@ -468,7 +469,7 @@ func main() {
         }),
         AppModule,
     )
-  
+
     app.Run()
 }
 ```
