@@ -135,6 +135,8 @@ POST /api/v1/users    # 创建用户
 
 项目使用 Uber FX 进行依赖注入管理，各模块通过 FX 模块进行组织和注入。
 
+有关 Uber FX 框架核心概念的详细说明，请参考 [FX 框架指南](FX_FRAMEWORK_GUIDE.md)。
+
 ## 配置说明
 
 项目支持丰富的配置选项，详细配置说明请参考 [app.yaml.example](file:///Users/liubisen/Desktop/sander/Project/my/go-micro-scaffold/services/configs/app.yaml.example) 文件。

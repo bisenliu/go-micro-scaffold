@@ -168,23 +168,3 @@ func RequestLogWithDetailsMiddleware(zapLogger *zap.Logger) gin.HandlerFunc {
 		}
 	}
 }
-
-// ErrorLogMiddleware 错误日志中间件
-func ErrorLogMiddleware(zapLogger *zap.Logger) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.Next()
-
-		ctx := c.Request.Context()
-
-		// 检查是否有错误
-		if len(c.Errors) > 0 {
-			for _, err := range c.Errors {
-				logger.Error(zapLogger, ctx, "Request error",
-					zap.Error(err.Err),
-					zap.Uint("type", uint(err.Type)),
-					zap.String("path", c.Request.URL.Path),
-					zap.String("method", c.Request.Method))
-			}
-		}
-	}
-}
