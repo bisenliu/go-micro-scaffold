@@ -38,3 +38,21 @@ logs
 # pb files
 *pb.go
 services/main
+
+# Configuration files
+services/configs/app.yaml
+
+# Logs
+logs/
+*.log
+
+# Binaries
+bin/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
