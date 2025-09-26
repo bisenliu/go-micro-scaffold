@@ -3,18 +3,18 @@ package ent
 import (
 	"fmt"
 
-	"common/database"
+	"common/databases/mysql"
 	"services/internal/infrastructure/persistence/ent/gen"
 )
 
 // DatabaseRouter 数据库路由器，管理多个业务Ent客户端
 type DatabaseRouter struct {
 	clients map[string]*gen.Client
-	factory database.EntClientFactory
+	factory mysql.EntClientFactory
 }
 
 // NewDatabaseRouter 创建数据库路由器
-func NewDatabaseRouter(manager *database.DatabaseManager, factory database.EntClientFactory) (*DatabaseRouter, error) {
+func NewDatabaseRouter(manager *mysql.DatabaseManager, factory mysql.EntClientFactory) (*DatabaseRouter, error) {
 	router := &DatabaseRouter{
 		clients: make(map[string]*gen.Client),
 		factory: factory,
@@ -62,7 +62,6 @@ func (dr *DatabaseRouter) Primary() (*gen.Client, error) {
 func (dr *DatabaseRouter) Analytics() (*gen.Client, error) {
 	return dr.GetClient("analytics")
 }
-
 
 // Read 获取读数据库客户端（读写分离场景）
 func (dr *DatabaseRouter) Read() (*gen.Client, error) {

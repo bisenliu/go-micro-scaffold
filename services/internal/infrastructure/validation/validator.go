@@ -1,7 +1,7 @@
 package validation
 
 import (
-	"common/database"
+	"common/databases/mysql"
 	"services/internal/domain/user/repository"
 
 	"github.com/go-playground/validator/v10"
@@ -10,13 +10,13 @@ import (
 // UserInfrastructureValidator 用户基础设施验证器
 // 负责数据库层面的验证，如唯一性检查等
 type UserInfrastructureValidator struct {
-	db       *database.EntClient
+	db       *mysql.EntClient
 	userRepo repository.UserRepository
 	validate *validator.Validate
 }
 
 // NewUserInfrastructureValidator 创建用户基础设施验证器
-func NewUserInfrastructureValidator(db *database.EntClient, userRepo repository.UserRepository) *UserInfrastructureValidator {
+func NewUserInfrastructureValidator(db *mysql.EntClient, userRepo repository.UserRepository) *UserInfrastructureValidator {
 	// 创建验证器实例
 	validate := validator.New()
 

@@ -8,15 +8,15 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 
-	"common/cache"
 	"common/config"
-	"common/database"
+	"common/databases/mysql"
+	"common/databases/redis"
 )
 
 // HealthHandler 健康检查处理器
 type HealthHandler struct {
-	mysqlClient *database.EntClient
-	redisClient *cache.RedisClient
+	mysqlClient *mysql.EntClient
+	redisClient *redis.RedisClient
 	config      *config.Config
 	logger      *zap.Logger
 }
@@ -26,8 +26,8 @@ var _ Handler = (*HealthHandler)(nil)
 
 // NewHealthHandler 创建健康检查处理器
 func NewHealthHandler(
-	mysqlClient *database.EntClient,
-	redisClient *cache.RedisClient,
+	mysqlClient *mysql.EntClient,
+	redisClient *redis.RedisClient,
 	config *config.Config,
 	logger *zap.Logger,
 ) *HealthHandler {

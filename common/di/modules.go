@@ -3,9 +3,8 @@ package di
 import (
 	"go.uber.org/fx"
 
-	"common/cache"
 	"common/config"
-	"common/database"
+	"common/databases"
 	"common/http"
 	"common/logger"
 	"common/validation"
@@ -21,18 +20,9 @@ var LoggerModule = fx.Module("logger",
 	logger.Module,
 )
 
-// DatabaseModule 数据库模块 (Ent ORM)
-var DatabaseModule = fx.Module("database",
-	// 保持向后兼容的单数据库支持
-	database.EntModule,
-	database.EntServiceModule,
-	// 新的多数据库支持
-	database.DatabaseManagerModule,
-)
-
-// CacheModule 缓存模块
-var CacheModule = fx.Module("cache",
-	cache.RedisModule,
+// DatabasesModule 数据库模块
+var DatabasesModule = fx.Module("databases",
+	databases.Module,
 )
 
 // ValidationModule 验证模块
@@ -51,8 +41,7 @@ func GetCoreModules() fx.Option {
 		// 基础设施模块
 		ConfigModule,
 		LoggerModule,
-		DatabaseModule,
-		CacheModule,
+		DatabasesModule,
 		ValidationModule,
 	)
 }

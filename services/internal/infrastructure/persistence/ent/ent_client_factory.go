@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"common/database"
+	"common/databases/mysql"
 	"services/internal/infrastructure/persistence/ent/gen"
 )
 
@@ -12,12 +12,12 @@ import (
 type EntClientFactoryImpl struct{}
 
 // NewEntClientFactory 创建 Ent 客户端工厂
-func NewEntClientFactory() database.EntClientFactory {
+func NewEntClientFactory() mysql.EntClientFactory {
 	return &EntClientFactoryImpl{}
 }
 
 // NewClient 创建新的 Ent 客户端
-func (f *EntClientFactoryImpl) NewClient(driver *database.EntClient, options ...interface{}) (interface{}, error) {
+func (f *EntClientFactoryImpl) NewClient(driver *mysql.EntClient, options ...interface{}) (interface{}, error) {
 	// 将 common/database.EntClient 转换为 Ent 驱动
 	// 这里需要根据你的具体实现来调整
 	entOptions := []gen.Option{
