@@ -46,7 +46,7 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	logger.Info(ctx, "Creating user", zap.String("request_id", "create_user"))
 
 	var req requestdto.CreateUserRequest
-	if !validation.Verify(c, &req, validation.JSONBindAdapter, h.validator.GetTranslator()) {
+	if !h.validator.Verify(c, &req, validation.JSONBindAdapter) {
 		return
 	}
 

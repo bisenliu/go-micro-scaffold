@@ -33,8 +33,8 @@ func NewValidationError(message string) ValidationError {
 	return ValidationError{Message: message}
 }
 
-// Verify 执行绑定操作并自动处理错误
-func Verify(c *gin.Context, params interface{}, bindMethod BindMethod, trans ut.Translator) bool {
+// verify 执行绑定操作并自动处理错误
+func verify(c *gin.Context, params interface{}, bindMethod BindMethod, trans ut.Translator) bool {
 	if err := bindMethod(c, params); err != nil {
 		handleError(c, params, err, trans)
 		return false
@@ -42,8 +42,8 @@ func Verify(c *gin.Context, params interface{}, bindMethod BindMethod, trans ut.
 	return true
 }
 
-// ValidateError 处理自定义验证错误的辅助函数
-func ValidateError(c *gin.Context, params interface{}, err error, trans ut.Translator) bool {
+// validateError 处理自定义验证错误的辅助函数
+func validateError(c *gin.Context, params interface{}, err error, trans ut.Translator) bool {
 	if err != nil {
 		handleError(c, params, err, trans)
 		return false

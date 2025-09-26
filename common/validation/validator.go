@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/locales/en"
 	"github.com/go-playground/locales/zh"
@@ -107,6 +108,16 @@ func (v *Validator) GetTranslator() ut.Translator {
 // GetValidate 获取验证器实例
 func (v *Validator) GetValidate() *validator.Validate {
 	return v.validate
+}
+
+// Verify 执行绑定操作并自动处理错误，封装了翻译器
+func (v *Validator) Verify(c *gin.Context, params interface{}, bindMethod BindMethod) bool {
+	return verify(c, params, bindMethod, v.trans)
+}
+
+// ValidateError 处理自定义验证错误的辅助函数
+func (v *Validator) ValidateError(c *gin.Context, params interface{}, err error) bool {
+	return validateError(c, params, err, v.trans)
 }
 
 // registerTranslator为自定义字段添加翻译功能
