@@ -51,7 +51,7 @@ type HealthResponse struct {
 func (h *HealthHandler) Health(c *gin.Context) {
 	ctx := c.Request.Context()
 
-	response := &HealthResponse{
+	responseData := &HealthResponse{
 		Status:    "healthy",
 		Timestamp: time.Now(),
 		Version:   "1.0.0",
@@ -60,28 +60,28 @@ func (h *HealthHandler) Health(c *gin.Context) {
 
 	// 检查数据库连接
 	if err := h.checkDatabase(ctx); err != nil {
-		response.Services["database"] = "unhealthy: " + err.Error()
-		response.Status = "unhealthy"
+		responseData.Services["database"] = "unhealthy: " + err.Error()
+		responseData.Status = "unhealthy"
 		h.logger.Error("Database health check failed", zap.Error(err))
 	} else {
-		response.Services["database"] = "healthy"
+		responseData.Services["database"] = "healthy"
 	}
 
 	// 检查Redis连接
 	if err := h.checkRedis(ctx); err != nil {
-		response.Services["redis"] = "unhealthy: " + err.Error()
-		response.Status = "unhealthy"
+		responseData.Services["redis"] = "unhealthy: " + err.Error()
+		responseData.Status = "unhealthy"
 		h.logger.Error("Redis health check failed", zap.Error(err))
 	} else {
-		response.Services["redis"] = "healthy"
+		responseData.Services["redis"] = "healthy"
 	}
 
 	statusCode := http.StatusOK
-	if response.Status == "unhealthy" {
+	if responseData.Status == "unhealthy" {
 		statusCode = http.StatusServiceUnavailable
 	}
 
-	c.JSON(statusCode, response)
+	c.JSON(statusCode, responseData)
 }
 
 // checkDatabase 检查数据库连接

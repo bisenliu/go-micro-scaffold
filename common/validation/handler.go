@@ -12,6 +12,7 @@ import (
 	"go.uber.org/zap"
 
 	"common/logger"
+	"common/response"
 )
 
 // Validatable 可验证接口
@@ -64,47 +65,33 @@ func handleError(c *gin.Context, params interface{}, err error, trans ut.Transla
 	switch err := err.(type) {
 	case ValidationError:
 		// 自定义验证错误
-		respondWithError(c, HTTPBadRequest, err.Message, nil)
+		response.BadRequest(c, err.Message)
 	case validator.ValidationErrors:
 		// 验证器错误
-		respondWithError(c, HTTPBadRequest, ErrValidationFailed, removeTopStruct(err.Translate(trans)))
+		response.ValidationError(c, ErrValidationFailed, removeTopStruct(err.Translate(trans)))
 	case *json.UnmarshalTypeError:
 		// JSON类型错误
 		fieldName := getFieldJSONName(params, err)
 		message := buildTypeErrorMessage(fieldName, err.Type.String())
-		respondWithError(c, HTTPBadRequest, message, nil)
+		response.BadRequest(c, message)
 	default:
 		// 其他错误
-		respondWithError(c, HTTPBadRequest, err.Error(), nil)
+		response.BadRequest(c, err.Error())
 	}
-}
-
-// respondWithError 统一的错误响应格式
-func respondWithError(c *gin.Context, code int, message string, errors interface{}) {
-	response := gin.H{
-		"code":    code,
-		"message": message,
-	}
-
-	if errors != nil {
-		response["errors"] = errors
-	}
-
-	c.JSON(code, response)
 }
 
 // removeTopStruct 移除顶层结构体名称，提取错误信息
-func removeTopStruct(fields map[string]string) string {
-	var errors []string
-	for _, err := range fields {
+func removeTopStruct(fields map[string]string) map[string]string {
+	errors := make(map[string]string)
+	for field, err := range fields {
 		parts := strings.Split(err, "|")
 		if len(parts) == 2 {
-			errors = append(errors, parts[1])
+			errors[field] = parts[1]
 		} else {
-			errors = append(errors, err)
+			errors[field] = err
 		}
 	}
-	return strings.Join(errors, "; ")
+	return errors
 }
 
 // getFieldJSONName 根据JSON字段名获取显示名称

@@ -1,20 +1,22 @@
 package middleware
 
 import (
-	"net/http"
-	"time"
-
 	"github.com/gin-gonic/gin"
 	"github.com/juju/ratelimit"
 	"go.uber.org/zap"
 
 	"common/logger"
+	"common/response"
 )
 
 // RateLimitMiddleware 限流中间件
-func RateLimitMiddleware(fillInterval time.Duration, capacity, quantum int64, zapLogger *zap.Logger) gin.HandlerFunc {
+func RateLimitMiddleware(fillInterval int64, capacity int64, zapLogger *zap.Logger) gin.HandlerFunc {
 	// 创建令牌桶
-	bucket := ratelimit.NewBucketWithQuantum(fillInterval, capacity, quantum)
+	bucket := ratelimit.NewBucketWithRate(float64(fillInterval), capacity)
+
+	zapLogger.Info("Rate limit middleware initialized",
+		zap.Int64("fill_interval", fillInterval),
+		zap.Int64("capacity", capacity))
 
 	return func(c *gin.Context) {
 		ctx := c.Request.Context()
@@ -26,10 +28,7 @@ func RateLimitMiddleware(fillInterval time.Duration, capacity, quantum int64, za
 				zap.String("path", c.Request.URL.Path),
 				zap.String("method", c.Request.Method))
 
-			c.JSON(http.StatusTooManyRequests, gin.H{
-				"code":    http.StatusTooManyRequests,
-				"message": "Rate limit exceeded",
-			})
+			response.BusinessError(c, response.CodeServiceUnavailable, "Rate limit exceeded")
 			c.Abort()
 			return
 		}

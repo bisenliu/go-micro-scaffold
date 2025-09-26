@@ -2,6 +2,7 @@ package http
 
 import (
 	"common/middleware"
+	"common/response"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -49,7 +50,7 @@ func SetupRoutesFinal(
 func setupSystemRoutesFinal(engine *gin.Engine, healthHandler *handler.HealthHandler, logger *zap.Logger) {
 	engine.GET("/health", healthHandler.Health)
 	engine.GET("/ping", func(c *gin.Context) {
-		c.JSON(200, gin.H{"message": "pong"})
+		response.Success(c, gin.H{"message": "pong"})
 	})
 
 	logger.Info("System routes registered", zap.Int("count", 2))

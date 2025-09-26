@@ -3,10 +3,7 @@ package queryhandler
 import (
 	"common/databases/redis"
 	"services/internal/domain/user/repository"
-	"time"
 )
-
-const DefaultExpiration = 30 * time.Minute
 
 // UserQueryHandler 用户查询处理器
 type UserQueryHandler struct {

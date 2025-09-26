@@ -3,14 +3,14 @@ package handler
 import (
 	"common/logger"
 	"common/validation"
-	"net/http"
 	"services/internal/application/commandhandler"
 	"services/internal/application/queryhandler"
 	requestdto "services/internal/interfaces/http/dto/request"
-	responsedto "services/internal/interfaces/http/dto/response"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
+
+	"common/response"
 )
 
 // UserHandler 用户HTTP处理器
@@ -55,10 +55,10 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	// command := command.NewCreateUserCommand(req.OpenID, req.Nickname, ...)
 	// if err := h.commandHandler.HandleCreateUser(ctx, command); err != nil {
 	//     logger.Error(ctx, "创建用户失败", zap.Error(err))
-	//     c.JSON(http.StatusInternalServerError, responsedto.ErrorResponse(500, "创建用户失败"))
+	//     response.Error(c, http.StatusInternalServerError, "创建用户失败")
 	//     return
 	// }
 
 	logger.Info(ctx, "用户创建成功", zap.String("open_id", req.OpenID))
-	c.JSON(http.StatusOK, responsedto.SuccessResponse(nil))
+	response.Success(c, nil)
 }

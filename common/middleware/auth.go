@@ -2,32 +2,32 @@ package middleware
 
 import (
 	"context"
-	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 
 	"common/logger"
+	"common/response"
 )
 
 const (
-	// UserIDKey 用户ID在context中的键名
-	UserIDKey = "userID"
-	// AuthHeaderKey 认证头名称
+	// AuthHeaderKey 认证头键名
 	AuthHeaderKey = "Authorization"
 	// TokenPrefix Token前缀
 	TokenPrefix = "Bearer "
+	// UserIDKey 用户ID在context中的键名
+	UserIDKey = "user_id"
 )
 
-// AuthMiddleware JWT认证中间件
+// AuthMiddleware 认证中间件
 func AuthMiddleware(zapLogger *zap.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := c.Request.Context()
 
 		// 检查是否为白名单路径
 		if isWhitelistedPath(c.Request.URL.Path) {
-			logger.Debug(ctx, "Whitelisted path, skipping auth",
+			logger.Debug(ctx, "Whitelisted path, skipping authentication",
 				zap.String("path", c.Request.URL.Path))
 			c.Next()
 			return
@@ -37,10 +37,7 @@ func AuthMiddleware(zapLogger *zap.Logger) gin.HandlerFunc {
 		authHeader := c.GetHeader(AuthHeaderKey)
 		if authHeader == "" {
 			logger.Warn(ctx, "Missing authorization header")
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"code":    401,
-				"message": "Missing authorization header",
-			})
+			response.Unauthorized(c, "Missing authorization header")
 			c.Abort()
 			return
 		}
@@ -49,10 +46,7 @@ func AuthMiddleware(zapLogger *zap.Logger) gin.HandlerFunc {
 		// 检查Bearer前缀
 		if !strings.HasPrefix(authHeader, TokenPrefix) {
 			logger.Warn(ctx, "Invalid authorization header format")
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"code":    401,
-				"message": "Invalid authorization header format",
-			})
+			response.Unauthorized(c, "Invalid authorization header format")
 			c.Abort()
 			return
 		}
@@ -61,10 +55,7 @@ func AuthMiddleware(zapLogger *zap.Logger) gin.HandlerFunc {
 		token = strings.TrimPrefix(authHeader, TokenPrefix)
 		if token == "" {
 			logger.Warn(ctx, "Empty token")
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"code":    401,
-				"message": "Empty token",
-			})
+			response.Unauthorized(c, "Empty token")
 			c.Abort()
 			return
 		}
@@ -73,10 +64,7 @@ func AuthMiddleware(zapLogger *zap.Logger) gin.HandlerFunc {
 		userID, err := validateToken(ctx, token, zapLogger)
 		if err != nil {
 			logger.Error(ctx, "Token validation failed", zap.Error(err))
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"code":    401,
-				"message": "Invalid token",
-			})
+			response.Unauthorized(c, "Invalid token")
 			c.Abort()
 			return
 		}
