@@ -83,12 +83,12 @@ func handleError(c *gin.Context, params interface{}, err error, trans ut.Transla
 // removeTopStruct 移除顶层结构体名称，提取错误信息
 func removeTopStruct(fields map[string]string) map[string]string {
 	errors := make(map[string]string)
-	for field, err := range fields {
+	for _, err := range fields {
 		parts := strings.Split(err, "|")
 		if len(parts) == 2 {
-			errors[field] = parts[1]
+			errors[parts[0]] = parts[1]
 		} else {
-			errors[field] = err
+			errors[parts[0]] = err
 		}
 	}
 	return errors

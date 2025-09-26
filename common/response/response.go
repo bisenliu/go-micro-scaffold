@@ -18,10 +18,10 @@ const (
 
 // BaseResponse 基础响应结构 (保持与您的版本一致，已包含 Details)
 type BaseResponse struct {
-	Code    int         `json:"code"`              // 业务状态码
-	Message string      `json:"message"`           // 响应消息
-	Data    interface{} `json:"data,omitempty"`    // 响应数据
-	Details interface{} `json:"details,omitempty"` // 错误详情(用于验证错误等)
+	Code    int         `json:"code"`             // 业务状态码
+	Message string      `json:"message"`          // 响应消息
+	Data    interface{} `json:"data,omitempty"`   // 响应数据
+	Errors  interface{} `json:"errors,omitempty"` // 错误详情(用于验证错误等)
 }
 
 // Pagination 分页信息
@@ -42,10 +42,10 @@ type PageResponse struct {
 
 // AppError 统一错误结构
 type AppError struct {
-	Type    ErrorType   `json:"-"`                 // 错误类型（不序列化）
-	Code    int         `json:"code"`              // 业务错误码
-	Message string      `json:"message"`           // 错误消息
-	Details interface{} `json:"details,omitempty"` // 错误详情
+	Type    ErrorType   `json:"-"`                // 错误类型（不序列化）
+	Code    int         `json:"code"`             // 业务错误码
+	Message string      `json:"message"`          // 错误消息
+	Errors  interface{} `json:"errors,omitempty"` // 错误详情
 }
 
 func (e *AppError) Error() string {
@@ -87,7 +87,7 @@ var (
 
 // NewAppError 创建自定义错误
 // 如果 message 为空，将自动从 codes.go 中获取对应的消息
-func NewAppError(errorType ErrorType, code int, message string, details interface{}) *AppError {
+func NewAppError(errorType ErrorType, code int, message string, errors interface{}) *AppError {
 	if message == "" {
 		message = GetCodeMessage(code)
 	}
@@ -96,7 +96,7 @@ func NewAppError(errorType ErrorType, code int, message string, details interfac
 		Type:    errorType,
 		Code:    code,
 		Message: message,
-		Details: details,
+		Errors:  errors,
 	}
 }
 
@@ -148,7 +148,7 @@ func Error(c *gin.Context, err *AppError) {
 	response := &BaseResponse{
 		Code:    err.Code,
 		Message: err.Message,
-		Details: err.Details,
+		Errors:  err.Errors,
 	}
 
 	c.JSON(httpStatus, response)
