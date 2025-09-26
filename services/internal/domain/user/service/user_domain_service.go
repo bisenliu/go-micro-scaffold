@@ -9,9 +9,7 @@ import (
 )
 
 var (
-	ErrUserNotFound      = userErrors.ErrUserNotFound
-	ErrUserAlreadyExists = userErrors.ErrUserAlreadyExists
-	ErrInvalidUserData   = userErrors.ErrInvalidUserData
+	ErrPhoneAlreadyExists = userErrors.ErrPhoneAlreadyExists
 )
 
 // UserDomainService 用户领域服务
@@ -36,7 +34,7 @@ func (s *UserDomainService) CreateUser(ctx context.Context, openID, name, phoneN
 	}
 
 	if exists {
-		return nil, ErrUserAlreadyExists
+		return nil, ErrPhoneAlreadyExists
 	}
 
 	user := entity.NewUser(openID, name, phoneNumber, password, gender)
