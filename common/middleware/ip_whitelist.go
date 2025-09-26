@@ -40,7 +40,7 @@ func InternalIPMiddleware(zapLogger *zap.Logger) gin.HandlerFunc {
 		// 解析客户端IP
 		ip := net.ParseIP(clientIP)
 		if ip == nil {
-			logger.Warn(zapLogger, ctx, "Invalid client IP",
+			logger.Warn(ctx, "Invalid client IP",
 				zap.String("client_ip", clientIP))
 			c.JSON(http.StatusForbidden, gin.H{
 				"code":    http.StatusForbidden,
@@ -72,7 +72,7 @@ func InternalIPMiddleware(zapLogger *zap.Logger) gin.HandlerFunc {
 		}
 
 		if !allowed {
-			logger.Warn(zapLogger, ctx, "IP not in whitelist",
+			logger.Warn(ctx, "IP not in whitelist",
 				zap.String("client_ip", clientIP))
 			c.JSON(http.StatusForbidden, gin.H{
 				"code":    http.StatusForbidden,
@@ -82,7 +82,7 @@ func InternalIPMiddleware(zapLogger *zap.Logger) gin.HandlerFunc {
 			return
 		}
 
-		logger.Debug(zapLogger, ctx, "IP whitelist check passed",
+		logger.Debug(ctx, "IP whitelist check passed",
 			zap.String("client_ip", clientIP))
 
 		c.Next()

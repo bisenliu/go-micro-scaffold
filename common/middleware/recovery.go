@@ -16,7 +16,7 @@ func GracefulRecoveryMiddleware(zapLogger *zap.Logger) gin.HandlerFunc {
 		ctx := c.Request.Context()
 
 		// 记录panic信息
-		logger.Error(zapLogger, ctx, "Panic recovered",
+		logger.Error(ctx, "Panic recovered",
 			zap.Any("error", recovered),
 			zap.String("stack", string(debug.Stack())),
 			zap.String("path", c.Request.URL.Path),

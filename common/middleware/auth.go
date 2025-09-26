@@ -27,7 +27,7 @@ func AuthMiddleware(zapLogger *zap.Logger) gin.HandlerFunc {
 
 		// 检查是否为白名单路径
 		if isWhitelistedPath(c.Request.URL.Path) {
-			logger.Debug(zapLogger, ctx, "Whitelisted path, skipping auth",
+			logger.Debug(ctx, "Whitelisted path, skipping auth",
 				zap.String("path", c.Request.URL.Path))
 			c.Next()
 			return
@@ -36,7 +36,7 @@ func AuthMiddleware(zapLogger *zap.Logger) gin.HandlerFunc {
 		// 获取Authorization头
 		authHeader := c.GetHeader(AuthHeaderKey)
 		if authHeader == "" {
-			logger.Warn(zapLogger, ctx, "Missing authorization header")
+			logger.Warn(ctx, "Missing authorization header")
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"code":    401,
 				"message": "Missing authorization header",
@@ -48,7 +48,7 @@ func AuthMiddleware(zapLogger *zap.Logger) gin.HandlerFunc {
 		var token string
 		// 检查Bearer前缀
 		if !strings.HasPrefix(authHeader, TokenPrefix) {
-			logger.Warn(zapLogger, ctx, "Invalid authorization header format")
+			logger.Warn(ctx, "Invalid authorization header format")
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"code":    401,
 				"message": "Invalid authorization header format",
@@ -60,7 +60,7 @@ func AuthMiddleware(zapLogger *zap.Logger) gin.HandlerFunc {
 		// 提取token
 		token = strings.TrimPrefix(authHeader, TokenPrefix)
 		if token == "" {
-			logger.Warn(zapLogger, ctx, "Empty token")
+			logger.Warn(ctx, "Empty token")
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"code":    401,
 				"message": "Empty token",
@@ -72,7 +72,7 @@ func AuthMiddleware(zapLogger *zap.Logger) gin.HandlerFunc {
 		// 验证token并获取用户信息
 		userID, err := validateToken(ctx, token, zapLogger)
 		if err != nil {
-			logger.Error(zapLogger, ctx, "Token validation failed", zap.Error(err))
+			logger.Error(ctx, "Token validation failed", zap.Error(err))
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"code":    401,
 				"message": "Invalid token",
@@ -86,7 +86,7 @@ func AuthMiddleware(zapLogger *zap.Logger) gin.HandlerFunc {
 		ctx = context.WithValue(ctx, UserIDKey, userID)
 		c.Request = c.Request.WithContext(ctx)
 
-		logger.Debug(zapLogger, ctx, "Authentication successful",
+		logger.Debug(ctx, "Authentication successful",
 			zap.Int64("user_id", userID))
 
 		c.Next()

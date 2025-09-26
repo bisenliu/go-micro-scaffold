@@ -174,24 +174,38 @@ func WithContext(logger *zap.Logger, ctx context.Context) *zap.Logger {
 	return logger.With(zap.String("traceID", traceID))
 }
 
-// Info 带 context 的 Info 日志
-func Info(logger *zap.Logger, ctx context.Context, msg string, fields ...zap.Field) {
-	WithContext(logger, ctx).Info(msg, fields...)
+// ToContext 将 logger 存入 context
+func ToContext(ctx context.Context, logger *zap.Logger) context.Context {
+	return context.WithValue(ctx, "contextLogger", logger)
 }
 
-// Error 带 context 的 Error 日志
-func Error(logger *zap.Logger, ctx context.Context, msg string, fields ...zap.Field) {
-	WithContext(logger, ctx).Error(msg, fields...)
+// FromContext 从 context 中获取 logger
+func FromContext(ctx context.Context) *zap.Logger {
+	if logger, ok := ctx.Value("contextLogger").(*zap.Logger); ok {
+		return logger
+	}
+	// 返回 noop logger，避免 panic
+	return zap.NewNop()
 }
 
-// Warn 带 context 的 Warn 日志
-func Warn(logger *zap.Logger, ctx context.Context, msg string, fields ...zap.Field) {
-	WithContext(logger, ctx).Warn(msg, fields...)
+// Info 从 context 获取 logger 记录 Info 日志
+func Info(ctx context.Context, msg string, fields ...zap.Field) {
+	FromContext(ctx).Info(msg, fields...)
 }
 
-// Debug 带 context 的 Debug 日志
-func Debug(logger *zap.Logger, ctx context.Context, msg string, fields ...zap.Field) {
-	WithContext(logger, ctx).Debug(msg, fields...)
+// Error 从 context 获取 logger 记录 Error 日志
+func Error(ctx context.Context, msg string, fields ...zap.Field) {
+	FromContext(ctx).Error(msg, fields...)
+}
+
+// Warn 从 context 获取 logger 记录 Warn 日志
+func Warn(ctx context.Context, msg string, fields ...zap.Field) {
+	FromContext(ctx).Warn(msg, fields...)
+}
+
+// Debug 从 context 获取 logger 记录 Debug 日志
+func Debug(ctx context.Context, msg string, fields ...zap.Field) {
+	FromContext(ctx).Debug(msg, fields...)
 }
 
 // Module FX模块

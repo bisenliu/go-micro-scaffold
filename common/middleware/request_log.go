@@ -87,9 +87,9 @@ func RequestLogMiddleware(zapLogger *zap.Logger) gin.HandlerFunc {
 
 		// 根据业务状态码选择日志级别
 		if businessCode != 200 && businessCode != 0 { // 0表示未解析到业务状态码
-			logger.Error(zapLogger, ctx, "Request completed with error", logFields...)
+			logger.Error(ctx, "Request completed with error", logFields...)
 		} else {
-			logger.Info(zapLogger, ctx, "Request completed successfully", logFields...)
+			logger.Info(ctx, "Request completed successfully", logFields...)
 		}
 	}
 }
@@ -162,9 +162,9 @@ func RequestLogWithDetailsMiddleware(zapLogger *zap.Logger) gin.HandlerFunc {
 
 		// 根据业务状态码选择日志级别
 		if businessCode != 200 && businessCode != 0 {
-			logger.Error(zapLogger, ctx, "Detailed request completed with error", logFields...)
+			logger.Error(ctx, "Detailed request completed with error", logFields...)
 		} else {
-			logger.Info(zapLogger, ctx, "Detailed request completed successfully", logFields...)
+			logger.Info(ctx, "Detailed request completed successfully", logFields...)
 		}
 	}
 }

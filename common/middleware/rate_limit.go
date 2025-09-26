@@ -21,7 +21,7 @@ func RateLimitMiddleware(fillInterval time.Duration, capacity, quantum int64, za
 
 		// 尝试获取令牌
 		if bucket.TakeAvailable(1) == 0 {
-			logger.Warn(zapLogger, ctx, "Rate limit exceeded",
+			logger.Warn(ctx, "Rate limit exceeded",
 				zap.String("client_ip", c.ClientIP()),
 				zap.String("path", c.Request.URL.Path),
 				zap.String("method", c.Request.Method))

@@ -34,27 +34,28 @@ func NewValidationError(message string) ValidationError {
 }
 
 // Verify 执行绑定操作并自动处理错误
-func Verify(c *gin.Context, params interface{}, bindMethod BindMethod, logger *zap.Logger, trans ut.Translator) bool {
+func Verify(c *gin.Context, params interface{}, bindMethod BindMethod, trans ut.Translator) bool {
 	if err := bindMethod(c, params); err != nil {
-		handleError(c, params, err, logger, trans)
+		handleError(c, params, err, trans)
 		return false
 	}
 	return true
 }
 
 // ValidateError 处理自定义验证错误的辅助函数
-func ValidateError(c *gin.Context, params interface{}, err error, logger *zap.Logger, trans ut.Translator) bool {
+func ValidateError(c *gin.Context, params interface{}, err error, trans ut.Translator) bool {
 	if err != nil {
-		handleError(c, params, err, logger, trans)
+		handleError(c, params, err, trans)
 		return false
 	}
 	return true
 }
 
 // handleError 处理验证错误
-func handleError(c *gin.Context, params interface{}, err error, zapLogger *zap.Logger, trans ut.Translator) {
+func handleError(c *gin.Context, params interface{}, err error, trans ut.Translator) {
 	ctx := c.Request.Context()
-	logger.Error(zapLogger, ctx, "invalid params",
+
+	logger.Error(ctx, "invalid params",
 		zap.Error(err),
 		zap.String("url", c.Request.URL.String()),
 		zap.Any("params", params),

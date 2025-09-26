@@ -43,10 +43,10 @@ func NewUserHandler(
 func (h *UserHandler) CreateUser(c *gin.Context) {
 	ctx := c.Request.Context()
 
-	logger.Info(h.logger, ctx, "Creating user", zap.String("request_id", "create_user"))
+	logger.Info(ctx, "Creating user", zap.String("request_id", "create_user"))
 
 	var req requestdto.CreateUserRequest
-	if !validation.Verify(c, &req, validation.JSONBindAdapter, h.logger, h.validator.GetTranslator()) {
+	if !validation.Verify(c, &req, validation.JSONBindAdapter, h.validator.GetTranslator()) {
 		return
 	}
 
@@ -54,12 +54,11 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	// 例如:
 	// command := command.NewCreateUserCommand(req.OpenID, req.Nickname, ...)
 	// if err := h.commandHandler.HandleCreateUser(ctx, command); err != nil {
-	//     logger.Error(h.logger, ctx, "创建用户失败", zap.Error(err))
+	//     logger.Error(ctx, "创建用户失败", zap.Error(err))
 	//     c.JSON(http.StatusInternalServerError, responsedto.ErrorResponse(500, "创建用户失败"))
 	//     return
 	// }
 
-	logger.Info(h.logger, ctx, "用户创建成功", zap.String("open_id", req.OpenID))
+	logger.Info(ctx, "用户创建成功", zap.String("open_id", req.OpenID))
 	c.JSON(http.StatusOK, responsedto.SuccessResponse(nil))
 }
-

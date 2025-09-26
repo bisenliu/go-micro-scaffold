@@ -71,14 +71,14 @@ func (s *EntService) Migrate(ctx context.Context, businessClient interface{}) er
 		return fmt.Errorf("ent client factory is not configured")
 	}
 
-	logger.Info(s.logger, ctx, "Starting database migration")
+	logger.Info(ctx, "Starting database migration")
 
 	if err := s.factory.Migrate(ctx, businessClient); err != nil {
-		logger.Error(s.logger, ctx, "Database migration failed", zap.Error(err))
+		logger.Error(ctx, "Database migration failed", zap.Error(err))
 		return fmt.Errorf("migration failed: %w", err)
 	}
 
-	logger.Info(s.logger, ctx, "Database migration completed successfully")
+	logger.Info(ctx, "Database migration completed successfully")
 	return nil
 }
 

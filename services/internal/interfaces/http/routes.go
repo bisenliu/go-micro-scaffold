@@ -16,7 +16,7 @@ func SetupRoutesFinal(
 	healthHandler *handler.HealthHandler,
 	zapLogger *zap.Logger,
 ) {
-	engine.Use(middleware.TraceIDMiddleware(zapLogger))
+	engine.Use(middleware.LoggerMiddleware(zapLogger))
 
 	// 1. 系统路由（无需认证）
 	setupSystemRoutesFinal(engine, healthHandler, zapLogger)
