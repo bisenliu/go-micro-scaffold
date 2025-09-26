@@ -3,6 +3,7 @@ package handler
 import (
 	"common/logger"
 	"common/validation"
+	command "services/internal/application/command/user"
 	"services/internal/application/commandhandler"
 	"services/internal/application/queryhandler"
 	requestdto "services/internal/interfaces/http/dto/request"
@@ -50,15 +51,20 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 		return
 	}
 
-	// 这里应该调用应用层的命令处理器来创建用户
-	// 例如:
-	// command := command.NewCreateUserCommand(req.OpenID, req.Nickname, ...)
-	// if err := h.commandHandler.HandleCreateUser(ctx, command); err != nil {
-	//     logger.Error(ctx, "创建用户失败", zap.Error(err))
-	//     response.Error(c, http.StatusInternalServerError, "创建用户失败")
-	//     return
-	// }
+	command := &command.CreateUserCommand{
+		OpenID:      req.OpenID,
+		Name:        req.Name,
+		Gender:      req.Gender.Int(),
+		PhoneNumber: req.PhoneNumber,
+		Password:    req.Password,
+	}
+	user, err := h.commandHandler.HandleCreateUser(ctx, command)
+	if err != nil {
+		logger.Error(ctx, "创建用户失败", zap.Error(err))
+		response.BadRequest(c, err.Error())
+		return
+	}
 
 	logger.Info(ctx, "用户创建成功", zap.String("open_id", req.OpenID))
-	response.Success(c, nil)
+	response.Success(c, user)
 }

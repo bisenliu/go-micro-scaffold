@@ -3,6 +3,7 @@ package infrastructure
 import (
 	"go.uber.org/fx"
 
+	"services/internal/infrastructure/messaging"
 	"services/internal/infrastructure/persistence/ent"
 	"services/internal/infrastructure/persistence/ent/gen"
 	"services/internal/infrastructure/validation"
@@ -28,5 +29,8 @@ var InfrastructureModule = fx.Module("infrastructure",
 	fx.Provide(
 		// 验证器
 		validation.NewUserInfrastructureValidator,
+
+		// 消息发布
+		messaging.NewRedisEventPublisher,
 	),
 )

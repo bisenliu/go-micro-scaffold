@@ -21,7 +21,7 @@ type User struct {
 	ID uuid.UUID `json:"id,omitempty"`
 	// 用户名
 	Name string `json:"name,omitempty"`
-	// OpenID holds the value of the "open_id" field.
+	// open_id
 	OpenID string `json:"open_id,omitempty"`
 	// 密码
 	Password string `json:"-"`

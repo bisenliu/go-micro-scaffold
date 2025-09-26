@@ -20,14 +20,14 @@ var (
 	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeUUID},
-		{Name: "name", Type: field.TypeString, Size: 50},
-		{Name: "open_id", Type: field.TypeString},
-		{Name: "password", Type: field.TypeString, Size: 100},
-		{Name: "phone_number", Type: field.TypeString, Default: ""},
-		{Name: "gender", Type: field.TypeInt},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "id", Type: field.TypeUUID, Comment: "用户ID"},
+		{Name: "name", Type: field.TypeString, Size: 50, Comment: "用户名"},
+		{Name: "open_id", Type: field.TypeString, Comment: "open_id"},
+		{Name: "password", Type: field.TypeString, Size: 100, Comment: "密码"},
+		{Name: "phone_number", Type: field.TypeString, Comment: "手机号", Default: ""},
+		{Name: "gender", Type: field.TypeInt, Comment: "性别"},
+		{Name: "created_at", Type: field.TypeTime, Comment: "创建时间"},
+		{Name: "updated_at", Type: field.TypeTime, Comment: "更新时间"},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{

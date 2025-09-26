@@ -2,24 +2,27 @@ package schema
 
 import (
 	"errors"
+	uservo "services/internal/domain/user/valueobject"
 	"time"
 
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
 	"github.com/google/uuid"
 )
 
-// Gender constants
-const (
-	GenderMale   = 100
-	GenderFemale = 200
-	GenderOther  = 300
-)
-
 // User holds the schema definition for the User entity.
 type User struct {
 	ent.Schema
+}
+
+// Annotations of the User.
+func (User) Annotations() []schema.Annotation {
+	return []schema.Annotation{
+		entsql.WithComments(true),
+	}
 }
 
 // Fields of the User.
@@ -33,7 +36,8 @@ func (User) Fields() []ent.Field {
 			MaxLen(50).
 			NotEmpty().
 			Comment("用户名"),
-		field.String("open_id"),
+		field.String("open_id").
+			Comment("open_id"),
 		field.String("password").
 			MaxLen(100).
 			Sensitive().
@@ -44,7 +48,7 @@ func (User) Fields() []ent.Field {
 		field.Int("gender").
 			Validate(func(i int) error {
 				switch i {
-				case GenderMale, GenderFemale, GenderOther:
+				case int(uservo.GenderMale), int(uservo.GenderFemale), int(uservo.GenderOther):
 					return nil
 				default:
 					return errors.New("invalid gender value")

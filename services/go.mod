@@ -4,6 +4,7 @@ go 1.24.1
 
 require (
 	entgo.io/ent v0.14.5
+	github.com/bwmarrin/snowflake v0.3.0
 	github.com/gin-gonic/gin v1.11.0
 	github.com/go-playground/validator/v10 v10.27.0
 	github.com/google/uuid v1.6.0

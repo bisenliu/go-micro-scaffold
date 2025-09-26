@@ -27,7 +27,22 @@ func NewUserDomainService(userRepo repository.UserRepository) *UserDomainService
 }
 
 // CreateUser 创建用户
-func (s *UserDomainService) CreateUser(ctx context.Context, openID, unionID string) (*entity.User, error) {
+func (s *UserDomainService) CreateUser(ctx context.Context, openID, name, phoneNumber, password string, gender int) (*entity.User, error) {
 
-	return nil, nil
+	// 检查手机号是否已绑定
+	exists, err := s.userRepo.ExistsByPhoneNumber(ctx, phoneNumber)
+	if err != nil {
+		return nil, err
+	}
+
+	if exists {
+		return nil, ErrUserAlreadyExists
+	}
+
+	user := entity.NewUser(openID, name, phoneNumber, password, gender)
+	if err := s.userRepo.Create(ctx, user); err != nil {
+		return nil, err
+	}
+
+	return user, nil
 }
