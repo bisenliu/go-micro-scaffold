@@ -1,12 +1,14 @@
 package handler
 
 import (
+	"common/jwt"
 	"common/logger"
 	"common/validation"
 	command "services/internal/application/command/user"
 	"services/internal/application/commandhandler"
 	"services/internal/application/queryhandler"
 	requestdto "services/internal/interfaces/http/dto/request"
+	responsedto "services/internal/interfaces/http/dto/response"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -20,6 +22,7 @@ type UserHandler struct {
 	queryHandler   *queryhandler.UserQueryHandler
 	logger         *zap.Logger
 	validator      *validation.Validator
+	jwtService     *jwt.JWT
 }
 
 // Ensure UserHandler implements Handler interface
@@ -31,12 +34,14 @@ func NewUserHandler(
 	queryHandler *queryhandler.UserQueryHandler,
 	zapLogger *zap.Logger,
 	validator *validation.Validator,
+	jwtService *jwt.JWT,
 ) *UserHandler {
 	return &UserHandler{
 		commandHandler: commandHandler,
 		queryHandler:   queryHandler,
 		logger:         zapLogger,
 		validator:      validator,
+		jwtService:     jwtService,
 	}
 }
 
@@ -66,5 +71,23 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	}
 
 	logger.Info(ctx, "用户创建成功", zap.String("open_id", req.OpenID))
-	response.Success(c, user)
+
+	response.Success(c, responsedto.ToUserInfoResponse(user))
+}
+
+// Login 用户登录示例
+func (h *UserHandler) Login(c *gin.Context) {
+	// 注意：这只是一个示例，实际登录需要验证用户名和密码
+	// 假设已经验证了用户身份，用户ID为123，用户名为"testuser"
+
+	// 生成token
+	token, err := h.jwtService.GenToken(123, "testuser")
+	if err != nil {
+		response.BusinessError(c, response.CodeBusinessError, "Failed to generate token")
+		return
+	}
+
+	response.Success(c, gin.H{
+		"token": token,
+	})
 }

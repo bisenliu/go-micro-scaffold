@@ -7,6 +7,7 @@ import (
 	"common/databases"
 	"common/http"
 	"common/idgen"
+	"common/jwt"
 	"common/logger"
 	"common/validation"
 )
@@ -36,6 +37,11 @@ var IDGenModule = fx.Module("idgen",
 	idgen.Module,
 )
 
+// JWTModule JWT模块
+var JWTModule = fx.Module("jwt",
+	jwt.Module,
+)
+
 // HTTPModule HTTP模块
 var HTTPModule = fx.Module("http",
 	http.Module,
@@ -50,6 +56,7 @@ func GetCoreModules() fx.Option {
 		DatabasesModule,
 		ValidationModule,
 		IDGenModule,
+		JWTModule,
 	)
 }
 

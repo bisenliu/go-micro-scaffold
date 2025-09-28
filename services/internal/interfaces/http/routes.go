@@ -31,7 +31,7 @@ func SetupRoutesFinal(
 		setupUserAPIRoutes(v1, userHandler, zapLogger)
 		// 后续添加其他模块
 	}
-	
+
 	zapLogger.Info("All routes setup completed successfully")
 }
 
@@ -50,8 +50,8 @@ func setupUserAPIRoutes(rg *gin.RouterGroup, userHandler *handler.UserHandler, l
 	users := rg.Group("/users")
 	{
 		users.POST("", userHandler.CreateUser)
+		users.POST("/login", userHandler.Login)
 	}
 
 	logger.Info("User API routes registered", zap.Int("count", 5))
 }
-

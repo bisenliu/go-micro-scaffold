@@ -16,4 +16,7 @@ type UserRepository interface {
 
 	// 根据手机号查询用户是否存在
 	ExistsByPhoneNumber(ctx context.Context, phoneNumber string) (bool, error)
+
+	// Update 更新用户信息
+	Update(ctx context.Context, user *entity.User) error
 }

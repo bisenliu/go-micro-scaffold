@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 
+	"common/jwt"
 	"common/logger"
 	"common/response"
 )
@@ -21,7 +22,7 @@ const (
 )
 
 // AuthMiddleware 认证中间件
-func AuthMiddleware(zapLogger *zap.Logger) gin.HandlerFunc {
+func AuthMiddleware(zapLogger *zap.Logger, jwtService *jwt.JWT) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := c.Request.Context()
 
@@ -61,7 +62,7 @@ func AuthMiddleware(zapLogger *zap.Logger) gin.HandlerFunc {
 		}
 
 		// 验证token并获取用户信息
-		userID, err := validateToken(ctx, token, zapLogger)
+		userID, err := validateToken(ctx, token, jwtService, zapLogger)
 		if err != nil {
 			logger.Error(ctx, "Token validation failed", zap.Error(err))
 			response.Unauthorized(c, "Invalid token")
@@ -75,7 +76,7 @@ func AuthMiddleware(zapLogger *zap.Logger) gin.HandlerFunc {
 		c.Request = c.Request.WithContext(ctx)
 
 		logger.Debug(ctx, "Authentication successful",
-			zap.Int64("user_id", userID))
+			zap.String("user_id", userID))
 
 		c.Next()
 	}
@@ -98,33 +99,28 @@ func isWhitelistedPath(path string) bool {
 }
 
 // validateToken 验证token并返回用户ID
-// TODO: 这里需要根据实际的JWT实现来调整
-func validateToken(ctx context.Context, token string, logger *zap.Logger) (int64, error) {
-	// 这里应该实现实际的JWT验证逻辑
-	// 包括：
-	// 1. 解析JWT token
-	// 2. 验证签名
-	// 3. 检查过期时间
-	// 4. 从Redis中验证token是否有效
-	// 5. 返回用户ID
+func validateToken(ctx context.Context, tokenString string, jwtService *jwt.JWT, logger *zap.Logger) (string, error) {
+	// 解析JWT token
+	claims, err := jwtService.ParseToken(tokenString)
+	if err != nil {
+		logger.Debug("Token parsing failed", zap.Error(err), zap.String("token", tokenString[:10]+"..."))
+		return "", err
+	}
 
-	// 临时实现，实际使用时需要替换
-	logger.Debug("Token validation not implemented yet", zap.String("token", token[:10]+"..."))
-
-	// 返回模拟的用户ID，实际使用时需要从JWT中解析
-	return 123456, nil
+	// 返回用户ID
+	return claims.UserID, nil
 }
 
 // GetUserIDFromContext 从context中获取用户ID
-func GetUserIDFromContext(c *gin.Context) (int64, bool) {
+func GetUserIDFromContext(c *gin.Context) (string, bool) {
 	userID, exists := c.Get(UserIDKey)
 	if !exists {
-		return 0, false
+		return "", false
 	}
 
-	if id, ok := userID.(int64); ok {
+	if id, ok := userID.(string); ok {
 		return id, true
 	}
 
-	return 0, false
+	return "", false
 }

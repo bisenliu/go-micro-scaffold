@@ -1,41 +1,18 @@
 package response
 
 import (
-	"time"
+	"services/internal/domain/user/entity"
 )
-
-// BaseResponse 基础响应
-type BaseResponse struct {
-	Code    int         `json:"code"`
-	Message string      `json:"message"`
-	Data    interface{} `json:"data,omitempty"`
-}
-
-// ValidationErrorResponse 验证错误响应
-type ValidationErrorResponse struct {
-	Code    int               `json:"code"`
-	Message string            `json:"message"`
-	Errors  map[string]string `json:"errors,omitempty"`
-	Data    interface{}       `json:"data,omitempty"`
-}
-
-// UserResponse 用户响应DTO
-type UserResponse struct{}
 
 // UserInfoResponse 用户信息响应
 type UserInfoResponse struct {
-	ID        int64     `json:"id"`
-	OpenID    string    `json:"open_id"`
-	UnionID   string    `json:"union_id"`
-	Phone     string    `json:"phone"`
-	Nickname  string    `json:"nickname"`
-	AvatarURL string    `json:"avatar_url"`
-	Gender    string    `json:"gender"`
-	Birthday  *string   `json:"birthday"`
-	Location  string    `json:"location"`
-	IsActive  bool      `json:"is_active"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID          string `json:"id"`
+	OpenID      string `json:"open_id"`
+	Name        string `json:"name"`
+	Gender      int    `json:"gender"`
+	PhoneNumber string `json:"phone_number"`
+	CreatedAt   int64  `json:"created_at"`
+	UpdatedAt   int64  `json:"updated_at"`
 }
 
 // UserListResponse 用户列表响应
@@ -47,28 +24,23 @@ type UserListResponse struct {
 	TotalPages int                 `json:"total_pages"`
 }
 
-// SuccessResponse 成功响应
-func SuccessResponse(data interface{}) *BaseResponse {
-	return &BaseResponse{
-		Code:    200,
-		Message: "success",
-		Data:    data,
+// ToUserInfoResponse 将用户实体转换为用户信息响应
+func ToUserInfoResponse(user *entity.User) *UserInfoResponse {
+	if user == nil {
+		return nil
 	}
-}
 
-// ErrorResponse 错误响应
-func ErrorResponse(code int, message string) *BaseResponse {
-	return &BaseResponse{
-		Code:    code,
-		Message: message,
+	response := &UserInfoResponse{
+		ID:          user.ID(),
+		OpenID:      user.OpenID(),
+		Name:        user.Name(),
+		Gender:      user.Gender(),
+		PhoneNumber: user.PhoneNumber(),
+		CreatedAt:   user.GetCreatedAt(),
+		UpdatedAt:   user.GetUpdatedAt(),
 	}
-}
 
-// ErrorResponseWithValidation 带验证错误的错误响应
-func ErrorResponseWithValidation(code int, message string, errors map[string]string) *ValidationErrorResponse {
-	return &ValidationErrorResponse{
-		Code:    code,
-		Message: message,
-		Errors:  errors,
-	}
+	// 可以添加更多字段的转换逻辑
+
+	return response
 }

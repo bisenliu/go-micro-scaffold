@@ -8,6 +8,8 @@ import (
 	"services/internal/domain/user/repository"
 	"services/internal/infrastructure/persistence/ent/gen"
 	entuser "services/internal/infrastructure/persistence/ent/gen/user"
+
+	"github.com/google/uuid"
 )
 
 // UserRepositoryImpl Ent用户仓储实现
@@ -22,9 +24,10 @@ func NewUserRepository(client *gen.Client) repository.UserRepository {
 	}
 }
 
-// Save 保存用户
+// Create 保存用户
 func (r *UserRepositoryImpl) Create(ctx context.Context, userEntity *entity.User) error {
-	_, err := r.client.User.Create().
+
+	user, err := r.client.User.Create().
 		SetOpenID(userEntity.OpenID()).
 		SetName(userEntity.Name()).
 		SetPhoneNumber(userEntity.PhoneNumber()).
@@ -34,6 +37,34 @@ func (r *UserRepositoryImpl) Create(ctx context.Context, userEntity *entity.User
 
 	if err != nil {
 		return fmt.Errorf("failed to create user: %w", err)
+	}
+
+	// 将数据库生成的ID/时间戳设置给领域实体，并返回给调用方回领域实体
+	userEntity.SetID(user.ID.String())
+	userEntity.SetUpdatedAt(user.UpdatedAt)
+	userEntity.SetCreatedAt(user.CreatedAt)
+
+	return nil
+}
+
+// Update 更新用户信息
+func (r *UserRepositoryImpl) Update(ctx context.Context, userEntity *entity.User) error {
+	// 将字符串类型的ID转换为uuid.UUID类型
+	userID, err := uuid.Parse(userEntity.ID())
+	if err != nil {
+		return fmt.Errorf("invalid user ID format: %w", err)
+	}
+
+	// 更新用户时，updated_at 字段会自动更新为当前时间
+	// 因为在数据库层面已经配置了 UpdateDefault(time.Now)
+	_, err = r.client.User.UpdateOneID(userID).
+		SetName(userEntity.Name()).
+		SetPhoneNumber(userEntity.PhoneNumber()).
+		SetGender(userEntity.Gender()).
+		Save(ctx)
+
+	if err != nil {
+		return fmt.Errorf("failed to update user: %w", err)
 	}
 	return nil
 }

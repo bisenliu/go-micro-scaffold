@@ -1,5 +1,9 @@
 package entity
 
+import (
+	"time"
+)
+
 // User 用户聚合根
 type User struct {
 	id          string
@@ -8,6 +12,8 @@ type User struct {
 	gender      int
 	phoneNumber string
 	password    string
+	createdAt   time.Time
+	updatedAt   time.Time
 }
 
 // NewUser 创建新用户
@@ -43,4 +49,24 @@ func (u *User) PhoneNumber() string {
 
 func (u *User) Password() string {
 	return u.password
+}
+
+func (u *User) GetCreatedAt() int64 {
+	return u.createdAt.UnixMilli()
+}
+
+func (u *User) GetUpdatedAt() int64 {
+	return u.updatedAt.UnixMilli()
+}
+
+func (u *User) SetID(id string) {
+	u.id = id
+}
+
+func (u *User) SetCreatedAt(createdAt time.Time) {
+	u.createdAt = createdAt
+}
+
+func (u *User) SetUpdatedAt(updatedAt time.Time) {
+	u.updatedAt = updatedAt
 }
