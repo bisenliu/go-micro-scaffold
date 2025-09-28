@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"common/config"
-
 	"github.com/bwmarrin/snowflake"
+
+	"common/config"
 )
 
 // Generator ID生成器接口

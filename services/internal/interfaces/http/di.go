@@ -6,7 +6,7 @@ import (
 	"services/internal/interfaces/http/handler"
 )
 
-// InterfaceModuleFinal 
+// InterfaceModuleFinal
 var InterfaceModuleFinal = fx.Module("interface_final",
 	// 处理器
 	fx.Provide(

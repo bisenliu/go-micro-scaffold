@@ -1,7 +1,6 @@
 package logger
 
 import (
-	"common/config"
 	"context"
 	"fmt"
 	"log"
@@ -13,6 +12,8 @@ import (
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+
+	"common/config"
 )
 
 const (

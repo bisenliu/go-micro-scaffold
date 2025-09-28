@@ -4,9 +4,9 @@ import (
 	"errors"
 	"time"
 
-	"common/config"
-
 	"github.com/golang-jwt/jwt/v4"
+
+	"common/config"
 )
 
 // JWT JWT服务结构体

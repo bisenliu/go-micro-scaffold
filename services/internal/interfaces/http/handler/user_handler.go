@@ -1,6 +1,9 @@
 package handler
 
 import (
+	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
+
 	"common/logger"
 	"common/pkg/jwt"
 	"common/pkg/validation"
@@ -10,9 +13,6 @@ import (
 	"services/internal/application/queryhandler"
 	requestdto "services/internal/interfaces/http/dto/request"
 	responsedto "services/internal/interfaces/http/dto/response"
-
-	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 )
 
 // UserHandler 用户HTTP处理器
@@ -47,7 +47,6 @@ func NewUserHandler(
 // CreateUser 创建用户
 func (h *UserHandler) CreateUser(c *gin.Context) {
 	ctx := c.Request.Context()
-
 	logger.Info(ctx, "Creating user", zap.String("request_id", "create_user"))
 
 	var req requestdto.CreateUserRequest

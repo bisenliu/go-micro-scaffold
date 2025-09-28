@@ -1,9 +1,9 @@
 package jwt
 
 import (
-	"common/config"
-
 	"go.uber.org/fx"
+
+	"common/config"
 )
 
 // NewJWTService 创建JWT实例

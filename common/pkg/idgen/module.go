@@ -1,9 +1,9 @@
 package idgen
 
 import (
-	"common/config"
-
 	"go.uber.org/fx"
+
+	"common/config"
 )
 
 // NewGenerator 创建ID生成器实例

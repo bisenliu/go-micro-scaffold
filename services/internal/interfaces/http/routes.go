@@ -1,12 +1,11 @@
 package http
 
 import (
-	"common/middleware"
-	"common/response"
-
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 
+	"common/middleware"
+	"common/response"
 	"services/internal/interfaces/http/handler"
 )
 

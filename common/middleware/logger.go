@@ -1,10 +1,10 @@
 package middleware
 
 import (
-	"common/logger"
-
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
+
+	"common/logger"
 )
 
 // LoggerMiddleware 创建 Logger 中间件，自动为每个请求注入带 traceID 的 logger

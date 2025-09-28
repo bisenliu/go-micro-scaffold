@@ -1,13 +1,14 @@
 package timezone
 
 import (
-	"common/config"
 	"fmt"
 	"os"
 	"sync"
 	"time"
 
 	"go.uber.org/fx"
+
+	"common/config"
 )
 
 var (

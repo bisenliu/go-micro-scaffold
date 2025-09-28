@@ -2,7 +2,6 @@ package schema
 
 import (
 	"errors"
-	uservo "services/internal/domain/user/valueobject"
 	"time"
 
 	"entgo.io/ent"
@@ -11,6 +10,8 @@ import (
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
 	"github.com/google/uuid"
+
+	uservo "services/internal/domain/user/valueobject"
 )
 
 // User holds the schema definition for the User entity.

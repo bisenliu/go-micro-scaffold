@@ -1,9 +1,9 @@
 package validation
 
 import (
-	"common/config"
-
 	"go.uber.org/fx"
+
+	"common/config"
 )
 
 // NewValidator 为依赖注入创建验证器

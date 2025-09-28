@@ -18,7 +18,7 @@ var (
 
 // 应用层验证错误
 var (
-	ErrInvalidInput    = errors.New("无效输入")
-	ErrMissingRequired = errors.New("必填字段缺失")
+	ErrInvalidInput     = errors.New("无效输入")
+	ErrMissingRequired  = errors.New("必填字段缺失")
 	ErrValidationFailed = errors.New("验证失败")
 )

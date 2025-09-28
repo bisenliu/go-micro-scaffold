@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/google/uuid"
+
 	"services/internal/domain/user/entity"
 	"services/internal/domain/user/repository"
 	"services/internal/infrastructure/persistence/ent/gen"
 	entuser "services/internal/infrastructure/persistence/ent/gen/user"
-
-	"github.com/google/uuid"
 )
 
 // UserRepositoryImpl Ent用户仓储实现

@@ -1,13 +1,14 @@
 package http
 
 import (
-	"common/config"
 	"context"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
+
+	"common/config"
 )
 
 // Server HTTP服务器

@@ -1,8 +1,9 @@
 package queryhandler
 
 import (
-	"common/databases/redis"
 	"services/internal/domain/user/repository"
+
+	"common/databases/redis"
 )
 
 // UserQueryHandler 用户查询处理器

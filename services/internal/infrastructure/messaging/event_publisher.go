@@ -6,10 +6,10 @@ import (
 	"services/internal/domain/user/entity"
 	"time"
 
+	"go.uber.org/zap"
+
 	commonRedis "common/databases/redis"
 	"common/pkg/idgen"
-
-	"go.uber.org/zap"
 )
 
 // EventPublisher 事件发布器接口

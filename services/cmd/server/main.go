@@ -1,15 +1,16 @@
 package main
 
 import (
-	commonDI "common/di"
 	"fmt"
 	"log"
+
+	"go.uber.org/fx"
+
+	commonDI "common/di"
 	"services/internal/application"
 	"services/internal/domain/user"
 	"services/internal/infrastructure"
 	"services/internal/interfaces/http"
-
-	"go.uber.org/fx"
 )
 
 func main() {
