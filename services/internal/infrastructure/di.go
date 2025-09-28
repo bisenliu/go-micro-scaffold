@@ -6,7 +6,6 @@ import (
 	"services/internal/infrastructure/messaging"
 	"services/internal/infrastructure/persistence/ent"
 	"services/internal/infrastructure/persistence/ent/gen"
-	"services/internal/infrastructure/validation"
 )
 
 // InfrastructureModule 基础设施模块
@@ -27,9 +26,6 @@ var InfrastructureModule = fx.Module("infrastructure",
 
 	// 基础设施服务
 	fx.Provide(
-		// 验证器
-		validation.NewUserInfrastructureValidator,
-
 		// 消息发布
 		messaging.NewRedisEventPublisher,
 	),

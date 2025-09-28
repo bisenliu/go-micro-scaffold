@@ -3,11 +3,11 @@ package messaging
 import (
 	"context"
 	"encoding/json"
-	"services/internal/domain/shared/valueobject"
 	"services/internal/domain/user/entity"
 	"time"
 
 	commonRedis "common/databases/redis"
+	"common/idgen"
 
 	"go.uber.org/zap"
 )
@@ -21,13 +21,15 @@ type EventPublisher interface {
 type RedisEventPublisher struct {
 	redisClient *commonRedis.RedisClient
 	logger      *zap.Logger
+	idGen       idgen.Generator
 }
 
 // NewRedisEventPublisher 创建Redis事件发布器
-func NewRedisEventPublisher(redisClient *commonRedis.RedisClient, logger *zap.Logger) EventPublisher {
+func NewRedisEventPublisher(redisClient *commonRedis.RedisClient, logger *zap.Logger, idgen idgen.Generator) EventPublisher {
 	return &RedisEventPublisher{
 		redisClient: redisClient,
 		logger:      logger,
+		idGen:       idgen,
 	}
 }
 
@@ -43,7 +45,7 @@ type UserCreatedEvent struct {
 // PublishUserCreated 发布用户创建事件
 func (p *RedisEventPublisher) PublishUserCreated(ctx context.Context, user *entity.User) error {
 	event := UserCreatedEvent{
-		EventID:   generateEventID(),
+		EventID:   p.idGen.NewID().String(),
 		EventType: "user.created",
 		UserID:    user.ID(),
 		OpenID:    user.OpenID(),
@@ -65,9 +67,4 @@ func (p *RedisEventPublisher) publishEvent(ctx context.Context, channel string, 
 
 	p.logger.Info("Event published successfully", zap.String("channel", channel), zap.String("event", string(eventData)))
 	return nil
-}
-
-// generateEventID 生成事件ID
-func generateEventID() string {
-	return valueobject.NewID().String()
 }

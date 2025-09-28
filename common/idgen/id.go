@@ -1,29 +1,12 @@
-package valueobject
+package idgen
 
 import (
 	"fmt"
-
-	"github.com/bwmarrin/snowflake"
 )
 
 // ID 领域对象唯一标识
 type ID struct {
 	value int64
-}
-
-var node *snowflake.Node
-
-func init() {
-	var err error
-	node, err = snowflake.NewNode(1)
-	if err != nil {
-		panic(fmt.Sprintf("Failed to create snowflake node: %v", err))
-	}
-}
-
-// NewID 创建新的ID
-func NewID() ID {
-	return ID{value: node.Generate().Int64()}
 }
 
 // NewIDFromInt64 从int64创建ID
