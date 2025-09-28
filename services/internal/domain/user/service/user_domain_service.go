@@ -6,6 +6,7 @@ import (
 	"services/internal/domain/user/entity"
 	userErrors "services/internal/domain/user/errors"
 	"services/internal/domain/user/repository"
+	"services/internal/domain/user/validator"
 )
 
 var (
@@ -14,27 +15,23 @@ var (
 
 // UserDomainService 用户领域服务
 type UserDomainService struct {
-	userRepo repository.UserRepository
+	userRepo      repository.UserRepository
+	userValidator validator.UserValidator
 }
 
 // NewUserDomainService 创建用户领域服务
-func NewUserDomainService(userRepo repository.UserRepository) *UserDomainService {
+func NewUserDomainService(userRepo repository.UserRepository, userValidator validator.UserValidator) *UserDomainService {
 	return &UserDomainService{
-		userRepo: userRepo,
+		userRepo:      userRepo,
+		userValidator: userValidator,
 	}
 }
 
 // CreateUser 创建用户
 func (s *UserDomainService) CreateUser(ctx context.Context, openID, name, phoneNumber, password string, gender int) (*entity.User, error) {
-
-	// 检查手机号是否已绑定
-	exists, err := s.userRepo.ExistsByPhoneNumber(ctx, phoneNumber)
-	if err != nil {
+	// 使用验证器进行统一验证
+	if err := s.userValidator.ValidateForCreation(ctx, phoneNumber, password, name, gender); err != nil {
 		return nil, err
-	}
-
-	if exists {
-		return nil, ErrPhoneAlreadyExists
 	}
 
 	user := entity.NewUser(openID, name, phoneNumber, password, gender)
