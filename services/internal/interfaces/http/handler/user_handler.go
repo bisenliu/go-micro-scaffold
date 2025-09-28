@@ -1,9 +1,10 @@
 package handler
 
 import (
-	"common/jwt"
 	"common/logger"
-	"common/validation"
+	"common/pkg/jwt"
+	"common/pkg/validation"
+	"common/response"
 	command "services/internal/application/command/user"
 	"services/internal/application/commandhandler"
 	"services/internal/application/queryhandler"
@@ -12,8 +13,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
-
-	"common/response"
 )
 
 // UserHandler 用户HTTP处理器

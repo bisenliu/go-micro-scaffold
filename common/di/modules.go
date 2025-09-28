@@ -6,11 +6,11 @@ import (
 	"common/config"
 	"common/databases"
 	"common/http"
-	"common/idgen"
-	"common/jwt"
 	"common/logger"
-	"common/timezone"
-	"common/validation"
+	"common/pkg/idgen"
+	"common/pkg/jwt"
+	"common/pkg/timezone"
+	"common/pkg/validation"
 )
 
 // ConfigModule 配置模块

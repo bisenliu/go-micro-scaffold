@@ -7,7 +7,7 @@ import (
 	"time"
 
 	commonRedis "common/databases/redis"
-	"common/idgen"
+	"common/pkg/idgen"
 
 	"go.uber.org/zap"
 )

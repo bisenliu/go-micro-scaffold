@@ -18,15 +18,21 @@ Go Micro Scaffold 是一个基于 Go 语言的微服务脚手架项目，采用 
 ```
 go-micro-scaffold/
 ├── common/                 # 公共库
-│   ├── cache/              # 缓存相关
 │   ├── config/             # 配置管理
-│   ├── database/           # 数据库相关
+│   ├── databases/          # 数据库相关
+│   │   ├── mysql/          # MySQL数据库
+│   │   └── redis/          # Redis缓存
 │   ├── di/                 # 依赖注入模块
 │   ├── http/               # HTTP 服务
 │   ├── logger/             # 日志系统
 │   ├── middleware/         # 中间件
-│   ├── timezone/           # 时区管理
-│   └── validation/         # 验证系统
+│   ├── pkg/                # 通用工具包
+│   │   ├── idgen/          # ID生成器
+│   │   ├── jwt/            # JWT认证
+│   │   ├── timezone/       # 时区管理
+│   │   └── validation/     # 验证系统
+│   ├── response/           # 响应处理
+│   └── schema/             # 数据库模式
 ├── services/               # 服务模块
 │   ├── cmd/                # 命令行入口
 │   │   ├── cli/            # CLI 命令

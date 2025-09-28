@@ -7,8 +7,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 
-	"common/jwt"
 	"common/logger"
+	"common/pkg/jwt"
 	"common/response"
 )
 
