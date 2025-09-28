@@ -9,6 +9,7 @@ import (
 	"common/idgen"
 	"common/jwt"
 	"common/logger"
+	"common/timezone"
 	"common/validation"
 )
 
@@ -47,6 +48,11 @@ var HTTPModule = fx.Module("http",
 	http.Module,
 )
 
+// TimezoneModule 时区模块
+var TimezoneModule = fx.Module("timezone",
+	timezone.Module,
+)
+
 // GetCoreModules 获取核心模块，用于CLI和其他应用
 func GetCoreModules() fx.Option {
 	return fx.Options(
@@ -57,6 +63,7 @@ func GetCoreModules() fx.Option {
 		ValidationModule,
 		IDGenModule,
 		JWTModule,
+		TimezoneModule,
 	)
 }
 

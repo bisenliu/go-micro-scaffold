@@ -8,6 +8,8 @@ system:
   secret_key: "your_secret_key_here"
   # 服务名称
   server_name: "services"
+  # 系统时区，默认为 "Asia/Shanghai"
+  timezone: "Asia/Shanghai"
 
 # Token配置
 token:

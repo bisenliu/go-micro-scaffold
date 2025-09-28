@@ -25,6 +25,7 @@ go-micro-scaffold/
 │   ├── http/               # HTTP 服务
 │   ├── logger/             # 日志系统
 │   ├── middleware/         # 中间件
+│   ├── timezone/           # 时区管理
 │   └── validation/         # 验证系统
 ├── services/               # 服务模块
 │   ├── cmd/                # 命令行入口
@@ -157,6 +158,27 @@ POST /api/v1/users    # 创建用户
 - 请求日志中间件
 - IP 白名单中间件
 - Recovery 中间件
+
+### 时区管理
+
+项目提供了时区管理模块，用于全局设置应用程序的时区。该模块从配置文件中读取时区设置，如果没有配置则默认使用 "Asia/Shanghai"。
+
+使用方法：
+1. 在配置文件中添加时区设置：
+```yaml
+system:
+  timezone: "Asia/Shanghai"  # 或其他时区，如 "America/New_York"
+```
+
+2. 时区模块会自动在应用启动时初始化（通过 Uber FX 依赖注入）：
+```go
+// 在 common/di/modules.go 中已经注册
+var TimezoneModule = fx.Module("timezone",
+    timezone.Module,
+)
+```
+
+时区模块会全局设置 [time.Local](file:///Users/liubisen/Desktop/sander/Project/my/go-micro-scaffold/services/internal/infrastructure/persistence/ent/gen/mutation.go#L313-L313) 和环境变量，确保整个应用程序使用统一的时区。时区只在应用启动时初始化一次，而不是在每个请求中都设置。
 
 ## 开发指南
 

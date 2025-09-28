@@ -27,6 +27,7 @@ type SystemConfig struct {
 	Port       string `mapstructure:"port"`
 	SecretKey  string `mapstructure:"secret_key"`
 	ServerName string `mapstructure:"server_name"`
+	Timezone   string `mapstructure:"timezone"` // 添加时区配置
 }
 
 type TokenConfig struct {
