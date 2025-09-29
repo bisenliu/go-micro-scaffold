@@ -103,8 +103,3 @@ func (c *Client) WithTx(ctx context.Context, fn func(*sql.Tx) error) error {
 	err = fn(tx)
 	return err
 }
-
-// IsDebugEnabled 检查是否启用调试模式
-func (c *Client) IsDebugEnabled() bool {
-	return c.config.EnableDebug
-}

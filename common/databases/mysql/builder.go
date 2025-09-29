@@ -1,7 +1,6 @@
 package mysql
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 
@@ -77,20 +76,4 @@ func (b *ClientBuilder) configureConnectionPool(db *sql.DB) {
 	if b.config.ConnMaxIdleTime > 0 {
 		db.SetConnMaxIdleTime(b.config.ConnMaxIdleTime)
 	}
-}
-
-// BuildWithContext 带上下文构建客户端
-func (b *ClientBuilder) BuildWithContext(ctx context.Context) (*Client, error) {
-	client, err := b.Build()
-	if err != nil {
-		return nil, err
-	}
-
-	// 使用上下文测试连接
-	if err := client.db.PingContext(ctx); err != nil {
-		client.Close()
-		return nil, fmt.Errorf("failed to ping database with context: %w", err)
-	}
-
-	return client, nil
 }

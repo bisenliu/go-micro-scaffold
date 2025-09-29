@@ -1,7 +1,6 @@
 package mysql
 
 import (
-	"context"
 	"fmt"
 	"sync"
 
@@ -11,26 +10,14 @@ import (
 	"common/config"
 )
 
-// Manager 数据库管理器接口
-type ManagerInterface interface {
-	GetClient(name string) (ClientInterface, error)
-	Primary() (ClientInterface, error)
-	Read() (ClientInterface, error)
-	Write() (ClientInterface, error)
-	ListClients() []string
-	HasClient(name string) bool
-	Close() error
-}
-
-// Manager 数据库管理器，管理多个数据库连接
+// Manager 数据库管理器
 type Manager struct {
-	clients       map[string]*Client
+	clients       sync.Map
 	configManager *ConfigManager
 	logger        *zap.Logger
-	mu            sync.RWMutex
 }
 
-// ManagerParams 数据库管理器依赖参数
+// ManagerParams 管理器依赖参数
 type ManagerParams struct {
 	fx.In
 	Config *config.Config
@@ -42,47 +29,50 @@ func NewManager(params ManagerParams) (*Manager, error) {
 	configManager := NewConfigManager(params.Config)
 
 	manager := &Manager{
-		clients:       make(map[string]*Client),
 		configManager: configManager,
 		logger:        params.Logger,
 	}
 
-	// 为每个数据库配置创建客户端
-	configNames := configManager.ListConfigs()
+	// 初始化所有客户端
+	if err := manager.initializeClients(params); err != nil {
+		return nil, err
+	}
+
+	return manager, nil
+}
+
+// initializeClients 初始化所有客户端
+func (m *Manager) initializeClients(params ManagerParams) error {
+	configNames := m.configManager.ListConfigs()
+
 	for _, name := range configNames {
-		dbConfig, err := configManager.GetConfig(name)
+		dbConfig, err := m.configManager.GetConfig(name)
 		if err != nil {
-			manager.closeAllClients()
-			return nil, fmt.Errorf("failed to get config for '%s': %w", name, err)
+			return fmt.Errorf("failed to get config for '%s': %w", name, err)
 		}
 
 		builder := NewClientBuilder(dbConfig, params.Logger)
 		client, err := builder.Build()
 		if err != nil {
-			manager.closeAllClients()
-			return nil, fmt.Errorf("failed to create database client for '%s': %w", name, err)
+			return fmt.Errorf("failed to create database client for '%s': %w", name, err)
 		}
 
-		manager.clients[name] = client
+		m.clients.Store(name, client)
 	}
 
-	params.Logger.Info("Database manager initialized successfully",
-		zap.Int("client_count", len(manager.clients)),
+	m.logger.Info("Database manager initialized successfully",
+		zap.Int("client_count", len(configNames)),
 		zap.Strings("clients", configNames))
 
-	return manager, nil
+	return nil
 }
 
 // GetClient 获取指定名称的数据库客户端
 func (m *Manager) GetClient(name string) (ClientInterface, error) {
-	m.mu.RLock()
-	defer m.mu.RUnlock()
-
-	client, exists := m.clients[name]
-	if !exists {
-		return nil, fmt.Errorf("database client '%s' not found", name)
+	if client, ok := m.clients.Load(name); ok {
+		return client.(*Client), nil
 	}
-	return client, nil
+	return nil, fmt.Errorf("database client '%s' not found", name)
 }
 
 // Primary 获取主数据库客户端
@@ -90,76 +80,34 @@ func (m *Manager) Primary() (ClientInterface, error) {
 	return m.GetClient(DB1)
 }
 
-// Read 获取读数据库客户端（读写分离场景）
-func (m *Manager) Read() (ClientInterface, error) {
-	// 优先使用read客户端，如果没有则使用db1
-	if client, err := m.GetClient(ReadDB); err == nil {
-		return client, nil
-	}
-	return m.Primary()
-}
-
-// Write 获取写数据库客户端（读写分离场景）
-func (m *Manager) Write() (ClientInterface, error) {
-	// 优先使用write客户端，如果没有则使用db1
-	if client, err := m.GetClient(WriteDB); err == nil {
-		return client, nil
-	}
-	return m.Primary()
-}
-
 // ListClients 列出所有数据库客户端名称
 func (m *Manager) ListClients() []string {
-	m.mu.RLock()
-	defer m.mu.RUnlock()
-
-	names := make([]string, 0, len(m.clients))
-	for name := range m.clients {
-		names = append(names, name)
-	}
+	var names []string
+	m.clients.Range(func(key, value interface{}) bool {
+		names = append(names, key.(string))
+		return true
+	})
 	return names
 }
 
 // HasClient 检查是否存在指定名称的客户端
 func (m *Manager) HasClient(name string) bool {
-	m.mu.RLock()
-	defer m.mu.RUnlock()
-
-	_, exists := m.clients[name]
-	return exists
+	_, ok := m.clients.Load(name)
+	return ok
 }
 
 // Close 关闭所有数据库连接
 func (m *Manager) Close() error {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
-	return m.closeAllClients()
-}
-
-// closeAllClients 关闭所有客户端连接（内部方法，不加锁）
-func (m *Manager) closeAllClients() error {
 	var lastErr error
-	for name, client := range m.clients {
+	m.clients.Range(func(key, value interface{}) bool {
+		client := value.(*Client)
 		if err := client.Close(); err != nil {
 			m.logger.Error("Failed to close database client",
-				zap.String("name", name),
+				zap.String("name", key.(string)),
 				zap.Error(err))
 			lastErr = err
 		}
-	}
-	m.clients = make(map[string]*Client)
+		return true
+	})
 	return lastErr
 }
-
-// ManagerModule 数据库管理器模块
-var ManagerModule = fx.Module("database_manager",
-	fx.Provide(NewManager),
-	fx.Invoke(func(lc fx.Lifecycle, manager *Manager) {
-		lc.Append(fx.Hook{
-			OnStop: func(_ context.Context) error {
-				return manager.Close()
-			},
-		})
-	}),
-)

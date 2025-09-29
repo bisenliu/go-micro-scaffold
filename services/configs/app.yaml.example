@@ -62,8 +62,6 @@ databases:
 
 # Redis配置
 redis:
-  # Redis键前缀
-  prefix: "cloud_motion"
   # Redis主机地址
   host: "127.0.0.1"
   # Redis端口

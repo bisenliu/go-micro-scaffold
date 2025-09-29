@@ -82,31 +82,10 @@ func (cfg *DatabaseConfigWrapper) DSN() (string, string, error) {
 	}
 }
 
-// GetDatabaseConfig 获取数据库配置，支持向后兼容
-func GetDatabaseConfig(c *config.Config, name string) (config.DatabaseConfig, bool) {
-	// 如果指定了databases配置，优先使用
-	if c.Databases != nil {
-		if config, exists := c.Databases[name]; exists {
-			return config, true
-		}
-	}
-
-	// 向后兼容：如果没有databases配置，使用database_common配置作为默认配置
-	if c.Databases == nil {
-		return c.DatabaseCommon, true
-	}
-
-	return config.DatabaseConfig{}, false
-}
-
 // GetAllDatabaseConfigs 获取所有数据库配置
 func GetAllDatabaseConfigs(c *config.Config) map[string]config.DatabaseConfig {
 	if c.Databases != nil {
 		return c.Databases
 	}
-
-	// 向后兼容：如果没有databases配置，返回db1数据库，使用database_common作为默认配置
-	return map[string]config.DatabaseConfig{
-		DB1: c.DatabaseCommon,
-	}
+	return make(map[string]config.DatabaseConfig)
 }
