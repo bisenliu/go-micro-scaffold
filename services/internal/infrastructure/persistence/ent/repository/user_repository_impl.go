@@ -127,6 +127,18 @@ func (r *UserRepositoryImpl) ListWithFilter(ctx context.Context, filter *reposit
 	return users, int64(total), nil
 }
 
+func (r *UserRepositoryImpl) ExistsByPhoneNumber(ctx context.Context, phoneNumber string) (bool, error) {
+	exists, err := r.client.User.
+		Query().
+		Where(entuser.PhoneNumber(phoneNumber)).
+		Exist(ctx)
+	if err != nil {
+		return false, fmt.Errorf("failed to check phone existence: %w", err)
+	}
+
+	return exists, nil
+}
+
 // 提取一个私有方法来构建查询条件
 func (r *UserRepositoryImpl) buildUserQuery(filter *repository.UserListFilter) *gen.UserQuery {
 	query := r.client.User.Query()
@@ -145,18 +157,6 @@ func (r *UserRepositoryImpl) buildUserQuery(filter *repository.UserListFilter) *
 	}
 
 	return query
-}
-
-func (r *UserRepositoryImpl) ExistsByPhoneNumber(ctx context.Context, phoneNumber string) (bool, error) {
-	exists, err := r.client.User.
-		Query().
-		Where(entuser.PhoneNumber(phoneNumber)).
-		Exist(ctx)
-	if err != nil {
-		return false, fmt.Errorf("failed to check phone existence: %w", err)
-	}
-
-	return exists, nil
 }
 
 // entUserToEntity 将Ent用户实体转换为领域用户实体
