@@ -91,9 +91,9 @@ func GetDatabaseConfig(c *config.Config, name string) (config.DatabaseConfig, bo
 		}
 	}
 
-	// 向后兼容：如果没有databases配置，使用database配置
+	// 向后兼容：如果没有databases配置，使用database_common配置作为默认配置
 	if c.Databases == nil {
-		return c.Database, true
+		return c.DatabaseCommon, true
 	}
 
 	return config.DatabaseConfig{}, false
@@ -105,8 +105,8 @@ func GetAllDatabaseConfigs(c *config.Config) map[string]config.DatabaseConfig {
 		return c.Databases
 	}
 
-	// 向后兼容：如果没有databases配置，返回db1数据库
+	// 向后兼容：如果没有databases配置，返回db1数据库，使用database_common作为默认配置
 	return map[string]config.DatabaseConfig{
-		DB1: c.Database,
+		DB1: c.DatabaseCommon,
 	}
 }

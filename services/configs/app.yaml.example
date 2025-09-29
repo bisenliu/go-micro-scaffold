@@ -23,16 +23,14 @@ snow_flake:
   # 机器ID(0-1023)
   machine_id: 1
 
-# 主数据库配置
-database:
+# 数据库公共配置
+database_common:
   # 数据库类型(mysql/postgres/sqlite)
   type: "mysql"
   # 数据库主机地址
   host: "127.0.0.1"
   # 数据库端口
   port: 3306
-  # 数据库名称
-  database: go-micro-scaffold
   # 数据库用户名
   username: "your_database_username"
   # 数据库密码
@@ -52,53 +50,15 @@ database:
 databases:
   # 数据库实例1
   db1:
-    # 数据库类型(mysql/postgres/sqlite)
-    type: "mysql"
-    # 数据库主机地址
-    host: "127.0.0.1"
-    # 数据库端口
-    port: 3306
+    # 继承公共配置，可覆盖特定值
     # 数据库名称
     database: go-micro-scaffold
-    # 数据库用户名
-    username: "your_database_username"
-    # 数据库密码
-    password: "your_database_password"
-    # 字符集
-    charset: utf8mb4
-    # 最大打开连接数
-    max_open_conns: 100
-    # 最大空闲连接数
-    max_idle_conns: 10
-    # 连接最大生命周期
-    conn_max_lifetime: 1h
-    # 连接最大空闲时间
-    conn_max_idle_time: 30m
     
   # 数据库实例2
   db2:
-    # 数据库类型(mysql/postgres/sqlite)
-    type: "mysql"
-    # 数据库主机地址
-    host: "127.0.0.1"
-    # 数据库端口
-    port: 3306
+    # 继承公共配置，可覆盖特定值
     # 数据库名称
     database: go-micro-scaffold
-    # 数据库用户名
-    username: "your_database_username"
-    # 数据库密码
-    password: "your_database_password"
-    # 字符集
-    charset: utf8mb4
-    # 最大打开连接数
-    max_open_conns: 100
-    # 最大空闲连接数
-    max_idle_conns: 10
-    # 连接最大生命周期
-    conn_max_lifetime: 1h
-    # 连接最大空闲时间
-    conn_max_idle_time: 30m
 
 # Redis配置
 redis:
@@ -136,52 +96,6 @@ zap:
   max_size: 500
   # 最大备份文件数量
   max_backups: 7
-
-# 微信配置
-wechat:
-  # 微信小程序AppID
-  app_id_mini: "your_wechat_app_id_mini"
-  # 微信小程序Secret
-  secret_mini: "your_wechat_secret_mini"
-  # 微信服务号AppID
-  app_id_serve: "your_wechat_app_id_serve"
-  # 微信服务号Secret
-  secret_serve: "your_wechat_secret_serve"
-  # 团队状态通知模板ID
-  team_status_message_id: "your_team_status_message_id"
-  # 支付通知模板ID
-  payment_notice_message_id: "your_payment_notice_message_id"
-  # 商户ID
-  merch_id: "your_merch_id"
-  # 支付回调URL
-  payment_notify_url: "your_payment_notify_url"
-  # 退款回调URL
-  refund_notify_url: "your_refund_notify_url"
-  # 获取OpenID的URL
-  get_openid_url: "https://api.weixin.qq.com/sns/jscode2session"
-  # 获取Access Token的URL
-  get_access_token_url: "https://api.weixin.qq.com/cgi-bin/token"
-  # 获取手机号的URL
-  get_phone_number_url: "https://api.weixin.qq.com/wxa/business/getuserphonenumber"
-  # 发送模板消息的URL
-  send_template_message_url: "https://api.weixin.qq.com/cgi-bin/message/subscribe/send"
-
-# 阿里云短信服务配置
-aliyun_sms:
-  # AccessKey ID
-  access_key_id: "your_aliyun_access_key_id"
-  # AccessKey Secret
-  access_key_secret: "your_aliyun_access_key_secret"
-  # 地域ID
-  region_id: "cn-hangzhou"
-  # 服务端点
-  endpoint: "dysmsapi.aliyuncs.com"
-  # 短信签名
-  sign_name: "your_sign_name"
-  # 团队通知短信模板码
-  team_notice_code: "your_team_notice_code"
-  # 支付通知短信模板码
-  payment_notice_code: "your_payment_notice_code"
 
 # 验证配置
 validation:

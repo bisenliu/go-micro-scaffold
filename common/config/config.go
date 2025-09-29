@@ -9,17 +9,15 @@ import (
 
 // Config 应用配置结构
 type Config struct {
-	System     SystemConfig              `mapstructure:"system"`
-	Token      TokenConfig               `mapstructure:"token"`
-	SnowFlake  SnowFlakeConfig           `mapstructure:"snow_flake"`
-	Database   DatabaseConfig            `mapstructure:"database"`
-	Databases  map[string]DatabaseConfig `mapstructure:"databases"` // 多数据库配置
-	Redis      RedisConfig               `mapstructure:"redis"`
-	Server     ServerConfig              `mapstructure:"server"`
-	Zap        ZapConfig                 `mapstructure:"zap"`
-	WeChat     WeChatConfig              `mapstructure:"wechat"`
-	AliyunSMS  AliyunSMSConfig           `mapstructure:"aliyun_sms"`
-	Validation ValidationConfig          `mapstructure:"validation"`
+	System         SystemConfig              `mapstructure:"system"`
+	Token          TokenConfig               `mapstructure:"token"`
+	SnowFlake      SnowFlakeConfig           `mapstructure:"snow_flake"`
+	DatabaseCommon DatabaseConfig            `mapstructure:"database_common"`
+	Databases      map[string]DatabaseConfig `mapstructure:"databases"`
+	Redis          RedisConfig               `mapstructure:"redis"`
+	Server         ServerConfig              `mapstructure:"server"`
+	Zap            ZapConfig                 `mapstructure:"zap"`
+	Validation     ValidationConfig          `mapstructure:"validation"`
 }
 
 type SystemConfig struct {
@@ -61,31 +59,6 @@ type ZapConfig struct {
 	MaxBackups int    `mapstructure:"max_backups"`
 }
 
-type WeChatConfig struct {
-	AppIDMini              string `mapstructure:"app_id_mini"`
-	SecretMini             string `mapstructure:"secret_mini"`
-	AppIDServe             string `mapstructure:"app_id_serve"`
-	SecretServe            string `mapstructure:"secret_serve"`
-	TeamStatusMessageID    string `mapstructure:"team_status_message_id"`
-	PaymentNoticeMessageID string `mapstructure:"payment_notice_message_id"`
-	MerchID                string `mapstructure:"merch_id"`
-	PaymentNotifyURL       string `mapstructure:"payment_notify_url"`
-	RefundNotifyURL        string `mapstructure:"refund_notify_url"`
-	GetOpenIDURL           string `mapstructure:"get_openid_url"`
-	GetAccessTokenURL      string `mapstructure:"get_access_token_url"`
-	GetPhoneNumberURL      string `mapstructure:"get_phone_number_url"`
-	SendTemplateMessageURL string `mapstructure:"send_template_message_url"`
-}
-
-type AliyunSMSConfig struct {
-	AccessKeyID       string `mapstructure:"access_key_id"`
-	AccessKeySecret   string `mapstructure:"access_key_secret"`
-	RegionID          string `mapstructure:"region_id"`
-	Endpoint          string `mapstructure:"endpoint"`
-	SignName          string `mapstructure:"sign_name"`
-	TeamNoticeCode    string `mapstructure:"team_notice_code"`
-	PaymentNoticeCode string `mapstructure:"payment_notice_code"`
-}
 
 type ValidationConfig struct {
 	Locale string `mapstructure:"locale"`
@@ -122,6 +95,44 @@ func NewConfig() (*Config, error) {
 	var config Config
 	if err := viper.Unmarshal(&config); err != nil {
 		return nil, err
+	}
+
+	// 将数据库公共配置合并到各个数据库实例配置中
+	for name, db := range config.Databases {
+		// 如果某个字段没有在具体数据库中设置，则使用公共配置的值
+		if db.Type == "" {
+			db.Type = config.DatabaseCommon.Type
+		}
+		if db.Host == "" {
+			db.Host = config.DatabaseCommon.Host
+		}
+		if db.Port == 0 {
+			db.Port = config.DatabaseCommon.Port
+		}
+		if db.Username == "" {
+			db.Username = config.DatabaseCommon.Username
+		}
+		if db.Password == "" {
+			db.Password = config.DatabaseCommon.Password
+		}
+		if db.Charset == "" {
+			db.Charset = config.DatabaseCommon.Charset
+		}
+		if db.MaxOpenConns == 0 {
+			db.MaxOpenConns = config.DatabaseCommon.MaxOpenConns
+		}
+		if db.MaxIdleConns == 0 {
+			db.MaxIdleConns = config.DatabaseCommon.MaxIdleConns
+		}
+		if db.ConnMaxLifetime == 0 {
+			db.ConnMaxLifetime = config.DatabaseCommon.ConnMaxLifetime
+		}
+		if db.ConnMaxIdleTime == 0 {
+			db.ConnMaxIdleTime = config.DatabaseCommon.ConnMaxIdleTime
+		}
+
+		// 更新配置
+		config.Databases[name] = db
 	}
 
 	return &config, nil
