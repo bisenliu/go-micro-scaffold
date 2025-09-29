@@ -7,9 +7,6 @@ const (
 
 	// ErrValidationFailed 验证失败错误消息
 	ErrValidationFailed = "请求参数验证失败"
-
-	// HTTP状态码
-	HTTPBadRequest = 400
 )
 
 // 标签常量
