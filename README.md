@@ -573,6 +573,8 @@ HTTP Response ← Interface Layer ← Application Layer ← Domain Layer
 
 有关 Uber FX 框架核心概念的详细说明，请参考 [FX 框架指南](FX_FRAMEWORK_GUIDE.md)。
 
+有关项目中各模块之间的具体依赖关系，请参考 [FX 依赖架构图](FX_DEPENDENCY_ARCHITECTURE.md)。
+
 ## 配置说明
 
 项目支持丰富的配置选项，详细配置说明请参考 [app.yaml.example](file:///Users/liubisen/Desktop/sander/Project/my/go-micro-scaffold/services/configs/app.yaml.example) 文件。
