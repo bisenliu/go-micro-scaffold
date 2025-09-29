@@ -22,7 +22,6 @@ type Config struct {
 
 type SystemConfig struct {
 	Env        string `mapstructure:"env"`
-	Port       string `mapstructure:"port"`
 	SecretKey  string `mapstructure:"secret_key"`
 	ServerName string `mapstructure:"server_name"`
 	Timezone   string `mapstructure:"timezone"` // 添加时区配置
@@ -58,7 +57,6 @@ type ZapConfig struct {
 	MaxSize    int    `mapstructure:"max_size"`
 	MaxBackups int    `mapstructure:"max_backups"`
 }
-
 
 type ValidationConfig struct {
 	Locale string `mapstructure:"locale"`

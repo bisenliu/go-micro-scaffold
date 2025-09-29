@@ -2,8 +2,6 @@
 system:
   # 运行环境 (development/production/test)
   env: "development"
-  # 服务端口
-  port: "8080"
   # 系统密钥，用于JWT签名等安全操作
   secret_key: "your_secret_key_here"
   # 服务名称
