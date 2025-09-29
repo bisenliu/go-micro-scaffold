@@ -98,10 +98,16 @@ func (r *UserRepositoryImpl) List(ctx context.Context, offset, limit int) ([]*en
 
 // List 获取用户列表
 func (r *UserRepositoryImpl) ListWithFilter(ctx context.Context, filter *repository.UserListFilter, offset, limit int) ([]*entity.User, int64, error) {
-	// 构建基础查询
+	// 构建基础查询（只构建一次）
 	baseQuery := r.buildUserQuery(filter)
 
-	// 查询用户列表
+	// 先查询总数（使用 Clone 避免修改原始查询）
+	total, err := baseQuery.Clone().Count(ctx)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to count users with filter: %w", err)
+	}
+
+	// 再查询分页数据（复用相同的查询条件）
 	entUsers, err := baseQuery.
 		Offset(offset).
 		Limit(limit).
@@ -109,12 +115,6 @@ func (r *UserRepositoryImpl) ListWithFilter(ctx context.Context, filter *reposit
 		All(ctx)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to query users with filter: %w", err)
-	}
-
-	// 查询总数（复用相同的过滤条件）
-	total, err := r.buildUserQuery(filter).Count(ctx)
-	if err != nil {
-		return nil, 0, fmt.Errorf("failed to count users with filter: %w", err)
 	}
 
 	// 转换为领域实体
