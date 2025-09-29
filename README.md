@@ -147,8 +147,6 @@ go-micro-scaffold/
 │   │   │   │   └── event_publisher.go
 │   │   │   └── persistence/ # 数据持久化
 │   │   │       └── ent/    # Ent ORM 实现
-│   │   │           ├── database_router.go # 数据库路由
-│   │   │           ├── ent_client_factory.go # 客户端工厂
 │   │   │           ├── generate.go # 代码生成
 │   │   │           ├── gen/    # Ent 生成的代码
 │   │   │           ├── repository/ # 仓储实现
