@@ -97,44 +97,6 @@ func NewConfig() (*Config, error) {
 		return nil, err
 	}
 
-	// 将数据库公共配置合并到各个数据库实例配置中
-	for name, db := range config.Databases {
-		// 如果某个字段没有在具体数据库中设置，则使用公共配置的值
-		if db.Type == "" {
-			db.Type = config.DatabaseCommon.Type
-		}
-		if db.Host == "" {
-			db.Host = config.DatabaseCommon.Host
-		}
-		if db.Port == 0 {
-			db.Port = config.DatabaseCommon.Port
-		}
-		if db.Username == "" {
-			db.Username = config.DatabaseCommon.Username
-		}
-		if db.Password == "" {
-			db.Password = config.DatabaseCommon.Password
-		}
-		if db.Charset == "" {
-			db.Charset = config.DatabaseCommon.Charset
-		}
-		if db.MaxOpenConns == 0 {
-			db.MaxOpenConns = config.DatabaseCommon.MaxOpenConns
-		}
-		if db.MaxIdleConns == 0 {
-			db.MaxIdleConns = config.DatabaseCommon.MaxIdleConns
-		}
-		if db.ConnMaxLifetime == 0 {
-			db.ConnMaxLifetime = config.DatabaseCommon.ConnMaxLifetime
-		}
-		if db.ConnMaxIdleTime == 0 {
-			db.ConnMaxIdleTime = config.DatabaseCommon.ConnMaxIdleTime
-		}
-
-		// 更新配置
-		config.Databases[name] = db
-	}
-
 	return &config, nil
 }
 

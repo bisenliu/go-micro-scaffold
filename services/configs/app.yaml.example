@@ -24,7 +24,7 @@ snow_flake:
   machine_id: 1
 
 # 数据库公共配置
-database_common:
+database_common: &database_common
   # 数据库类型(mysql/postgres/sqlite)
   type: "mysql"
   # 数据库主机地址
@@ -51,12 +51,14 @@ databases:
   # 数据库实例1
   db1:
     # 继承公共配置，可覆盖特定值
+    <<: *database_common
     # 数据库名称
     database: go-micro-scaffold
     
   # 数据库实例2
   db2:
     # 继承公共配置，可覆盖特定值
+    <<: *database_common
     # 数据库名称
     database: go-micro-scaffold
 
