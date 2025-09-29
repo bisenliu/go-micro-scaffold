@@ -45,9 +45,9 @@ func (v *userValidator) ValidateForCreation(ctx context.Context, phoneNumber, pa
 	}
 
 	// 验证密码
-	if err := v.passwordValidator.Validate(password); err != nil {
-		return err
-	}
+	// if err := v.passwordValidator.Validate(password); err != nil {
+	// 	return err
+	// }
 
 	// 验证姓名
 	if err := v.nameValidator.Validate(name); err != nil {

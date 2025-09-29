@@ -32,12 +32,20 @@ type Pagination struct {
 	TotalPages int   `json:"total_pages"` // 总页数
 }
 
+// PageData 分页数据结构
+type PageData struct {
+	Items      interface{} `json:"items"`
+	Page       int         `json:"page"`
+	PageSize   int         `json:"page_size"`
+	Total      int64       `json:"total"`
+	TotalPages int         `json:"total_pages"`
+}
+
 // PageResponse 分页响应结构
 type PageResponse struct {
-	Code       int         `json:"code"`
-	Message    string      `json:"message"`
-	Data       interface{} `json:"data"`
-	Pagination *Pagination `json:"pagination,omitempty"`
+	Code    int      `json:"code"`
+	Message string   `json:"message"`
+	Data    PageData `json:"data"`
 }
 
 // AppError 统一错误结构
@@ -128,12 +136,18 @@ func Success(c *gin.Context, data interface{}) {
 
 // SuccessWithPagination 分页成功响应
 func SuccessWithPagination(c *gin.Context, data interface{}, pagination *Pagination) {
+	pageData := PageData{
+		Items:      data,
+		Page:       pagination.Page,
+		PageSize:   pagination.PageSize,
+		Total:      pagination.Total,
+		TotalPages: pagination.TotalPages,
+	}
+
 	response := &PageResponse{
-		Code: CodeSuccess,
-		// 优化：使用 GetCodeMessage 替代硬编码 "success"
-		Message:    GetCodeMessage(CodeSuccess),
-		Data:       data,
-		Pagination: pagination,
+		Code:    CodeSuccess,
+		Message: GetCodeMessage(CodeSuccess),
+		Data:    pageData,
 	}
 	c.JSON(http.StatusOK, response)
 }

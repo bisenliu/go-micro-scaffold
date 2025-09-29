@@ -49,8 +49,9 @@ func setupUserAPIRoutes(rg *gin.RouterGroup, userHandler *handler.UserHandler, l
 	users := rg.Group("/users")
 	{
 		users.POST("", userHandler.CreateUser)
+		users.GET("", userHandler.ListUsers)
 		users.POST("/login", userHandler.Login)
 	}
 
-	logger.Info("User API routes registered", zap.Int("count", 5))
+	logger.Info("User API routes registered", zap.Int("count", 3))
 }
