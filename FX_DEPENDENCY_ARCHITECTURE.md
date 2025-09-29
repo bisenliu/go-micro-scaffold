@@ -130,4 +130,4 @@ graph TD
 
 ## 依赖关系文件
 
-[dependency-graph.dot](assets/dependency-graph.dot)
+[dependency-graph.dot](./assets/dependency-graph.dot)
