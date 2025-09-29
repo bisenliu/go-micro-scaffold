@@ -2,6 +2,7 @@ package ent
 
 import (
 	"context"
+	"services/internal/infrastructure/persistence/ent/gen"
 
 	"go.uber.org/fx"
 	"go.uber.org/zap"
@@ -20,9 +21,18 @@ var Module = fx.Module("business_ent",
 		return router
 	}),
 
-	// 提供主业务客户端（常用的快捷方式）
+	// 提供主业务客户
 	fx.Provide(func(router RouterInterface) (*BusinessClient, error) {
 		return router.Primary()
+	}),
+
+	// 提供主数据库的 gen.Client（用于仓储层）
+	fx.Provide(func(router RouterInterface) (*gen.Client, error) {
+		businessClient, err := router.Primary()
+		if err != nil {
+			return nil, err
+		}
+		return businessClient.Query(), nil
 	}),
 
 	// 生命周期管理

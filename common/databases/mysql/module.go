@@ -10,8 +10,6 @@ import (
 type ManagerInterface interface {
 	GetClient(name string) (ClientInterface, error)
 	Primary() (ClientInterface, error)
-	Read() (ClientInterface, error)
-	Write() (ClientInterface, error)
 	ListClients() []string
 	HasClient(name string) bool
 	Close() error
