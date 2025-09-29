@@ -62,7 +62,7 @@ func (b *ClientBuilder) BuildClient(name string) (*BusinessClient, error) {
 
 // BuildPrimary 构建主数据库客户端
 func (b *ClientBuilder) BuildPrimary() (*BusinessClient, error) {
-	return b.BuildClient("primary")
+	return b.BuildClient(mysql.DB1)
 }
 
 // Query 获取查询客户端
@@ -80,14 +80,12 @@ func (bc *BusinessClient) Close() error {
 	if err := bc.client.Close(); err != nil {
 		bc.logger.Error("Failed to close business client",
 			zap.String("client", bc.name),
-			zap.Error(err),
-		)
+			zap.Error(err))
 		return err
 	}
 
 	bc.logger.Info("Business client closed successfully",
-		zap.String("client", bc.name),
-	)
+		zap.String("client", bc.name))
 	return nil
 }
 
@@ -98,8 +96,7 @@ func (bc *BusinessClient) Migrate(ctx context.Context) error {
 	if err := bc.client.Schema.Create(ctx); err != nil {
 		bc.logger.Error("Database migration failed",
 			zap.String("client", bc.name),
-			zap.Error(err),
-		)
+			zap.Error(err))
 		return fmt.Errorf("migration failed for client '%s': %w", bc.name, err)
 	}
 

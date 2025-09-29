@@ -68,8 +68,7 @@ func NewManager(params ManagerParams) (*Manager, error) {
 
 	params.Logger.Info("Database manager initialized successfully",
 		zap.Int("client_count", len(manager.clients)),
-		zap.Strings("clients", configNames),
-	)
+		zap.Strings("clients", configNames))
 
 	return manager, nil
 }
@@ -88,13 +87,13 @@ func (m *Manager) GetClient(name string) (ClientInterface, error) {
 
 // Primary 获取主数据库客户端
 func (m *Manager) Primary() (ClientInterface, error) {
-	return m.GetClient("primary")
+	return m.GetClient(DB1)
 }
 
 // Read 获取读数据库客户端（读写分离场景）
 func (m *Manager) Read() (ClientInterface, error) {
-	// 优先使用read客户端，如果没有则使用primary
-	if client, err := m.GetClient("read"); err == nil {
+	// 优先使用read客户端，如果没有则使用db1
+	if client, err := m.GetClient(ReadDB); err == nil {
 		return client, nil
 	}
 	return m.Primary()
@@ -102,8 +101,8 @@ func (m *Manager) Read() (ClientInterface, error) {
 
 // Write 获取写数据库客户端（读写分离场景）
 func (m *Manager) Write() (ClientInterface, error) {
-	// 优先使用write客户端，如果没有则使用primary
-	if client, err := m.GetClient("write"); err == nil {
+	// 优先使用write客户端，如果没有则使用db1
+	if client, err := m.GetClient(WriteDB); err == nil {
 		return client, nil
 	}
 	return m.Primary()
@@ -145,8 +144,7 @@ func (m *Manager) closeAllClients() error {
 		if err := client.Close(); err != nil {
 			m.logger.Error("Failed to close database client",
 				zap.String("name", name),
-				zap.Error(err),
-			)
+				zap.Error(err))
 			lastErr = err
 		}
 	}

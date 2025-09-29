@@ -127,34 +127,5 @@ func NewConfig() (*Config, error) {
 	return &config, nil
 }
 
-// GetDatabaseConfig 获取数据库配置，支持向后兼容
-func (c *Config) GetDatabaseConfig(name string) (DatabaseConfig, bool) {
-	// 如果指定了databases配置，优先使用
-	if c.Databases != nil {
-		if config, exists := c.Databases[name]; exists {
-			return config, true
-		}
-	}
-
-	// 向后兼容：如果请求primary且没有databases配置，使用database配置
-	if name == "primary" && c.Databases == nil {
-		return c.Database, true
-	}
-
-	return DatabaseConfig{}, false
-}
-
-// GetAllDatabaseConfigs 获取所有数据库配置
-func (c *Config) GetAllDatabaseConfigs() map[string]DatabaseConfig {
-	if c.Databases != nil {
-		return c.Databases
-	}
-
-	// 向后兼容：如果没有databases配置，返回primary数据库
-	return map[string]DatabaseConfig{
-		"primary": c.Database,
-	}
-}
-
 // Module FX模块
 var Module = fx.Provide(NewConfig)

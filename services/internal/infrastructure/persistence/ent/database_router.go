@@ -56,8 +56,7 @@ func NewRouter(manager mysql.ManagerInterface, logger *zap.Logger) (*Router, err
 
 	logger.Info("Database router initialized successfully",
 		zap.Int("client_count", len(router.clients)),
-		zap.Strings("clients", clientNames),
-	)
+		zap.Strings("clients", clientNames))
 
 	return router, nil
 }
@@ -76,13 +75,13 @@ func (r *Router) GetClient(name string) (*BusinessClient, error) {
 
 // Primary 获取主数据库客户端
 func (r *Router) Primary() (*BusinessClient, error) {
-	return r.GetClient("primary")
+	return r.GetClient(mysql.DB1)
 }
 
 // Read 获取读数据库客户端（读写分离场景）
 func (r *Router) Read() (*BusinessClient, error) {
-	// 优先使用read客户端，如果没有则使用primary
-	if client, err := r.GetClient("read"); err == nil {
+	// 优先使用read客户端，如果没有则使用db1
+	if client, err := r.GetClient(mysql.ReadDB); err == nil {
 		return client, nil
 	}
 	return r.Primary()
@@ -90,8 +89,8 @@ func (r *Router) Read() (*BusinessClient, error) {
 
 // Write 获取写数据库客户端（读写分离场景）
 func (r *Router) Write() (*BusinessClient, error) {
-	// 优先使用write客户端，如果没有则使用primary
-	if client, err := r.GetClient("write"); err == nil {
+	// 优先使用write客户端，如果没有则使用db1
+	if client, err := r.GetClient(mysql.WriteDB); err == nil {
 		return client, nil
 	}
 	return r.Primary()
@@ -99,7 +98,7 @@ func (r *Router) Write() (*BusinessClient, error) {
 
 // Analytics 获取分析数据库客户端（如果配置了的话）
 func (r *Router) Analytics() (*BusinessClient, error) {
-	return r.GetClient("analytics")
+	return r.GetClient(mysql.DB2)
 }
 
 // ListClients 列出所有可用的数据库客户端名称
@@ -138,8 +137,7 @@ func (r *Router) closeAllClients() error {
 		if err := client.Close(); err != nil {
 			r.logger.Error("Failed to close business client",
 				zap.String("name", name),
-				zap.Error(err),
-			)
+				zap.Error(err))
 			lastErr = err
 		}
 	}
@@ -177,5 +175,5 @@ func (r *Router) GetGenClient(name string) (*gen.Client, error) {
 
 // PrimaryGenClient 获取主数据库的原生 gen.Client（用于向后兼容）
 func (r *Router) PrimaryGenClient() (*gen.Client, error) {
-	return r.GetGenClient("primary")
+	return r.GetGenClient(mysql.DB1)
 }
