@@ -135,7 +135,7 @@ func (h *UserHandler) Login(c *gin.Context) {
 	// 假设已经验证了用户身份，用户ID为123，用户名为"testuser"
 
 	// 生成token
-	token, err := h.jwtService.GenToken("123", "testuser")
+	token, err := h.jwtService.Generate("123", "testuser")
 	if err != nil {
 		response.BusinessError(c, response.CodeBusinessError, "Failed to generate token")
 		return

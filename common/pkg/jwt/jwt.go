@@ -21,12 +21,12 @@ func NewJWT(cfg *config.Config) *JWT {
 	}
 }
 
-// GenToken 生成JWT
+// Generate 生成JWT
 // @param userID 用户ID
 // @param username 用户名
 // @return string token
 // @return error 生成失败异常
-func (j *JWT) GenToken(userID string, username string) (string, error) {
+func (j *JWT) Generate(userID string, username string) (string, error) {
 	// 创建一个我们自己的声明
 	claims := CustomClaims{
 		UserID:   userID,

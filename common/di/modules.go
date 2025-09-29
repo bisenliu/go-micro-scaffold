@@ -43,7 +43,7 @@ var JWTModule = fx.Module("jwt",
 	jwt.Module,
 )
 
-// HTTPModule HTTP模块
+// HTTPModule 基础gin.Engine
 var HTTPModule = fx.Module("http",
 	http.Module,
 )

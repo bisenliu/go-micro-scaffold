@@ -37,8 +37,13 @@ type SnowFlakeConfig struct {
 }
 
 type ServerConfig struct {
-	Port string `mapstructure:"port"`
-	Mode string `mapstructure:"mode"`
+	Port           string        `mapstructure:"port"`
+	Mode           string        `mapstructure:"mode"`
+	EnableCORS     bool          `mapstructure:"enable_cors"`
+	ReadTimeout    time.Duration `mapstructure:"read_timeout"`
+	WriteTimeout   time.Duration `mapstructure:"write_timeout"`
+	IdleTimeout    time.Duration `mapstructure:"idle_timeout"`
+	MaxHeaderBytes int           `mapstructure:"maxHeaderBytes"`
 }
 
 type RedisConfig struct {
