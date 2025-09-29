@@ -47,7 +47,7 @@ func ToUserInfoResponse(user *entity.User) *UserInfoResponse {
 }
 
 // ToUserListResponse 将用户实体列表转换为用户列表响应
-func ToUserListResponse(users []*entity.User, total int64, page, pageSize int) ([]*UserInfoResponse, *commonresponse.Pagination) {
+func ToUserListResponse(users []*entity.User, total int64, page, pageSize int) ([]*UserInfoResponse, *commonResponse.Pagination) {
 	userResponses := make([]*UserInfoResponse, 0, len(users))
 	for _, user := range users {
 		userResponses = append(userResponses, ToUserInfoResponse(user))
