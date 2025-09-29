@@ -55,7 +55,6 @@ type (
 		log func(...any)
 		// hooks to execute on mutations.
 		hooks *hooks
-		// interceptors to execute on queries.
 		inters *inters
 	}
 	// Option function to configure the client.

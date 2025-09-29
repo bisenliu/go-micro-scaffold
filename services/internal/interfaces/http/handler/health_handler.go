@@ -15,10 +15,10 @@ import (
 
 // HealthHandler 健康检查处理器
 type HealthHandler struct {
-	mysqlClient *mysql.EntClient
-	redisClient *redis.RedisClient
-	config      *config.Config
-	logger      *zap.Logger
+	mysqlManager mysql.ManagerInterface
+	redisClient  *redis.RedisClient
+	config       *config.Config
+	logger       *zap.Logger
 }
 
 // Ensure HealthHandler implements Handler interface
@@ -26,16 +26,16 @@ var _ Handler = (*HealthHandler)(nil)
 
 // NewHealthHandler 创建健康检查处理器
 func NewHealthHandler(
-	mysqlClient *mysql.EntClient,
+	mysqlManager mysql.ManagerInterface,
 	redisClient *redis.RedisClient,
 	config *config.Config,
 	logger *zap.Logger,
 ) *HealthHandler {
 	return &HealthHandler{
-		mysqlClient: mysqlClient,
-		redisClient: redisClient,
-		config:      config,
-		logger:      logger,
+		mysqlManager: mysqlManager,
+		redisClient:  redisClient,
+		config:       config,
+		logger:       logger,
 	}
 }
 
@@ -86,7 +86,11 @@ func (h *HealthHandler) Health(c *gin.Context) {
 
 // checkDatabase 检查数据库连接
 func (h *HealthHandler) checkDatabase(ctx context.Context) error {
-	return h.mysqlClient.DB().PingContext(ctx)
+	client, err := h.mysqlManager.Primary()
+	if err != nil {
+		return err
+	}
+	return client.Ping(ctx)
 }
 
 // checkRedis 检查Redis连接

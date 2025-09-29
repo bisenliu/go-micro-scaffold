@@ -153,7 +153,7 @@ func (r *UserRepositoryImpl) buildUserQuery(filter *repository.UserListFilter) *
 		query = query.Where(entuser.CreatedAtGTE(*filter.StartTime))
 	}
 	if filter.EndTime != nil {
-		query = query.Where(entuser.CreatedAtLTE(*filter.EndTime))
+		query = query.Where(entuser.CreatedAtLT(*filter.EndTime))
 	}
 
 	return query

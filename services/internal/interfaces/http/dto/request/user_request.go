@@ -21,8 +21,8 @@ type ListUsersRequest struct {
 	PageSize  int        `form:"page_size" binding:"omitempty,min=1" label:"每页大小"`
 	Name      string     `form:"name" binding:"omitempty,max=50" label:"姓名"`
 	Gender    *int       `form:"gender" binding:"omitempty,oneof=100 200 300" label:"性别"`
-	StartTime *time.Time `form:"start_time" binding:"omitempty" time_format:"2006-01-02T15:04:05Z07:00" label:"开始时间"`
-	EndTime   *time.Time `form:"end_time" binding:"omitempty" time_format:"2006-01-02T15:04:05Z07:00" label:"结束时间"`
+	StartTime *time.Time `form:"start_time" binding:"omitempty" time_format:"2006-01-02" label:"开始时间"`
+	EndTime   *time.Time `form:"end_time" binding:"omitempty" time_format:"2006-01-02" label:"结束时间"`
 }
 
 // SetDefaults 设置默认值

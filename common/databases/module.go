@@ -9,9 +9,7 @@ import (
 
 // MySQLModule provides MySQL related functionalities
 var MySQLModule = fx.Module("mysql",
-	mysql.EntModule,
-	mysql.DatabaseManagerModule,
-	mysql.EntServiceModule,
+	mysql.Module,
 )
 
 // RedisModule provides Redis related functionalities

@@ -10,17 +10,17 @@ import (
 
 // InfrastructureModule 基础设施模块
 var InfrastructureModule = fx.Module("infrastructure",
-	// 提供Ent客户端工厂
+	// 包含 Ent 模块
+	ent.Module,
+
+	// 提供向后兼容的主数据库客户端
 	fx.Provide(
-		// Ent客户端工厂
-		ent.NewEntClientFactory,
-
-		// 数据库路由器
-		ent.NewDatabaseRouter,
-
-		// 向后兼容：提供主数据库客户端
-		func(router *ent.DatabaseRouter) (*gen.Client, error) {
-			return router.Primary()
+		func(router ent.RouterInterface) (*gen.Client, error) {
+			client, err := router.Primary()
+			if err != nil {
+				return nil, err
+			}
+			return client.Query(), nil
 		},
 	),
 
