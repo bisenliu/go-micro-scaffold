@@ -36,9 +36,6 @@ func main() {
 		// 接口模块 - 使用重构后的模块
 		http.InterfaceModuleFinal,
 
-		// CLI特定的提供者
-		// fx.Provide(cli.NewUserCLI),
-
 		// CLI入口点
 		fx.Invoke(runCLI),
 	)
