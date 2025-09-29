@@ -64,19 +64,19 @@ type ValidationConfig struct {
 
 // DatabaseConfig 数据库配置
 type DatabaseConfig struct {
-	Type     string `mapstructure:"type" json:"type" yaml:"type"` // "mysql", "postgres", "sqlite" 等
-	Host     string `mapstructure:"host" json:"host" yaml:"host"`
-	Port     int    `mapstructure:"port" json:"port" yaml:"port"`
-	Database string `mapstructure:"database" json:"database" yaml:"database"`
-	Username string `mapstructure:"username" json:"username" yaml:"username"`
-	Password string `mapstructure:"password" json:"password" yaml:"password"`
-	Charset  string `mapstructure:"charset" json:"charset" yaml:"charset"`
+	Type     string `mapstructure:"type"` // "mysql", "postgres", "sqlite" 等
+	Host     string `mapstructure:"host"`
+	Port     int    `mapstructure:"port"`
+	Database string `mapstructure:"database"`
+	Username string `mapstructure:"username"`
+	Password string `mapstructure:"password"`
+	Charset  string `mapstructure:"charset"`
 
 	// 连接池配置
-	MaxOpenConns    int           `mapstructure:"max_open_conns" json:"max_open_conns" yaml:"max_open_conns"`
-	MaxIdleConns    int           `mapstructure:"max_idle_conns" json:"max_idle_conns" yaml:"max_idle_conns"`
-	ConnMaxLifetime time.Duration `mapstructure:"conn_max_lifetime" json:"conn_max_lifetime" yaml:"conn_max_lifetime"`
-	ConnMaxIdleTime time.Duration `mapstructure:"conn_max_idle_time" json:"conn_max_idle_time" yaml:"conn_max_idle_time"`
+	MaxOpenConns    int           `mapstructure:"max_open_conns"`
+	MaxIdleConns    int           `mapstructure:"max_idle_conns"`
+	ConnMaxLifetime time.Duration `mapstructure:"conn_max_lifetime"`
+	ConnMaxIdleTime time.Duration `mapstructure:"conn_max_idle_time"`
 }
 
 // NewConfig 创建配置实例
