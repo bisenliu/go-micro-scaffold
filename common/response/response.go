@@ -34,11 +34,8 @@ type Pagination struct {
 
 // PageData 分页数据结构
 type PageData struct {
-	Items      interface{} `json:"items"`
-	Page       int         `json:"page"`
-	PageSize   int         `json:"page_size"`
-	Total      int64       `json:"total"`
-	TotalPages int         `json:"total_pages"`
+	Items interface{} `json:"items"`
+	*Pagination
 }
 
 // AppError 统一错误结构
@@ -52,29 +49,6 @@ type AppError struct {
 func (e *AppError) Error() string {
 	return e.Message
 }
-
-// 预定义错误
-var (
-	ErrInvalidParams = &AppError{
-		Type: ErrorTypeValidation,
-		Code: CodeInvalidParams,
-	}
-
-	ErrUnauthorized = &AppError{
-		Type: ErrorTypeAuth,
-		Code: CodeUnauthorized,
-	}
-
-	ErrInternalError = &AppError{
-		Type: ErrorTypeSystem,
-		Code: CodeInternalError,
-	}
-
-	ErrThirdPartyError = &AppError{
-		Type: ErrorTypeThirdParty,
-		Code: CodeThirdPartyError,
-	}
-)
 
 // NewAppError 创建自定义错误
 // 如果 message 为空，将自动从 codes.go 中获取对应的消息
@@ -107,52 +81,50 @@ func getHTTPStatusByErrorType(errorType ErrorType) int {
 	}
 }
 
-// Success 统一的成功响应方法
-func Success(c *gin.Context, data interface{}) {
-	response := &BaseResponse{
+// buildSuccessResponse 构建成功响应的通用方法
+func buildSuccessResponse(data interface{}) *BaseResponse {
+	return &BaseResponse{
 		Code:    CodeSuccess,
 		Message: GetCodeMessage(CodeSuccess),
 		Data:    data,
 	}
-	c.JSON(http.StatusOK, response)
+}
+
+// Success 统一的成功响应方法
+func Success(c *gin.Context, data interface{}) {
+	c.JSON(http.StatusOK, buildSuccessResponse(data))
 }
 
 // SuccessWithPagination 分页成功响应
 func SuccessWithPagination(c *gin.Context, data interface{}, pagination *Pagination) {
 	pageData := PageData{
 		Items:      data,
-		Page:       pagination.Page,
-		PageSize:   pagination.PageSize,
-		Total:      pagination.Total,
-		TotalPages: pagination.TotalPages,
+		Pagination: pagination,
 	}
 
-	response := &BaseResponse{
-		Code:    CodeSuccess,
-		Message: GetCodeMessage(CodeSuccess),
-		Data:    pageData,
-	}
-	c.JSON(http.StatusOK, response)
+	c.JSON(http.StatusOK, buildSuccessResponse(pageData))
 }
 
 // Error 统一的错误响应方法（使用AppError）
 func Error(c *gin.Context, err *AppError) {
 	httpStatus := getHTTPStatusByErrorType(err.Type)
-
-	response := &BaseResponse{
+	c.JSON(httpStatus, &BaseResponse{
 		Code:    err.Code,
 		Message: err.Message,
 		Errors:  err.Errors,
-	}
-
-	c.JSON(httpStatus, response)
+	})
 }
 
 // --- 快捷错误响应函数
 
-// BadRequest 400错误响应
+// BadRequest 400错误响应（参数格式错误、缺失必填字段等）
 func BadRequest(c *gin.Context, message string) {
 	Error(c, NewAppError(ErrorTypeValidation, CodeInvalidParams, message, nil))
+}
+
+// ValidationError 验证错误响应
+func ValidationError(c *gin.Context, message string, errors interface{}) {
+	Error(c, NewAppError(ErrorTypeValidation, CodeValidationError, message, errors))
 }
 
 // Unauthorized 401错误响应
@@ -173,9 +145,4 @@ func InternalServerError(c *gin.Context, message string) {
 // ThirdPartyError 502错误响应
 func ThirdPartyError(c *gin.Context, message string) {
 	Error(c, NewAppError(ErrorTypeThirdParty, CodeThirdPartyError, message, nil))
-}
-
-// ValidationError 验证错误响应
-func ValidationError(c *gin.Context, message string, errors interface{}) {
-	Error(c, NewAppError(ErrorTypeValidation, CodeValidationError, message, errors))
 }

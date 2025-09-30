@@ -13,7 +13,6 @@ type UserValidator interface {
 	ValidatePhoneNumber(phoneNumber string) error
 	ValidatePassword(password string) error
 	ValidateName(name string) error
-	ValidateGender(gender int) error
 }
 
 // userValidator 用户验证器实现
@@ -54,11 +53,6 @@ func (v *userValidator) ValidateForCreation(ctx context.Context, phoneNumber, pa
 		return err
 	}
 
-	// 验证性别
-	if err := v.ValidateGender(gender); err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -87,12 +81,6 @@ func (v *userValidator) ValidateForUpdate(ctx context.Context, userID string, up
 		}
 	}
 
-	if gender, ok := updates["gender"].(int); ok {
-		if err := v.ValidateGender(gender); err != nil {
-			return err
-		}
-	}
-
 	return nil
 }
 
@@ -109,13 +97,4 @@ func (v *userValidator) ValidatePassword(password string) error {
 // ValidateName 验证姓名
 func (v *userValidator) ValidateName(name string) error {
 	return v.nameValidator.Validate(name)
-}
-
-// ValidateGender 验证性别
-func (v *userValidator) ValidateGender(gender int) error {
-	// 假设性别值：0-未知，1-男，2-女
-	if gender < 0 || gender > 2 {
-		return ErrInvalidGender
-	}
-	return nil
 }

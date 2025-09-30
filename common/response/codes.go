@@ -71,7 +71,7 @@ func IsSuccessCode(code int) bool {
 	return code == CodeSuccess
 }
 
-// IsClientError 判断是否为客户端错误 (参数验证错误)
+// IsClientError 判断是否为客户端错误 (参数错误、验证错误等)
 func IsClientError(code int) bool {
 	return code >= 1000 && code < 2000
 }
