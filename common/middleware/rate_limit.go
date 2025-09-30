@@ -28,7 +28,7 @@ func RateLimitMiddleware(fillInterval int64, capacity int64, zapLogger *zap.Logg
 				zap.String("path", c.Request.URL.Path),
 				zap.String("method", c.Request.Method))
 
-			response.BusinessError(c, response.CodeServiceUnavailable, "Rate limit exceeded")
+			response.BadRequest(c, "Rate limit exceeded")
 			c.Abort()
 			return
 		}

@@ -80,9 +80,7 @@ func (h *UserHandler) ListUsers(c *gin.Context) {
 	logger.Info(ctx, "Listing users", zap.String("request_id", "list_users"))
 
 	var req requestdto.ListUsersRequest
-	if err := c.ShouldBindQuery(&req); err != nil {
-		logger.Error(ctx, "参数绑定失败", zap.Error(err))
-		response.BadRequest(c, err.Error())
+	if !h.validator.Verify(c, &req, validation.QueryBindAdapter) {
 		return
 	}
 
@@ -113,7 +111,7 @@ func (h *UserHandler) ListUsers(c *gin.Context) {
 	users, total, err := h.queryHandler.HandleListUsers(ctx, query)
 	if err != nil {
 		logger.Error(ctx, "查询用户列表失败", zap.Error(err))
-		response.BusinessError(c, response.CodeBusinessError, "查询用户列表失败")
+		response.BadRequest(c, "查询用户列表失败")
 		return
 	}
 
@@ -137,7 +135,7 @@ func (h *UserHandler) Login(c *gin.Context) {
 	// 生成token
 	token, err := h.jwtService.Generate("123", "testuser")
 	if err != nil {
-		response.BusinessError(c, response.CodeBusinessError, "Failed to generate token")
+		response.BadRequest(c, "Failed to generate token")
 		return
 	}
 

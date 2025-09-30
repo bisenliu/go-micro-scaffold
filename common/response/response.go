@@ -11,17 +11,17 @@ type ErrorType int
 
 const (
 	ErrorTypeValidation ErrorType = iota // 验证错误
-	ErrorTypeBusiness                    // 业务错误
 	ErrorTypeSystem                      // 系统错误
 	ErrorTypeAuth                        // 认证错误
+	ErrorTypeThirdParty                  // 第三方服务错误
 )
 
-// BaseResponse 基础响应结构 (保持与您的版本一致，已包含 Details)
+// BaseResponse 基础响应结构
 type BaseResponse struct {
 	Code    int         `json:"code"`             // 业务状态码
 	Message string      `json:"message"`          // 响应消息
 	Data    interface{} `json:"data,omitempty"`   // 响应数据
-	Errors  interface{} `json:"errors,omitempty"` // 错误详情(用于验证错误等)
+	Errors  interface{} `json:"errors,omitempty"` // 错误详情
 }
 
 // Pagination 分页信息
@@ -39,13 +39,6 @@ type PageData struct {
 	PageSize   int         `json:"page_size"`
 	Total      int64       `json:"total"`
 	TotalPages int         `json:"total_pages"`
-}
-
-// PageResponse 分页响应结构
-type PageResponse struct {
-	Code    int      `json:"code"`
-	Message string   `json:"message"`
-	Data    PageData `json:"data"`
 }
 
 // AppError 统一错误结构
@@ -72,24 +65,14 @@ var (
 		Code: CodeUnauthorized,
 	}
 
-	ErrForbidden = &AppError{
-		Type: ErrorTypeAuth,
-		Code: CodeForbidden,
-	}
-
-	ErrNotFound = &AppError{
-		Type: ErrorTypeBusiness,
-		Code: CodeNotFound,
-	}
-
 	ErrInternalError = &AppError{
 		Type: ErrorTypeSystem,
 		Code: CodeInternalError,
 	}
 
-	ErrServiceUnavailable = &AppError{
-		Type: ErrorTypeSystem,
-		Code: CodeServiceUnavailable,
+	ErrThirdPartyError = &AppError{
+		Type: ErrorTypeThirdParty,
+		Code: CodeThirdPartyError,
 	}
 )
 
@@ -112,15 +95,15 @@ func NewAppError(errorType ErrorType, code int, message string, errors interface
 func getHTTPStatusByErrorType(errorType ErrorType) int {
 	switch errorType {
 	case ErrorTypeValidation:
-		return http.StatusBadRequest
+		return http.StatusBadRequest // 400
 	case ErrorTypeAuth:
-		return http.StatusUnauthorized
-	case ErrorTypeBusiness:
-		return http.StatusOK // 业务错误通常返回200，通过业务码区分
+		return http.StatusUnauthorized // 401
 	case ErrorTypeSystem:
-		return http.StatusInternalServerError
+		return http.StatusInternalServerError // 500
+	case ErrorTypeThirdParty:
+		return http.StatusBadGateway // 502
 	default:
-		return http.StatusInternalServerError
+		return http.StatusInternalServerError // 500
 	}
 }
 
@@ -144,7 +127,7 @@ func SuccessWithPagination(c *gin.Context, data interface{}, pagination *Paginat
 		TotalPages: pagination.TotalPages,
 	}
 
-	response := &PageResponse{
+	response := &BaseResponse{
 		Code:    CodeSuccess,
 		Message: GetCodeMessage(CodeSuccess),
 		Data:    pageData,
@@ -154,9 +137,6 @@ func SuccessWithPagination(c *gin.Context, data interface{}, pagination *Paginat
 
 // Error 统一的错误响应方法（使用AppError）
 func Error(c *gin.Context, err *AppError) {
-	// 注意：NewAppError 已经处理了 Message 为空的情况，
-	// 所以这里不再需要重复检查和获取 Message，只需确保 AppError 构造正确。
-
 	httpStatus := getHTTPStatusByErrorType(err.Type)
 
 	response := &BaseResponse{
@@ -185,22 +165,17 @@ func Forbidden(c *gin.Context, message string) {
 	Error(c, NewAppError(ErrorTypeAuth, CodeForbidden, message, nil))
 }
 
-// NotFound 404错误响应
-func NotFound(c *gin.Context, message string) {
-	Error(c, NewAppError(ErrorTypeBusiness, CodeNotFound, message, nil))
-}
-
 // InternalServerError 500错误响应
 func InternalServerError(c *gin.Context, message string) {
 	Error(c, NewAppError(ErrorTypeSystem, CodeInternalError, message, nil))
 }
 
-// BusinessError 业务错误响应
-func BusinessError(c *gin.Context, code int, message string) {
-	Error(c, NewAppError(ErrorTypeBusiness, code, message, nil))
+// ThirdPartyError 502错误响应
+func ThirdPartyError(c *gin.Context, message string) {
+	Error(c, NewAppError(ErrorTypeThirdParty, CodeThirdPartyError, message, nil))
 }
 
 // ValidationError 验证错误响应
-func ValidationError(c *gin.Context, message string, errors map[string]string) {
+func ValidationError(c *gin.Context, message string, errors interface{}) {
 	Error(c, NewAppError(ErrorTypeValidation, CodeValidationError, message, errors))
 }
