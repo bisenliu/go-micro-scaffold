@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"services/internal/infrastructure/persistence/ent/gen/casbinrule"
 	"services/internal/infrastructure/persistence/ent/gen/commonschema"
 	"services/internal/infrastructure/persistence/ent/gen/user"
 	"sync"
@@ -74,6 +75,7 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
+			casbinrule.Table:   casbinrule.ValidColumn,
 			commonschema.Table: commonschema.ValidColumn,
 			user.Table:         user.ValidColumn,
 		})

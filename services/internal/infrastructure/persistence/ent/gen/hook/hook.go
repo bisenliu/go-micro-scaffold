@@ -8,6 +8,18 @@ import (
 	"services/internal/infrastructure/persistence/ent/gen"
 )
 
+// The CasbinRuleFunc type is an adapter to allow the use of ordinary
+// function as CasbinRule mutator.
+type CasbinRuleFunc func(context.Context, *gen.CasbinRuleMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CasbinRuleFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.CasbinRuleMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.CasbinRuleMutation", m)
+}
+
 // The CommonSchemaFunc type is an adapter to allow the use of ordinary
 // function as CommonSchema mutator.
 type CommonSchemaFunc func(context.Context, *gen.CommonSchemaMutation) (gen.Value, error)

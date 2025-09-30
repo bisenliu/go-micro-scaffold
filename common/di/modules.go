@@ -7,6 +7,7 @@ import (
 	"common/databases"
 	"common/http"
 	"common/logger"
+	"common/pkg/casbin"
 	"common/pkg/idgen"
 	"common/pkg/jwt"
 	"common/pkg/timezone"
@@ -53,6 +54,11 @@ var TimezoneModule = fx.Module("timezone",
 	timezone.Module,
 )
 
+// CasbinModule Casbin权限模块
+var CasbinModule = fx.Module("casbin",
+	casbin.Module,
+)
+
 // GetCoreModules 获取核心模块，用于CLI和其他应用
 func GetCoreModules() fx.Option {
 	return fx.Options(
@@ -64,6 +70,7 @@ func GetCoreModules() fx.Option {
 		IDGenModule,
 		JWTModule,
 		TimezoneModule,
+		CasbinModule,
 	)
 }
 
