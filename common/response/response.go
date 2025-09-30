@@ -10,7 +10,7 @@ import (
 type ErrorType int
 
 const (
-	ErrorTypeValidation ErrorType = iota // 验证错误
+	ErrorTypeBusiness   ErrorType = iota // 业务逻辑错误(验证错误、业务错误等)
 	ErrorTypeSystem                      // 系统错误
 	ErrorTypeAuth                        // 认证错误
 	ErrorTypeThirdParty                  // 第三方服务错误
@@ -68,7 +68,7 @@ func NewAppError(errorType ErrorType, code int, message string, errors interface
 // getHTTPStatusByErrorType 根据错误类型获取HTTP状态码
 func getHTTPStatusByErrorType(errorType ErrorType) int {
 	switch errorType {
-	case ErrorTypeValidation:
+	case ErrorTypeBusiness:
 		return http.StatusBadRequest // 400
 	case ErrorTypeAuth:
 		return http.StatusUnauthorized // 401
@@ -119,12 +119,12 @@ func Error(c *gin.Context, err *AppError) {
 
 // BadRequest 400错误响应（参数格式错误、缺失必填字段等）
 func BadRequest(c *gin.Context, message string) {
-	Error(c, NewAppError(ErrorTypeValidation, CodeInvalidParams, message, nil))
+	Error(c, NewAppError(ErrorTypeBusiness, CodeInvalidParams, message, nil))
 }
 
 // ValidationError 验证错误响应
 func ValidationError(c *gin.Context, message string, errors interface{}) {
-	Error(c, NewAppError(ErrorTypeValidation, CodeValidationError, message, errors))
+	Error(c, NewAppError(ErrorTypeBusiness, CodeValidationError, message, errors))
 }
 
 // Unauthorized 401错误响应
