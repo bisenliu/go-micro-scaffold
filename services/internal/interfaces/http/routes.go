@@ -8,9 +8,8 @@ import (
 
 	commonMiddleware "common/middleware"
 	"common/response"
-	"services/internal/application/service"
+	serviceInterface "services/internal/application/service"
 	"services/internal/interfaces/http/handler"
-	"services/internal/interfaces/http/middleware"
 )
 
 // SetupRoutesFinal
@@ -18,7 +17,7 @@ func SetupRoutesFinal(
 	engine *gin.Engine,
 	userHandler *handler.UserHandler,
 	healthHandler *handler.HealthHandler,
-	permissionService *service.PermissionService,
+	permissionService *serviceInterface.PermissionService,
 	zapLogger *zap.Logger,
 ) {
 	engine.Use(commonMiddleware.LoggerMiddleware(zapLogger))
@@ -28,7 +27,7 @@ func SetupRoutesFinal(
 
 	// 2. API v1 路由组（需要认证和授权）
 	v1 := engine.Group("/api/v1")
-	v1.Use(middleware.CasbinAuthzMiddleware(permissionService, zapLogger))
+	v1.Use(commonMiddleware.CasbinMiddleware(permissionService.Enforce, zapLogger))
 	{
 		// 添加认证中间件
 		setupUserAPIRoutes(v1, userHandler, zapLogger)
@@ -64,7 +63,7 @@ func setupUserAPIRoutes(rg *gin.RouterGroup, userHandler *handler.UserHandler, l
 }
 
 // initExamplePolicies 初始化示例权限策略
-func initExamplePolicies(permissionService *service.PermissionService, logger *zap.Logger) {
+func initExamplePolicies(permissionService *serviceInterface.PermissionService, logger *zap.Logger) {
 	ctx := context.Background()
 
 	// 添加一些示例策略

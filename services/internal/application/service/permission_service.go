@@ -6,6 +6,8 @@ import (
 
 	"github.com/casbin/casbin/v2"
 	"go.uber.org/zap"
+
+	commonService "common/service"
 )
 
 // PermissionService 权限服务
@@ -13,6 +15,9 @@ type PermissionService struct {
 	enforcer *casbin.SyncedCachedEnforcer
 	logger   *zap.Logger
 }
+
+// 确保PermissionService实现了common/service包中的PermissionServiceInterface接口
+var _ commonService.PermissionServiceInterface = (*PermissionService)(nil)
 
 // NewPermissionService 创建权限服务实例
 func NewPermissionService(enforcer *casbin.SyncedCachedEnforcer, logger *zap.Logger) *PermissionService {
