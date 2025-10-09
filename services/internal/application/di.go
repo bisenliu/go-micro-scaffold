@@ -5,6 +5,7 @@ import (
 
 	"services/internal/application/commandhandler"
 	"services/internal/application/queryhandler"
+	"services/internal/application/service"
 )
 
 // ApplicationModule 应用模块
@@ -15,5 +16,8 @@ var ApplicationModule = fx.Module("application",
 
 		// 查询处理器
 		queryhandler.NewUserQueryHandler,
+
+		// 权限服务
+		service.NewPermissionService,
 	),
 )

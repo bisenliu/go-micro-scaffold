@@ -70,7 +70,6 @@ func GetCoreModules() fx.Option {
 		IDGenModule,
 		JWTModule,
 		TimezoneModule,
-		CasbinModule,
 	)
 }
 

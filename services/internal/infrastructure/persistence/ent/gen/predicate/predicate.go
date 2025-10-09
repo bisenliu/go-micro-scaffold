@@ -6,9 +6,6 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
-// CasbinRule is the predicate function for casbinrule builders.
-type CasbinRule func(*sql.Selector)
-
 // CommonSchema is the predicate function for commonschema builders.
 type CommonSchema func(*sql.Selector)
 

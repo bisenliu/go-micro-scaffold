@@ -8,36 +8,6 @@ import (
 )
 
 var (
-	// CasbinRulesColumns holds the columns for the "casbin_rules" table.
-	CasbinRulesColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "ptype", Type: field.TypeString, Size: 100, Comment: "策略类型"},
-		{Name: "v0", Type: field.TypeString, Nullable: true, Size: 100, Comment: "策略字段0"},
-		{Name: "v1", Type: field.TypeString, Nullable: true, Size: 100, Comment: "策略字段1"},
-		{Name: "v2", Type: field.TypeString, Nullable: true, Size: 100, Comment: "策略字段2"},
-		{Name: "v3", Type: field.TypeString, Nullable: true, Size: 100, Comment: "策略字段3"},
-		{Name: "v4", Type: field.TypeString, Nullable: true, Size: 100, Comment: "策略字段4"},
-		{Name: "v5", Type: field.TypeString, Nullable: true, Size: 100, Comment: "策略字段5"},
-		{Name: "created_at", Type: field.TypeTime, Comment: "创建时间"},
-	}
-	// CasbinRulesTable holds the schema information for the "casbin_rules" table.
-	CasbinRulesTable = &schema.Table{
-		Name:       "casbin_rules",
-		Columns:    CasbinRulesColumns,
-		PrimaryKey: []*schema.Column{CasbinRulesColumns[0]},
-		Indexes: []*schema.Index{
-			{
-				Name:    "casbinrule_ptype",
-				Unique:  false,
-				Columns: []*schema.Column{CasbinRulesColumns[1]},
-			},
-			{
-				Name:    "casbinrule_ptype_v0_v1_v2_v3_v4_v5",
-				Unique:  false,
-				Columns: []*schema.Column{CasbinRulesColumns[1], CasbinRulesColumns[2], CasbinRulesColumns[3], CasbinRulesColumns[4], CasbinRulesColumns[5], CasbinRulesColumns[6], CasbinRulesColumns[7]},
-			},
-		},
-	}
 	// CommonSchemasColumns holds the columns for the "common_schemas" table.
 	CommonSchemasColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUint64, Increment: true},
@@ -84,7 +54,6 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
-		CasbinRulesTable,
 		CommonSchemasTable,
 		UsersTable,
 	}

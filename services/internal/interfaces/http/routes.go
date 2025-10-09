@@ -1,12 +1,16 @@
 package http
 
 import (
+	"context"
+
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 
-	"common/middleware"
+	commonMiddleware "common/middleware"
 	"common/response"
+	"services/internal/application/service"
 	"services/internal/interfaces/http/handler"
+	"services/internal/interfaces/http/middleware"
 )
 
 // SetupRoutesFinal
@@ -14,23 +18,25 @@ func SetupRoutesFinal(
 	engine *gin.Engine,
 	userHandler *handler.UserHandler,
 	healthHandler *handler.HealthHandler,
+	permissionService *service.PermissionService,
 	zapLogger *zap.Logger,
 ) {
-	// 请求日志中间件
-	engine.Use(middleware.RequestLogMiddleware(zapLogger))
+	engine.Use(commonMiddleware.LoggerMiddleware(zapLogger))
 
 	// 1. 系统路由（无需认证）
 	setupSystemRoutesFinal(engine, healthHandler, zapLogger)
 
-	// 2. API v1 路由组（需要认证）
+	// 2. API v1 路由组（需要认证和授权）
 	v1 := engine.Group("/api/v1")
+	v1.Use(middleware.CasbinAuthzMiddleware(permissionService, zapLogger))
 	{
-		// 这里可以添加认证中间件
-		// v1.Use(middlewareManager.AuthMiddleware())
-
+		// 添加认证中间件
 		setupUserAPIRoutes(v1, userHandler, zapLogger)
 		// 后续添加其他模块
 	}
+
+	// 3. 初始化一些示例权限策略
+	initExamplePolicies(permissionService, zapLogger)
 
 	zapLogger.Info("All routes setup completed successfully")
 }
@@ -55,4 +61,32 @@ func setupUserAPIRoutes(rg *gin.RouterGroup, userHandler *handler.UserHandler, l
 	}
 
 	logger.Info("User API routes registered", zap.Int("count", 3))
+}
+
+// initExamplePolicies 初始化示例权限策略
+func initExamplePolicies(permissionService *service.PermissionService, logger *zap.Logger) {
+	ctx := context.Background()
+
+	// 添加一些示例策略
+	// 1. 管理员可以访问所有用户接口
+	if err := permissionService.AddPolicy(ctx, "admin", "/api/v1/users", "*"); err != nil {
+		logger.Error("Failed to add admin policy", zap.Error(err))
+	}
+
+	// 2. 普通用户只能查看用户列表
+	if err := permissionService.AddPolicy(ctx, "user", "/api/v1/users", "GET"); err != nil {
+		logger.Error("Failed to add user policy", zap.Error(err))
+	}
+
+	// 3. 添加角色关系：alice 是管理员
+	if err := permissionService.AddRoleForUser(ctx, "alice", "admin"); err != nil {
+		logger.Error("Failed to add role for alice", zap.Error(err))
+	}
+
+	// 4. 添加角色关系：bob 是普通用户
+	if err := permissionService.AddRoleForUser(ctx, "bob", "user"); err != nil {
+		logger.Error("Failed to add role for bob", zap.Error(err))
+	}
+
+	logger.Info("Example policies initialized")
 }

@@ -11,7 +11,6 @@ import (
 
 	"services/internal/infrastructure/persistence/ent/gen/migrate"
 
-	"services/internal/infrastructure/persistence/ent/gen/casbinrule"
 	"services/internal/infrastructure/persistence/ent/gen/commonschema"
 	"services/internal/infrastructure/persistence/ent/gen/user"
 
@@ -26,8 +25,6 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
-	// CasbinRule is the client for interacting with the CasbinRule builders.
-	CasbinRule *CasbinRuleClient
 	// CommonSchema is the client for interacting with the CommonSchema builders.
 	CommonSchema *CommonSchemaClient
 	// User is the client for interacting with the User builders.
@@ -43,7 +40,6 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
-	c.CasbinRule = NewCasbinRuleClient(c.config)
 	c.CommonSchema = NewCommonSchemaClient(c.config)
 	c.User = NewUserClient(c.config)
 }
@@ -138,7 +134,6 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	return &Tx{
 		ctx:          ctx,
 		config:       cfg,
-		CasbinRule:   NewCasbinRuleClient(cfg),
 		CommonSchema: NewCommonSchemaClient(cfg),
 		User:         NewUserClient(cfg),
 	}, nil
@@ -160,7 +155,6 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	return &Tx{
 		ctx:          ctx,
 		config:       cfg,
-		CasbinRule:   NewCasbinRuleClient(cfg),
 		CommonSchema: NewCommonSchemaClient(cfg),
 		User:         NewUserClient(cfg),
 	}, nil
@@ -169,7 +163,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		CasbinRule.
+//		CommonSchema.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -191,7 +185,6 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
-	c.CasbinRule.Use(hooks...)
 	c.CommonSchema.Use(hooks...)
 	c.User.Use(hooks...)
 }
@@ -199,7 +192,6 @@ func (c *Client) Use(hooks ...Hook) {
 // Intercept adds the query interceptors to all the entity clients.
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
-	c.CasbinRule.Intercept(interceptors...)
 	c.CommonSchema.Intercept(interceptors...)
 	c.User.Intercept(interceptors...)
 }
@@ -207,147 +199,12 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 // Mutate implements the ent.Mutator interface.
 func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
-	case *CasbinRuleMutation:
-		return c.CasbinRule.mutate(ctx, m)
 	case *CommonSchemaMutation:
 		return c.CommonSchema.mutate(ctx, m)
 	case *UserMutation:
 		return c.User.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("gen: unknown mutation type %T", m)
-	}
-}
-
-// CasbinRuleClient is a client for the CasbinRule schema.
-type CasbinRuleClient struct {
-	config
-}
-
-// NewCasbinRuleClient returns a client for the CasbinRule from the given config.
-func NewCasbinRuleClient(c config) *CasbinRuleClient {
-	return &CasbinRuleClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `casbinrule.Hooks(f(g(h())))`.
-func (c *CasbinRuleClient) Use(hooks ...Hook) {
-	c.hooks.CasbinRule = append(c.hooks.CasbinRule, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `casbinrule.Intercept(f(g(h())))`.
-func (c *CasbinRuleClient) Intercept(interceptors ...Interceptor) {
-	c.inters.CasbinRule = append(c.inters.CasbinRule, interceptors...)
-}
-
-// Create returns a builder for creating a CasbinRule entity.
-func (c *CasbinRuleClient) Create() *CasbinRuleCreate {
-	mutation := newCasbinRuleMutation(c.config, OpCreate)
-	return &CasbinRuleCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of CasbinRule entities.
-func (c *CasbinRuleClient) CreateBulk(builders ...*CasbinRuleCreate) *CasbinRuleCreateBulk {
-	return &CasbinRuleCreateBulk{config: c.config, builders: builders}
-}
-
-// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
-// a builder and applies setFunc on it.
-func (c *CasbinRuleClient) MapCreateBulk(slice any, setFunc func(*CasbinRuleCreate, int)) *CasbinRuleCreateBulk {
-	rv := reflect.ValueOf(slice)
-	if rv.Kind() != reflect.Slice {
-		return &CasbinRuleCreateBulk{err: fmt.Errorf("calling to CasbinRuleClient.MapCreateBulk with wrong type %T, need slice", slice)}
-	}
-	builders := make([]*CasbinRuleCreate, rv.Len())
-	for i := 0; i < rv.Len(); i++ {
-		builders[i] = c.Create()
-		setFunc(builders[i], i)
-	}
-	return &CasbinRuleCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for CasbinRule.
-func (c *CasbinRuleClient) Update() *CasbinRuleUpdate {
-	mutation := newCasbinRuleMutation(c.config, OpUpdate)
-	return &CasbinRuleUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *CasbinRuleClient) UpdateOne(_m *CasbinRule) *CasbinRuleUpdateOne {
-	mutation := newCasbinRuleMutation(c.config, OpUpdateOne, withCasbinRule(_m))
-	return &CasbinRuleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *CasbinRuleClient) UpdateOneID(id int) *CasbinRuleUpdateOne {
-	mutation := newCasbinRuleMutation(c.config, OpUpdateOne, withCasbinRuleID(id))
-	return &CasbinRuleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for CasbinRule.
-func (c *CasbinRuleClient) Delete() *CasbinRuleDelete {
-	mutation := newCasbinRuleMutation(c.config, OpDelete)
-	return &CasbinRuleDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *CasbinRuleClient) DeleteOne(_m *CasbinRule) *CasbinRuleDeleteOne {
-	return c.DeleteOneID(_m.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *CasbinRuleClient) DeleteOneID(id int) *CasbinRuleDeleteOne {
-	builder := c.Delete().Where(casbinrule.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &CasbinRuleDeleteOne{builder}
-}
-
-// Query returns a query builder for CasbinRule.
-func (c *CasbinRuleClient) Query() *CasbinRuleQuery {
-	return &CasbinRuleQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypeCasbinRule},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a CasbinRule entity by its id.
-func (c *CasbinRuleClient) Get(ctx context.Context, id int) (*CasbinRule, error) {
-	return c.Query().Where(casbinrule.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *CasbinRuleClient) GetX(ctx context.Context, id int) *CasbinRule {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// Hooks returns the client hooks.
-func (c *CasbinRuleClient) Hooks() []Hook {
-	return c.hooks.CasbinRule
-}
-
-// Interceptors returns the client interceptors.
-func (c *CasbinRuleClient) Interceptors() []Interceptor {
-	return c.inters.CasbinRule
-}
-
-func (c *CasbinRuleClient) mutate(ctx context.Context, m *CasbinRuleMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&CasbinRuleCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&CasbinRuleUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&CasbinRuleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&CasbinRuleDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("gen: unknown CasbinRule mutation op: %q", m.Op())
 	}
 }
 
@@ -620,9 +477,9 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		CasbinRule, CommonSchema, User []ent.Hook
+		CommonSchema, User []ent.Hook
 	}
 	inters struct {
-		CasbinRule, CommonSchema, User []ent.Interceptor
+		CommonSchema, User []ent.Interceptor
 	}
 )

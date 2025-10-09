@@ -3,7 +3,6 @@
 package gen
 
 import (
-	"services/internal/infrastructure/persistence/ent/gen/casbinrule"
 	"services/internal/infrastructure/persistence/ent/gen/user"
 	"services/internal/infrastructure/persistence/ent/schema"
 	"time"
@@ -15,54 +14,6 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
-	casbinruleFields := schema.CasbinRule{}.Fields()
-	_ = casbinruleFields
-	// casbinruleDescPtype is the schema descriptor for ptype field.
-	casbinruleDescPtype := casbinruleFields[0].Descriptor()
-	// casbinrule.PtypeValidator is a validator for the "ptype" field. It is called by the builders before save.
-	casbinrule.PtypeValidator = func() func(string) error {
-		validators := casbinruleDescPtype.Validators
-		fns := [...]func(string) error{
-			validators[0].(func(string) error),
-			validators[1].(func(string) error),
-		}
-		return func(ptype string) error {
-			for _, fn := range fns {
-				if err := fn(ptype); err != nil {
-					return err
-				}
-			}
-			return nil
-		}
-	}()
-	// casbinruleDescV0 is the schema descriptor for v0 field.
-	casbinruleDescV0 := casbinruleFields[1].Descriptor()
-	// casbinrule.V0Validator is a validator for the "v0" field. It is called by the builders before save.
-	casbinrule.V0Validator = casbinruleDescV0.Validators[0].(func(string) error)
-	// casbinruleDescV1 is the schema descriptor for v1 field.
-	casbinruleDescV1 := casbinruleFields[2].Descriptor()
-	// casbinrule.V1Validator is a validator for the "v1" field. It is called by the builders before save.
-	casbinrule.V1Validator = casbinruleDescV1.Validators[0].(func(string) error)
-	// casbinruleDescV2 is the schema descriptor for v2 field.
-	casbinruleDescV2 := casbinruleFields[3].Descriptor()
-	// casbinrule.V2Validator is a validator for the "v2" field. It is called by the builders before save.
-	casbinrule.V2Validator = casbinruleDescV2.Validators[0].(func(string) error)
-	// casbinruleDescV3 is the schema descriptor for v3 field.
-	casbinruleDescV3 := casbinruleFields[4].Descriptor()
-	// casbinrule.V3Validator is a validator for the "v3" field. It is called by the builders before save.
-	casbinrule.V3Validator = casbinruleDescV3.Validators[0].(func(string) error)
-	// casbinruleDescV4 is the schema descriptor for v4 field.
-	casbinruleDescV4 := casbinruleFields[5].Descriptor()
-	// casbinrule.V4Validator is a validator for the "v4" field. It is called by the builders before save.
-	casbinrule.V4Validator = casbinruleDescV4.Validators[0].(func(string) error)
-	// casbinruleDescV5 is the schema descriptor for v5 field.
-	casbinruleDescV5 := casbinruleFields[6].Descriptor()
-	// casbinrule.V5Validator is a validator for the "v5" field. It is called by the builders before save.
-	casbinrule.V5Validator = casbinruleDescV5.Validators[0].(func(string) error)
-	// casbinruleDescCreatedAt is the schema descriptor for created_at field.
-	casbinruleDescCreatedAt := casbinruleFields[7].Descriptor()
-	// casbinrule.DefaultCreatedAt holds the default value on creation for the created_at field.
-	casbinrule.DefaultCreatedAt = casbinruleDescCreatedAt.Default.(func() time.Time)
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescName is the schema descriptor for name field.
