@@ -34,18 +34,19 @@ func (v *phoneValidator) Validate(phoneNumber string) error {
 
 	// 检查是否为空
 	if phoneNumber == "" {
-		return ErrPhoneNumberRequired
+		return userErrors.ErrPhoneRequired
 	}
 
 	// 检查长度
 	if len(phoneNumber) > 11 {
-		return ErrPhoneNumberTooLong
+		// 注意：usererrors包中可能没有完全对应的错误，我们暂时使用最接近的
+		return userErrors.ErrInvalidPhone
 	}
 
 	// 检查格式（中国大陆手机号）
 	phoneRegex := regexp.MustCompile(`^1[3-9]\d{9}$`)
 	if !phoneRegex.MatchString(phoneNumber) {
-		return ErrInvalidPhoneNumber
+		return userErrors.ErrInvalidPhone
 	}
 
 	return nil

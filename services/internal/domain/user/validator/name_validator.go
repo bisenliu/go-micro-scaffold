@@ -4,6 +4,8 @@ import (
 	"regexp"
 	"strings"
 	"unicode/utf8"
+
+	userErrors "services/internal/domain/user/errors"
 )
 
 // NameValidator 姓名验证器接口
@@ -26,19 +28,19 @@ func (v *nameValidator) Validate(name string) error {
 
 	// 检查是否为空
 	if name == "" {
-		return ErrNameRequired
+		return userErrors.ErrNicknameRequired
 	}
 
 	// 检查长度（按字符数计算，支持中文）
 	length := utf8.RuneCountInString(name)
 	if length > 50 {
-		return ErrNameTooLong
+		return userErrors.ErrNameTooLong
 	}
 
 	// 检查格式：只允许中文、英文字母、数字和常见符号
-	nameRegex := regexp.MustCompile(`^[\p{Han}a-zA-Z0-9\s\-_.·]+$`)
+	nameRegex := regexp.MustCompile(`^[\p{Han}a-zA-Z0-9\s\-_.·]+`)
 	if !nameRegex.MatchString(name) {
-		return ErrInvalidNameFormat
+		return userErrors.ErrInvalidNameFormat
 	}
 
 	return nil

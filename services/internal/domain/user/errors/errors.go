@@ -14,11 +14,21 @@ var (
 
 // 用户验证错误
 var (
+	// 手机号
 	ErrInvalidPhone     = domainerrors.NewDomainError(domainerrors.ErrValidationFailed, "无效的手机号")
-	ErrInvalidGender    = domainerrors.NewDomainError(domainerrors.ErrValidationFailed, "无效的性别")
-	ErrInvalidNickname  = domainerrors.NewDomainError(domainerrors.ErrValidationFailed, "无效的昵称")
 	ErrPhoneRequired    = domainerrors.NewDomainError(domainerrors.ErrValidationFailed, "手机号必填")
+	// 姓名
+	ErrInvalidNickname  = domainerrors.NewDomainError(domainerrors.ErrValidationFailed, "无效的昵称")
 	ErrNicknameRequired = domainerrors.NewDomainError(domainerrors.ErrValidationFailed, "昵称必填")
+	ErrNameTooLong      = domainerrors.NewDomainError(domainerrors.ErrValidationFailed, "姓名长度不能超过50个字符")
+	ErrInvalidNameFormat= domainerrors.NewDomainError(domainerrors.ErrValidationFailed, "姓名格式不正确")
+	// 密码
+	ErrPasswordRequired = domainerrors.NewDomainError(domainerrors.ErrValidationFailed, "密码不能为空")
+	ErrPasswordTooShort = domainerrors.NewDomainError(domainerrors.ErrValidationFailed, "密码长度不能少于6位")
+	ErrPasswordTooLong  = domainerrors.NewDomainError(domainerrors.ErrValidationFailed, "密码长度不能超过20位")
+	ErrPasswordTooWeak  = domainerrors.NewDomainError(domainerrors.ErrValidationFailed, "密码强度不够，需要包含字母和数字")
+	// 性别
+	ErrInvalidGender    = domainerrors.NewDomainError(domainerrors.ErrValidationFailed, "无效的性别")
 )
 
 // 用户业务规则错误
