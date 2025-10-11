@@ -13,6 +13,7 @@ const (
 	ErrorTypeBusiness   ErrorType = iota // 业务逻辑错误(验证错误、业务错误等)
 	ErrorTypeSystem                      // 系统错误
 	ErrorTypeAuth                        // 认证错误
+	ErrorTypePermission                  // 权限错误
 	ErrorTypeThirdParty                  // 第三方服务错误
 )
 
@@ -72,6 +73,8 @@ func getHTTPStatusByErrorType(errorType ErrorType) int {
 		return http.StatusBadRequest // 400
 	case ErrorTypeAuth:
 		return http.StatusUnauthorized // 401
+	case ErrorTypePermission:
+		return http.StatusForbidden // 403
 	case ErrorTypeSystem:
 		return http.StatusInternalServerError // 500
 	case ErrorTypeThirdParty:
@@ -84,8 +87,8 @@ func getHTTPStatusByErrorType(errorType ErrorType) int {
 // buildSuccessResponse 构建成功响应的通用方法
 func buildSuccessResponse(data interface{}) *BaseResponse {
 	return &BaseResponse{
-		Code:    CodeSuccess,
-		Message: GetCodeMessage(CodeSuccess),
+		Code:    CodeSuccess.Code,
+		Message: CodeSuccess.Message,
 		Data:    data,
 	}
 }
@@ -119,30 +122,54 @@ func Error(c *gin.Context, err *AppError) {
 
 // BadRequest 400错误响应（参数格式错误、缺失必填字段等）
 func BadRequest(c *gin.Context, message string) {
-	Error(c, NewAppError(ErrorTypeBusiness, CodeInvalidParams, message, nil))
+	msg := CodeInvalidParams.Message
+	if message != "" {
+		msg = message
+	}
+	Error(c, NewAppError(CodeInvalidParams.Type, CodeInvalidParams.Code, msg, nil))
 }
 
 // ValidationError 验证错误响应
 func ValidationError(c *gin.Context, message string, errors interface{}) {
-	Error(c, NewAppError(ErrorTypeBusiness, CodeValidationError, message, errors))
+	msg := CodeValidationError.Message
+	if message != "" {
+		msg = message
+	}
+	Error(c, NewAppError(CodeValidationError.Type, CodeValidationError.Code, msg, errors))
 }
 
 // Unauthorized 401错误响应
 func Unauthorized(c *gin.Context, message string) {
-	Error(c, NewAppError(ErrorTypeAuth, CodeUnauthorized, message, nil))
+	msg := CodeUnauthorized.Message
+	if message != "" {
+		msg = message
+	}
+	Error(c, NewAppError(CodeUnauthorized.Type, CodeUnauthorized.Code, msg, nil))
 }
 
 // Forbidden 403错误响应
 func Forbidden(c *gin.Context, message string) {
-	Error(c, NewAppError(ErrorTypeAuth, CodeForbidden, message, nil))
+	msg := CodeForbidden.Message
+	if message != "" {
+		msg = message
+	}
+	Error(c, NewAppError(CodeForbidden.Type, CodeForbidden.Code, msg, nil))
 }
 
 // InternalServerError 500错误响应
 func InternalServerError(c *gin.Context, message string) {
-	Error(c, NewAppError(ErrorTypeSystem, CodeInternalError, message, nil))
+	msg := CodeInternalError.Message
+	if message != "" {
+		msg = message
+	}
+	Error(c, NewAppError(CodeInternalError.Type, CodeInternalError.Code, msg, nil))
 }
 
 // ThirdPartyError 502错误响应
 func ThirdPartyError(c *gin.Context, message string) {
-	Error(c, NewAppError(ErrorTypeThirdParty, CodeThirdPartyError, message, nil))
+	msg := CodeThirdPartyError.Message
+	if message != "" {
+		msg = message
+	}
+	Error(c, NewAppError(CodeThirdPartyError.Type, CodeThirdPartyError.Code, msg, nil))
 }
