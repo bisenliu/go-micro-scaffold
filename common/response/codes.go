@@ -27,7 +27,7 @@ var (
 // 认证授权错误状态码 (2000-2999)
 var (
 	CodeUnauthorized = BusinessCode{Code: 2001, Message: "未授权访问", Type: ErrorTypeAuth}
-	CodeForbidden    = BusinessCode{Code: 2002, Message: "禁止访问", Type: ErrorTypeAuth}
+	CodeForbidden    = BusinessCode{Code: 2002, Message: "禁止访问", Type: ErrorTypePermission}
 )
 
 // 业务逻辑错误状态码 (4000-4999)

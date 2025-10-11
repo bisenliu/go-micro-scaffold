@@ -1,6 +1,7 @@
 package response
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -109,13 +110,22 @@ func SuccessWithPagination(c *gin.Context, data interface{}, pagination *Paginat
 }
 
 // Error 统一的错误响应方法（使用AppError）
-func Error(c *gin.Context, err *AppError) {
-	httpStatus := getHTTPStatusByErrorType(err.Type)
-	c.JSON(httpStatus, &BaseResponse{
-		Code:    err.Code,
-		Message: err.Message,
-		Errors:  err.Errors,
-	})
+func Error(c *gin.Context, err error) {
+	var appErr *AppError
+	if errors.As(err, &appErr) {
+		httpStatus := getHTTPStatusByErrorType(appErr.Type)
+		c.JSON(httpStatus, &BaseResponse{
+			Code:    appErr.Code,
+			Message: appErr.Message,
+			Errors:  appErr.Errors,
+		})
+	} else {
+		c.JSON(http.StatusInternalServerError, &BaseResponse{
+			Code:    CodeInternalError.Code,
+			Message: CodeInternalError.Message,
+			Errors:  err.Error(),
+		})
+	}
 }
 
 // --- 快捷错误响应函数
