@@ -65,7 +65,7 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	user, err := h.commandHandler.HandleCreateUser(ctx, command)
 	if err != nil {
 		logger.Error(ctx, "创建用户失败", zap.Error(err))
-		response.BadRequest(c, err.Error())
+		HandleErrorResponse(c, err)
 		return
 	}
 
@@ -111,7 +111,7 @@ func (h *UserHandler) ListUsers(c *gin.Context) {
 	users, total, err := h.queryHandler.HandleListUsers(ctx, query)
 	if err != nil {
 		logger.Error(ctx, "查询用户列表失败", zap.Error(err))
-		response.BadRequest(c, "查询用户列表失败")
+		response.InternalServerError(c, "查询用户列表失败")
 		return
 	}
 
@@ -135,7 +135,7 @@ func (h *UserHandler) Login(c *gin.Context) {
 	// 生成token
 	token, err := h.jwtService.Generate("123", "testuser")
 	if err != nil {
-		response.BadRequest(c, "Failed to generate token")
+		response.InternalServerError(c, "Failed to generate token")
 		return
 	}
 
@@ -146,6 +146,7 @@ func (h *UserHandler) Login(c *gin.Context) {
 
 // GetUser 获取用户信息
 func (h *UserHandler) GetUser(c *gin.Context) {
+	ctx := c.Request.Context()
 	// 获取用户ID
 	userID := c.Param("id")
 
@@ -155,7 +156,8 @@ func (h *UserHandler) GetUser(c *gin.Context) {
 	// 获取用户信息
 	userInfo, err := h.queryHandler.HandleGetUser(c.Request.Context(), query)
 	if err != nil {
-		response.BadRequest(c, err.Error())
+		logger.Error(ctx, "获取用户信息失败", zap.Error(err), zap.String("user_id", userID))
+		HandleErrorResponse(c, err)
 		return
 	}
 

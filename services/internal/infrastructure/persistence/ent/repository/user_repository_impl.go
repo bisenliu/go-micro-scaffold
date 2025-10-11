@@ -6,7 +6,8 @@ import (
 
 	"github.com/google/uuid"
 
-	"services/internal/domain/errors"
+	domainerrors "services/internal/domain/shared/errors"
+	usererrors "services/internal/domain/user/errors"
 	"services/internal/domain/user/entity"
 	"services/internal/domain/user/repository"
 	"services/internal/infrastructure/persistence/ent/gen"
@@ -30,10 +31,10 @@ func (r *UserRepositoryImpl) Create(ctx context.Context, userEntity *entity.User
 	// 检查手机号是否已存在
 	exists, err := r.ExistsByPhoneNumber(ctx, userEntity.PhoneNumber())
 	if err != nil {
-		return fmt.Errorf("failed to check phone number: %w", err)
+		return err // 直接返回错误，因为ExistsByPhoneNumber已经包装过
 	}
 	if exists {
-		return errors.ErrPhoneAlreadyExists
+		return usererrors.ErrPhoneAlreadyExists
 	}
 
 	user, err := r.client.User.Create().
@@ -46,7 +47,7 @@ func (r *UserRepositoryImpl) Create(ctx context.Context, userEntity *entity.User
 
 	if err != nil {
 		if gen.IsConstraintError(err) {
-			return errors.ErrUserAlreadyExists
+			return usererrors.ErrUserAlreadyExists
 		}
 		return fmt.Errorf("failed to create user: %w", err)
 	}
@@ -64,7 +65,7 @@ func (r *UserRepositoryImpl) Update(ctx context.Context, userEntity *entity.User
 	// 将字符串类型的ID转换为uuid.UUID类型
 	userID, err := uuid.Parse(userEntity.ID())
 	if err != nil {
-		return fmt.Errorf("invalid user ID format: %w", err)
+		return domainerrors.ErrInvalidData
 	}
 
 	// 更新用户时，updated_at 字段会自动更新为当前时间
@@ -76,6 +77,9 @@ func (r *UserRepositoryImpl) Update(ctx context.Context, userEntity *entity.User
 		Save(ctx)
 
 	if err != nil {
+		if gen.IsNotFound(err) {
+			return usererrors.ErrUserNotFound
+		}
 		return fmt.Errorf("failed to update user: %w", err)
 	}
 	return nil
@@ -197,13 +201,13 @@ func (r *UserRepositoryImpl) entUserToEntity(entUser *gen.User) *entity.User {
 func (r *UserRepositoryImpl) GetByID(ctx context.Context, id string) (*entity.User, error) {
 	userID, err := uuid.Parse(id)
 	if err != nil {
-		return nil, fmt.Errorf("invalid user ID format: %w", err)
+		return nil, domainerrors.ErrInvalidData
 	}
 
 	entUser, err := r.client.User.Get(ctx, userID)
 	if err != nil {
 		if gen.IsNotFound(err) {
-			return nil, errors.ErrUserNotFound
+			return nil, usererrors.ErrUserNotFound
 		}
 		return nil, fmt.Errorf("failed to get user by ID: %w", err)
 	}

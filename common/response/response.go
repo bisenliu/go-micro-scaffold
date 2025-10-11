@@ -15,6 +15,7 @@ const (
 	ErrorTypeSystem                      // 系统错误
 	ErrorTypeAuth                        // 认证错误
 	ErrorTypePermission                  // 权限错误
+	ErrorTypeNotFound                    // 未找到错误
 	ErrorTypeThirdParty                  // 第三方服务错误
 )
 
@@ -76,6 +77,8 @@ func getHTTPStatusByErrorType(errorType ErrorType) int {
 		return http.StatusUnauthorized // 401
 	case ErrorTypePermission:
 		return http.StatusForbidden // 403
+	case ErrorTypeNotFound:
+		return http.StatusNotFound // 404
 	case ErrorTypeSystem:
 		return http.StatusInternalServerError // 500
 	case ErrorTypeThirdParty:
@@ -164,6 +167,15 @@ func Forbidden(c *gin.Context, message string) {
 		msg = message
 	}
 	Error(c, NewAppError(CodeForbidden.Type, CodeForbidden.Code, msg, nil))
+}
+
+// NotFound 404错误响应
+func NotFound(c *gin.Context, message string) {
+	msg := CodeNotFound.Message
+	if message != "" {
+		msg = message
+	}
+	Error(c, NewAppError(ErrorTypeNotFound, CodeNotFound.Code, msg, nil))
 }
 
 // InternalServerError 500错误响应
