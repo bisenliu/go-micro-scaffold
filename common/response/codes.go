@@ -74,33 +74,3 @@ func GetBusinessCode(code int) BusinessCode {
 	}
 	return BusinessCode{Code: code, Message: "未知错误", Type: ErrorTypeSystem}
 }
-
-// IsSuccessCode 判断是否为成功状态码
-func IsSuccessCode(code int) bool {
-	return code == 0
-}
-
-// IsClientError 判断是否为客户端错误 (参数错误、验证错误等)
-func IsClientError(code int) bool {
-	return code >= 1000 && code < 2000
-}
-
-// IsAuthError 判断是否为认证授权错误
-func IsAuthError(code int) bool {
-	return code >= 2000 && code < 3000
-}
-
-// IsBusinessError 判断是否为业务错误
-func IsBusinessError(code int) bool {
-	return code >= 4000 && code < 5000
-}
-
-// IsSystemError 判断是否为系统错误
-func IsSystemError(code int) bool {
-	return code >= 5000 && code < 6000
-}
-
-// IsThirdPartyError 判断是否为第三方服务错误
-func IsThirdPartyError(code int) bool {
-	return code >= 6000 && code < 7000
-}
