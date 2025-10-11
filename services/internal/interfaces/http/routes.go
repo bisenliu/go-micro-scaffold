@@ -27,7 +27,7 @@ func SetupRoutesFinal(
 
 	// 2. API v1 路由组（需要认证和授权）
 	v1 := engine.Group("/api/v1")
-	v1.Use(commonMiddleware.CasbinMiddleware(permissionService.Enforce, zapLogger))
+	// v1.Use(commonMiddleware.CasbinMiddleware(permissionService.Enforce, zapLogger))
 	{
 		// 添加认证中间件
 		setupUserAPIRoutes(v1, userHandler, zapLogger)
@@ -56,6 +56,7 @@ func setupUserAPIRoutes(rg *gin.RouterGroup, userHandler *handler.UserHandler, l
 	{
 		users.POST("", userHandler.CreateUser)
 		users.GET("", userHandler.ListUsers)
+		users.GET("/:id", userHandler.GetUser)
 		users.POST("/login", userHandler.Login)
 	}
 

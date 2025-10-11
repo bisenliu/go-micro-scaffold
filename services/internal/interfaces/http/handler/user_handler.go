@@ -143,3 +143,21 @@ func (h *UserHandler) Login(c *gin.Context) {
 		"token": token,
 	})
 }
+
+// GetUser 获取用户信息
+func (h *UserHandler) GetUser(c *gin.Context) {
+	// 获取用户ID
+	userID := c.Param("id")
+
+	// 构建查询对象
+	query := &user.GetUserQuery{ID: userID}
+
+	// 获取用户信息
+	userInfo, err := h.queryHandler.HandleGetUser(c.Request.Context(), query)
+	if err != nil {
+		response.BadRequest(c, err.Error())
+		return
+	}
+
+	response.Success(c, responsedto.ToUserInfoResponse(userInfo))
+}

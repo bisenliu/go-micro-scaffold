@@ -47,3 +47,10 @@ func (h *UserQueryHandler) HandleListUsers(ctx context.Context, query *user.List
 
 	return users, total, nil
 }
+
+// HandleGetUser 处理获取用户查询
+func (h *UserQueryHandler) HandleGetUser(ctx context.Context, query *user.GetUserQuery) (*entity.User, error) {
+
+	return h.userRepo.GetByID(ctx, query.ID)
+}
+

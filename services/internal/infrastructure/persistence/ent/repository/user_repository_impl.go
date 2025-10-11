@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 
+	"services/internal/domain/errors"
 	"services/internal/domain/user/entity"
 	"services/internal/domain/user/repository"
 	"services/internal/infrastructure/persistence/ent/gen"
@@ -26,6 +27,14 @@ func NewUserRepository(client *gen.Client) repository.UserRepository {
 
 // Create 保存用户
 func (r *UserRepositoryImpl) Create(ctx context.Context, userEntity *entity.User) error {
+	// 检查手机号是否已存在
+	exists, err := r.ExistsByPhoneNumber(ctx, userEntity.PhoneNumber())
+	if err != nil {
+		return fmt.Errorf("failed to check phone number: %w", err)
+	}
+	if exists {
+		return errors.ErrPhoneAlreadyExists
+	}
 
 	user, err := r.client.User.Create().
 		SetOpenID(userEntity.OpenID()).
@@ -36,6 +45,9 @@ func (r *UserRepositoryImpl) Create(ctx context.Context, userEntity *entity.User
 		Save(ctx)
 
 	if err != nil {
+		if gen.IsConstraintError(err) {
+			return errors.ErrUserAlreadyExists
+		}
 		return fmt.Errorf("failed to create user: %w", err)
 	}
 
@@ -180,4 +192,22 @@ func (r *UserRepositoryImpl) entUserToEntity(entUser *gen.User) *entity.User {
 	user.SetUpdatedAt(entUser.UpdatedAt)
 
 	return user
+}
+
+func (r *UserRepositoryImpl) GetByID(ctx context.Context, id string) (*entity.User, error) {
+	userID, err := uuid.Parse(id)
+	if err != nil {
+		return nil, fmt.Errorf("invalid user ID format: %w", err)
+	}
+
+	entUser, err := r.client.User.Get(ctx, userID)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, errors.ErrUserNotFound
+		}
+		return nil, fmt.Errorf("failed to get user by ID: %w", err)
+	}
+
+	user := r.entUserToEntity(entUser)
+	return user, nil
 }
