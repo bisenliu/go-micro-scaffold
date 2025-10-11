@@ -1,7 +1,6 @@
 package response
 
 import (
-	commonResponse "common/response"
 	"services/internal/domain/user/entity"
 )
 
@@ -47,23 +46,11 @@ func ToUserInfoResponse(user *entity.User) *UserInfoResponse {
 }
 
 // ToUserListResponse 将用户实体列表转换为用户列表响应
-func ToUserListResponse(users []*entity.User, total int64, page, pageSize int) ([]*UserInfoResponse, *commonResponse.Pagination) {
+func ToUserListResponse(users []*entity.User) []*UserInfoResponse {
 	userResponses := make([]*UserInfoResponse, 0, len(users))
 	for _, user := range users {
 		userResponses = append(userResponses, ToUserInfoResponse(user))
 	}
 
-	totalPages := int(total) / pageSize
-	if int(total)%pageSize > 0 {
-		totalPages++
-	}
-
-	pagination := &commonResponse.Pagination{
-		Page:       page,
-		PageSize:   pageSize,
-		Total:      total,
-		TotalPages: totalPages,
-	}
-
-	return userResponses, pagination
+	return userResponses
 }

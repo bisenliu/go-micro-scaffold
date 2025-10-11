@@ -120,11 +120,11 @@ func (h *UserHandler) ListUsers(c *gin.Context) {
 		zap.Int("page", req.Page),
 		zap.Int("page_size", req.PageSize))
 
-	// 使用 ToUserListResponse 函数构建用户列表响应和分页信息
-	userResponses, pagination := responsedto.ToUserListResponse(users, total, req.Page, req.PageSize)
+	// 将领域实体转换为DTO
+	userResponses := responsedto.ToUserListResponse(users)
 
 	// 返回分页响应
-	response.SuccessWithPagination(c, userResponses, pagination)
+	response.SuccessWithPagination(c, userResponses, req.Page, req.PageSize, total)
 }
 
 // Login 用户登录示例

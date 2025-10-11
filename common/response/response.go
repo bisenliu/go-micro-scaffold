@@ -103,10 +103,21 @@ func Success(c *gin.Context, data interface{}) {
 }
 
 // SuccessWithPagination 分页成功响应
-func SuccessWithPagination(c *gin.Context, data interface{}, pagination *Pagination) {
+func SuccessWithPagination(c *gin.Context, data interface{}, page, pageSize int, total int64) {
+	var totalPages int
+	if pageSize > 0 {
+		// 向上取整计算总页数
+		totalPages = int((total + int64(pageSize) - 1) / int64(pageSize))
+	}
+
 	pageData := PageData{
-		Items:      data,
-		Pagination: pagination,
+		Items: data,
+		Pagination: &Pagination{
+			Page:       page,
+			PageSize:   pageSize,
+			Total:      total,
+			TotalPages: totalPages,
+		},
 	}
 
 	c.JSON(http.StatusOK, buildSuccessResponse(pageData))
