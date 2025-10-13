@@ -2,13 +2,12 @@ package repository
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/google/uuid"
 
 	domainerrors "services/internal/domain/shared/errors"
-	usererrors "services/internal/domain/user/errors"
 	"services/internal/domain/user/entity"
+	usererrors "services/internal/domain/user/errors"
 	"services/internal/domain/user/repository"
 	"services/internal/infrastructure/persistence/ent/gen"
 	entuser "services/internal/infrastructure/persistence/ent/gen/user"
@@ -49,7 +48,7 @@ func (r *UserRepositoryImpl) Create(ctx context.Context, userEntity *entity.User
 		if gen.IsConstraintError(err) {
 			return usererrors.ErrUserAlreadyExists
 		}
-		return fmt.Errorf("failed to create user: %w", err)
+		return domainerrors.NewDomainError(err, "创建用户失败")
 	}
 
 	// 将数据库生成的ID/时间戳设置给领域实体，并返回给调用方回领域实体
@@ -80,7 +79,10 @@ func (r *UserRepositoryImpl) Update(ctx context.Context, userEntity *entity.User
 		if gen.IsNotFound(err) {
 			return usererrors.ErrUserNotFound
 		}
-		return fmt.Errorf("failed to update user: %w", err)
+		if gen.IsConstraintError(err) {
+			return usererrors.ErrPhoneAlreadyExists
+		}
+		return domainerrors.NewDomainError(err, "更新用户失败")
 	}
 	return nil
 }
@@ -93,13 +95,13 @@ func (r *UserRepositoryImpl) List(ctx context.Context, offset, limit int) ([]*en
 		Order(gen.Desc(entuser.FieldCreatedAt)).
 		All(ctx)
 	if err != nil {
-		return nil, 0, fmt.Errorf("failed to query users: %w", err)
+		return nil, 0, domainerrors.NewDomainError(err, "查询用户列表失败")
 	}
 
 	// 查询总数
 	total, err := r.client.User.Query().Count(ctx)
 	if err != nil {
-		return nil, 0, fmt.Errorf("failed to count users: %w", err)
+		return nil, 0, domainerrors.NewDomainError(err, "查询用户总数失败")
 	}
 
 	// 转换为领域实体
@@ -120,7 +122,7 @@ func (r *UserRepositoryImpl) ListWithFilter(ctx context.Context, filter *reposit
 	// 先查询总数（使用 Clone 避免修改原始查询）
 	total, err := baseQuery.Clone().Count(ctx)
 	if err != nil {
-		return nil, 0, fmt.Errorf("failed to count users with filter: %w", err)
+		return nil, 0, domainerrors.NewDomainError(err, "查询用户总数失败")
 	}
 
 	// 再查询分页数据（复用相同的查询条件）
@@ -130,7 +132,7 @@ func (r *UserRepositoryImpl) ListWithFilter(ctx context.Context, filter *reposit
 		Order(gen.Desc(entuser.FieldCreatedAt)).
 		All(ctx)
 	if err != nil {
-		return nil, 0, fmt.Errorf("failed to query users with filter: %w", err)
+		return nil, 0, domainerrors.NewDomainError(err, "查询用户列表失败")
 	}
 
 	// 转换为领域实体
@@ -149,7 +151,7 @@ func (r *UserRepositoryImpl) ExistsByPhoneNumber(ctx context.Context, phoneNumbe
 		Where(entuser.PhoneNumber(phoneNumber)).
 		Exist(ctx)
 	if err != nil {
-		return false, fmt.Errorf("failed to check phone existence: %w", err)
+		return false, domainerrors.NewDomainError(err, "查询用户手机号是否存在失败")
 	}
 
 	return exists, nil
@@ -158,6 +160,10 @@ func (r *UserRepositoryImpl) ExistsByPhoneNumber(ctx context.Context, phoneNumbe
 // 提取一个私有方法来构建查询条件
 func (r *UserRepositoryImpl) buildUserQuery(filter *repository.UserListFilter) *gen.UserQuery {
 	query := r.client.User.Query()
+
+	if filter == nil {
+		return query
+	}
 
 	if filter.Name != nil && *filter.Name != "" {
 		query = query.Where(entuser.NameContains(*filter.Name))
@@ -209,7 +215,7 @@ func (r *UserRepositoryImpl) GetByID(ctx context.Context, id string) (*entity.Us
 		if gen.IsNotFound(err) {
 			return nil, usererrors.ErrUserNotFound
 		}
-		return nil, fmt.Errorf("failed to get user by ID: %w", err)
+		return nil, domainerrors.NewDomainError(err, "查询用户失败")
 	}
 
 	user := r.entUserToEntity(entUser)
