@@ -10,12 +10,9 @@ import (
 	"go.uber.org/zap"
 
 	commonDI "common/di"
-	"services/internal/application"
-	"services/internal/domain/user"
 	"services/internal/infrastructure"
 	"services/internal/infrastructure/persistence/ent/gen"
 	"services/internal/infrastructure/persistence/ent/gen/migrate"
-	"services/internal/interfaces/http"
 )
 
 func main() {
@@ -24,17 +21,8 @@ func main() {
 		// 使用common库的Web模块
 		commonDI.GetWebModules(),
 
-		// 领域模块
-		user.DomainModule,
-
-		// 应用模块
-		application.ApplicationModule,
-
 		// 基础设施模块
 		infrastructure.InfrastructureModule,
-
-		// 接口模块 - 使用重构后的模块
-		http.InterfaceModuleFinal,
 
 		// CLI入口点
 		fx.Invoke(runCLI),
