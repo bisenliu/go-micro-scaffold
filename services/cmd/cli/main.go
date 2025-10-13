@@ -18,8 +18,11 @@ import (
 func main() {
 	// 创建CLI应用
 	app := fx.New(
-		// 使用common库的Web模块
-		commonDI.GetWebModules(),
+		fx.Options(
+			commonDI.ConfigModule,
+			commonDI.LoggerModule,
+			commonDI.DatabasesModule,
+		),
 
 		// 基础设施模块
 		infrastructure.InfrastructureModule,
