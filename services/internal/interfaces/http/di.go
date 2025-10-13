@@ -2,23 +2,29 @@ package http
 
 import (
 	"go.uber.org/fx"
+	"go.uber.org/zap"
 
+	commonMiddleware "common/middleware"
+	service "services/internal/application/service"
 	"services/internal/interfaces/http/handler"
 )
 
-// InterfaceModuleFinal
 var InterfaceModuleFinal = fx.Module("interface_final",
-	// 处理器
 	fx.Provide(
+		// HTTP Handlers
 		handler.NewUserHandler,
 		handler.NewHealthHandler,
-		// 后续添加其他处理器
+
+		// HTTP Server
+		NewServer,
+
+		// 创建 Casbin 中间件的 Provider
+		func(permissionService service.PermissionServiceInterface, logger *zap.Logger) CasbinMiddleware {
+			return CasbinMiddleware(commonMiddleware.CasbinMiddleware(permissionService.Enforce, logger))
+		},
 	),
 
-	// HTTP服务器相关组件
-	fx.Provide(NewServer),
+	// 在应用启动时调用，用于设置路由
 	fx.Invoke(RegisterServerLifecycle),
-
-	// 启动器
 	fx.Invoke(SetupRoutesFinal),
 )

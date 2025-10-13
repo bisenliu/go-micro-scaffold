@@ -1,43 +1,46 @@
 package http
 
 import (
-	"context"
-
 	"github.com/gin-gonic/gin"
+	"go.uber.org/fx"
 	"go.uber.org/zap"
 
 	commonMiddleware "common/middleware"
 	"common/response"
-	serviceInterface "services/internal/application/service"
 	"services/internal/interfaces/http/handler"
 )
 
+// CasbinMiddleware 是一个具名类型，用于DI容器的类型安全注入
+type CasbinMiddleware gin.HandlerFunc
+
+// RoutesParams 定义了 SetupRoutesFinal 函数的依赖项
+type RoutesParams struct {
+	fx.In
+
+	Engine           *gin.Engine
+	UserHandler      *handler.UserHandler
+	HealthHandler    *handler.HealthHandler
+	CasbinMiddleware CasbinMiddleware
+	ZapLogger        *zap.Logger
+}
+
 // SetupRoutesFinal
-func SetupRoutesFinal(
-	engine *gin.Engine,
-	userHandler *handler.UserHandler,
-	healthHandler *handler.HealthHandler,
-	permissionService serviceInterface.PermissionServiceInterface,
-	zapLogger *zap.Logger,
-) {
-	engine.Use(commonMiddleware.LoggerMiddleware(zapLogger))
+func SetupRoutesFinal(p RoutesParams) {
+	p.Engine.Use(commonMiddleware.LoggerMiddleware(p.ZapLogger))
 
 	// 1. 系统路由（无需认证）
-	setupSystemRoutesFinal(engine, healthHandler, zapLogger)
+	setupSystemRoutesFinal(p.Engine, p.HealthHandler, p.ZapLogger)
 
 	// 2. API v1 路由组（需要认证和授权）
-	v1 := engine.Group("/api/v1")
-	v1.Use(commonMiddleware.CasbinMiddleware(permissionService.Enforce, zapLogger))
+	v1 := p.Engine.Group("/api/v1")
+	// v1.Use(gin.HandlerFunc(p.CasbinMiddleware))
 	{
 		// 添加认证中间件
-		setupUserAPIRoutes(v1, userHandler, zapLogger)
+		setupUserAPIRoutes(v1, p.UserHandler, p.ZapLogger)
 		// 后续添加其他模块
 	}
 
-	// 3. 初始化一些示例权限策略
-	initExamplePolicies(permissionService, zapLogger)
-
-	zapLogger.Info("All routes setup completed successfully")
+	p.ZapLogger.Info("All routes setup completed successfully")
 }
 
 // setupSystemRoutesFinal 设置系统路由
@@ -61,32 +64,4 @@ func setupUserAPIRoutes(rg *gin.RouterGroup, userHandler *handler.UserHandler, l
 	}
 
 	logger.Info("User API routes registered", zap.Int("count", 3))
-}
-
-// initExamplePolicies 初始化示例权限策略
-func initExamplePolicies(permissionService serviceInterface.PermissionServiceInterface, logger *zap.Logger) {
-	ctx := context.Background()
-
-	// 添加一些示例策略
-	// 1. 管理员可以访问所有用户接口
-	if _, err := permissionService.AddPolicy(ctx, "admin", "/api/v1/users", "*"); err != nil {
-		logger.Error("Failed to add admin policy", zap.Error(err))
-	}
-
-	// 2. 普通用户只能查看用户列表
-	if _, err := permissionService.AddPolicy(ctx, "user", "/api/v1/users", "GET"); err != nil {
-		logger.Error("Failed to add user policy", zap.Error(err))
-	}
-
-	// 3. 添加角色关系：alice 是管理员
-	if _, err := permissionService.AddRoleForUser(ctx, "alice", "admin"); err != nil {
-		logger.Error("Failed to add role for alice", zap.Error(err))
-	}
-
-	// 4. 添加角色关系：bob 是普通用户
-	if _, err := permissionService.AddRoleForUser(ctx, "bob", "user"); err != nil {
-		logger.Error("Failed to add role for bob", zap.Error(err))
-	}
-
-	logger.Info("Example policies initialized")
 }
