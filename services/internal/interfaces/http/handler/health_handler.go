@@ -11,6 +11,7 @@ import (
 	"common/config"
 	"common/databases/mysql"
 	"common/databases/redis"
+	"common/logger"
 )
 
 // HealthHandler 健康检查处理器
@@ -18,7 +19,6 @@ type HealthHandler struct {
 	mysqlManager mysql.ManagerInterface
 	redisClient  *redis.RedisClient
 	config       *config.Config
-	logger       *zap.Logger
 }
 
 // Ensure HealthHandler implements Handler interface
@@ -29,13 +29,11 @@ func NewHealthHandler(
 	mysqlManager mysql.ManagerInterface,
 	redisClient *redis.RedisClient,
 	config *config.Config,
-	logger *zap.Logger,
 ) *HealthHandler {
 	return &HealthHandler{
 		mysqlManager: mysqlManager,
 		redisClient:  redisClient,
 		config:       config,
-		logger:       logger,
 	}
 }
 
@@ -62,7 +60,7 @@ func (h *HealthHandler) Health(c *gin.Context) {
 	if err := h.checkDatabase(ctx); err != nil {
 		responseData.Services["database"] = "unhealthy: " + err.Error()
 		responseData.Status = "unhealthy"
-		h.logger.Error("Database health check failed", zap.Error(err))
+		logger.Error(ctx, "Database health check failed", zap.Error(err))
 	} else {
 		responseData.Services["database"] = "healthy"
 	}
@@ -71,7 +69,7 @@ func (h *HealthHandler) Health(c *gin.Context) {
 	if err := h.checkRedis(ctx); err != nil {
 		responseData.Services["redis"] = "unhealthy: " + err.Error()
 		responseData.Status = "unhealthy"
-		h.logger.Error("Redis health check failed", zap.Error(err))
+		logger.Error(ctx, "Redis health check failed", zap.Error(err))
 	} else {
 		responseData.Services["redis"] = "healthy"
 	}

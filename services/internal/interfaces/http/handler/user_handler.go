@@ -20,7 +20,6 @@ import (
 type UserHandler struct {
 	commandHandler *commandhandler.UserCommandHandler
 	queryHandler   *queryhandler.UserQueryHandler
-	logger         *zap.Logger
 	validator      *validation.Validator
 	jwtService     *jwt.JWT
 }
@@ -32,14 +31,12 @@ var _ Handler = (*UserHandler)(nil)
 func NewUserHandler(
 	commandHandler *commandhandler.UserCommandHandler,
 	queryHandler *queryhandler.UserQueryHandler,
-	zapLogger *zap.Logger,
 	validator *validation.Validator,
 	jwtService *jwt.JWT,
 ) *UserHandler {
 	return &UserHandler{
 		commandHandler: commandHandler,
 		queryHandler:   queryHandler,
-		logger:         zapLogger,
 		validator:      validator,
 		jwtService:     jwtService,
 	}
@@ -111,7 +108,7 @@ func (h *UserHandler) ListUsers(c *gin.Context) {
 	users, total, err := h.queryHandler.HandleListUsers(ctx, query)
 	if err != nil {
 		logger.Error(ctx, "Failed to list users", zap.Error(err))
-		response.InternalServerError(c, "查询用户列表失败")
+		HandleErrorResponse(c, err)
 		return
 	}
 
