@@ -10,7 +10,7 @@ import (
 	"go.uber.org/zap"
 
 	commonDI "common/di"
-	"services/internal/infrastructure"
+	"services/internal/infrastructure/persistence/ent"
 	"services/internal/infrastructure/persistence/ent/gen"
 	"services/internal/infrastructure/persistence/ent/gen/migrate"
 )
@@ -22,10 +22,9 @@ func main() {
 			commonDI.ConfigModule,
 			commonDI.LoggerModule,
 			commonDI.DatabasesModule,
-		),
 
-		// 基础设施模块
-		infrastructure.InfrastructureModule,
+			ent.Module,
+		),
 
 		// CLI入口点
 		fx.Invoke(runCLI),
