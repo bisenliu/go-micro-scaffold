@@ -31,8 +31,8 @@ func SetupRoutesFinal(p RoutesParams) {
 
 	// 2. API v1 路由组（需要认证和授权）
 	v1 := p.Engine.Group("/api/v1")
-	// v1.Use(gin.HandlerFunc(p.CasbinMiddleware))
 	v1.Use(commonMiddleware.RequestLogMiddleware(p.ZapLogger))
+	// v1.Use(gin.HandlerFunc(p.CasbinMiddleware))
 	{
 		SetupUserRoutes(v1, p.UserHandler, p.ZapLogger)
 		// 后续添加其他模块
