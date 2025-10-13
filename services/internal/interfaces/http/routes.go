@@ -5,7 +5,6 @@ import (
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 
-	commonMiddleware "common/middleware"
 	"common/response"
 	"services/internal/interfaces/http/handler"
 )
@@ -26,7 +25,6 @@ type RoutesParams struct {
 
 // SetupRoutesFinal
 func SetupRoutesFinal(p RoutesParams) {
-	p.Engine.Use(commonMiddleware.LoggerMiddleware(p.ZapLogger))
 
 	// 1. 系统路由（无需认证）
 	setupSystemRoutesFinal(p.Engine, p.HealthHandler, p.ZapLogger)
