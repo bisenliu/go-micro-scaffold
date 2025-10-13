@@ -56,17 +56,17 @@ func runCLI(logger *zap.Logger, client *gen.Client) error {
 		Use:   "migrate",
 		Short: "执行数据库迁移",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			logger.Info("开始执行数据库迁移...")
+			logger.Info("Starting database migration...")
 			ctx := context.Background()
 			if err := client.Schema.Create(
 				ctx,
 				migrate.WithDropIndex(true),
 				migrate.WithDropColumn(true),
 			); err != nil {
-				logger.Error("数据库迁移失败", zap.Error(err))
+				logger.Error("Database migration failed", zap.Error(err))
 				return err
 			}
-			logger.Info("数据库迁移完成")
+			logger.Info("Database migration completed")
 			return nil
 		},
 	})

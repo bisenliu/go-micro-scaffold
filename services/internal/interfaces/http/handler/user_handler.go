@@ -64,12 +64,12 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	}
 	user, err := h.commandHandler.HandleCreateUser(ctx, command)
 	if err != nil {
-		logger.Error(ctx, "创建用户失败", zap.Error(err))
+		logger.Error(ctx, "Failed to create user", zap.Error(err))
 		HandleErrorResponse(c, err)
 		return
 	}
 
-	logger.Info(ctx, "用户创建成功", zap.String("open_id", req.OpenID))
+	logger.Info(ctx, "User created successfully", zap.String("open_id", req.OpenID))
 
 	response.Success(c, responsedto.ToUserInfoResponse(user))
 }
@@ -110,12 +110,12 @@ func (h *UserHandler) ListUsers(c *gin.Context) {
 	// 调用查询处理器
 	users, total, err := h.queryHandler.HandleListUsers(ctx, query)
 	if err != nil {
-		logger.Error(ctx, "查询用户列表失败", zap.Error(err))
+		logger.Error(ctx, "Failed to list users", zap.Error(err))
 		response.InternalServerError(c, "查询用户列表失败")
 		return
 	}
 
-	logger.Info(ctx, "用户列表查询成功",
+	logger.Info(ctx, "User list retrieved successfully",
 		zap.Int64("total", total),
 		zap.Int("page", req.Page),
 		zap.Int("page_size", req.PageSize))
@@ -156,7 +156,7 @@ func (h *UserHandler) GetUser(c *gin.Context) {
 	// 获取用户信息
 	userInfo, err := h.queryHandler.HandleGetUser(c.Request.Context(), query)
 	if err != nil {
-		logger.Error(ctx, "获取用户信息失败", zap.Error(err), zap.String("user_id", userID))
+		logger.Error(ctx, "Failed to get user info", zap.Error(err), zap.String("user_id", userID))
 		HandleErrorResponse(c, err)
 		return
 	}
