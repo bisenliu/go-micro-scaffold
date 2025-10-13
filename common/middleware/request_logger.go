@@ -10,6 +10,7 @@ import (
 	"go.uber.org/zap"
 
 	"common/logger"
+	"common/response"
 )
 
 // ResponseWriter 包装gin的ResponseWriter以捕获响应体
@@ -21,13 +22,6 @@ type ResponseWriter struct {
 func (w *ResponseWriter) Write(b []byte) (int, error) {
 	w.body.Write(b)
 	return w.ResponseWriter.Write(b)
-}
-
-// ResponseData 通用响应数据结构
-type ResponseData struct {
-	Code    int         `json:"code"`
-	Message string      `json:"message"`
-	Data    interface{} `json:"data"`
 }
 
 // RequestLogMiddleware 请求日志中间件，记录请求信息并包含用户ID和真实业务状态码
@@ -67,7 +61,7 @@ func RequestLogMiddleware(zapLogger *zap.Logger) gin.HandlerFunc {
 
 		// 尝试解析响应体获取业务状态码
 		businessCode := httpStatus // 默认使用HTTP状态码
-		var responseData ResponseData
+		var responseData response.BaseResponse
 		if err := json.Unmarshal(blw.body.Bytes(), &responseData); err == nil {
 			businessCode = responseData.Code
 		}
@@ -86,7 +80,7 @@ func RequestLogMiddleware(zapLogger *zap.Logger) gin.HandlerFunc {
 		}
 
 		// 根据业务状态码选择日志级别
-		if businessCode != 200 && businessCode != 0 { // 0表示未解析到业务状态码
+		if businessCode != response.CodeSuccess.Code {
 			logger.Error(ctx, "Request completed with error", logFields...)
 		} else {
 			logger.Info(ctx, "Request completed successfully", logFields...)
@@ -139,7 +133,7 @@ func RequestLogWithDetailsMiddleware(zapLogger *zap.Logger) gin.HandlerFunc {
 
 		// 尝试解析响应体获取业务状态码
 		businessCode := httpStatus
-		var responseData ResponseData
+		var responseData response.BaseResponse
 		responseBody := blw.body.Bytes()
 		if err := json.Unmarshal(responseBody, &responseData); err == nil {
 			businessCode = responseData.Code
@@ -161,7 +155,7 @@ func RequestLogWithDetailsMiddleware(zapLogger *zap.Logger) gin.HandlerFunc {
 		}
 
 		// 根据业务状态码选择日志级别
-		if businessCode != 200 && businessCode != 0 {
+		if businessCode != response.CodeSuccess.Code {
 			logger.Error(ctx, "Detailed request completed with error", logFields...)
 		} else {
 			logger.Info(ctx, "Detailed request completed successfully", logFields...)

@@ -7,8 +7,8 @@ import (
 	"common/logger"
 )
 
-// LoggerMiddleware 创建 Logger 中间件，自动为每个请求注入带 traceID 的 logger
-func LoggerMiddleware(zapLogger *zap.Logger) gin.HandlerFunc {
+// TraceLoggerMiddleware 创建 Logger 中间件，自动为每个请求注入带 traceID 的 logger
+func TraceLoggerMiddleware(zapLogger *zap.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := c.Request.Context()
 

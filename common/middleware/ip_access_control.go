@@ -18,6 +18,11 @@ const (
 	XRealIP = "X-Real-IP"
 	// XClientIP X-Client-IP头
 	XClientIP = "X-Client-IP"
+
+	// ClientIPContextKey 是在 gin.Context 中存储客户端 IP 字符串的键
+	ClientIPContextKey = "clientIP"
+	// ClientParsedIPContextKey 是在 gin.Context 中存储解析后的 net.IP 对象的键
+	ClientParsedIPContextKey = "clientParsedIP"
 )
 
 // IPWhitelistMiddleware IP白名单中间件
@@ -47,21 +52,33 @@ func IPWhitelistMiddleware(allowedIPs []string, zapLogger *zap.Logger) gin.Handl
 	return func(c *gin.Context) {
 		ctx := c.Request.Context()
 
-		// 获取客户端IP
-		clientIP := getClientIP(c)
-		if clientIP == "" {
-			logger.Warn(ctx, "Unable to determine client IP")
-			response.Forbidden(c, "Access denied")
+		// 从Context中获取预解析的IP
+		ipVal, exists := c.Get(ClientParsedIPContextKey)
+		if !exists {
+			logger.Error(ctx, "Parsed client IP not found in context")
+			response.Forbidden(c, "Access denied: Internal error")
+			c.Abort()
+			return
+		}
+		ip, ok := ipVal.(net.IP)
+		if !ok {
+			logger.Error(ctx, "Parsed client IP in context is not of type net.IP")
+			response.Forbidden(c, "Access denied: Internal error")
 			c.Abort()
 			return
 		}
 
-		// 解析IP地址
-		ip := net.ParseIP(clientIP)
-		if ip == nil {
-			logger.Warn(ctx, "Invalid client IP",
-				zap.String("client_ip", clientIP))
-			response.Forbidden(c, "Access denied")
+		clientIPStrVal, exists := c.Get(ClientIPContextKey)
+		if !exists {
+			logger.Error(ctx, "Client IP string not found in context")
+			response.Forbidden(c, "Access denied: Internal error")
+			c.Abort()
+			return
+		}
+		clientIPStr, ok := clientIPStrVal.(string)
+		if !ok {
+			logger.Error(ctx, "Client IP string in context is not of type string")
+			response.Forbidden(c, "Access denied: Internal error")
 			c.Abort()
 			return
 		}
@@ -89,14 +106,14 @@ func IPWhitelistMiddleware(allowedIPs []string, zapLogger *zap.Logger) gin.Handl
 
 		if !allowed {
 			logger.Warn(ctx, "IP not in whitelist",
-				zap.String("client_ip", clientIP))
+				zap.String("client_ip", clientIPStr))
 			response.Forbidden(c, "Access denied")
 			c.Abort()
 			return
 		}
 
 		logger.Debug(ctx, "IP whitelist check passed",
-			zap.String("client_ip", clientIP))
+			zap.String("client_ip", clientIPStr))
 
 		c.Next()
 	}
@@ -128,11 +145,40 @@ func InternalIPMiddleware(zapLogger *zap.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := c.Request.Context()
 
-		clientIP := getClientIP(c)
+		// 从Context中获取预解析的IP
+		ipVal, exists := c.Get(ClientParsedIPContextKey)
+		if !exists {
+			logger.Error(ctx, "Parsed client IP not found in context")
+			response.Forbidden(c, "Access denied: Internal error")
+			c.Abort()
+			return
+		}
+		ip, ok := ipVal.(net.IP)
+		if !ok {
+			logger.Error(ctx, "Parsed client IP in context is not of type net.IP")
+			response.Forbidden(c, "Access denied: Internal error")
+			c.Abort()
+			return
+		}
 
-		if !isPrivateIP(clientIP, privateIPBlocks) {
+		clientIPStrVal, exists := c.Get(ClientIPContextKey)
+		if !exists {
+			logger.Error(ctx, "Client IP string not found in context")
+			response.Forbidden(c, "Access denied: Internal error")
+			c.Abort()
+			return
+		}
+		clientIPStr, ok := clientIPStrVal.(string)
+		if !ok {
+			logger.Error(ctx, "Client IP string in context is not of type string")
+			response.Forbidden(c, "Access denied: Internal error")
+			c.Abort()
+			return
+		}
+
+		if !isPrivateIP(ip, privateIPBlocks) {
 			logger.Warn(ctx, "Access denied for external IP",
-				zap.String("ip", clientIP),
+				zap.String("ip", clientIPStr),
 				zap.String("path", c.Request.URL.Path),
 				zap.String("method", c.Request.Method))
 			response.Forbidden(c, "Access denied: Internal network only")
@@ -141,8 +187,36 @@ func InternalIPMiddleware(zapLogger *zap.Logger) gin.HandlerFunc {
 		}
 
 		logger.Debug(ctx, "Internal IP access granted",
-			zap.String("ip", clientIP),
+			zap.String("ip", clientIPStr),
 			zap.String("path", c.Request.URL.Path))
+		c.Next()
+	}
+}
+
+// ExtractClientIPMiddleware 提取客户端IP并解析为net.IP，存储在Context中
+func ExtractClientIPMiddleware(zapLogger *zap.Logger) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx := c.Request.Context()
+		clientIPStr := getClientIP(c)
+
+		if clientIPStr == "" {
+			zapLogger.Warn("Unable to determine client IP", zap.String("path", c.Request.URL.Path))
+			response.Forbidden(c, "Access denied: Unable to determine client IP")
+			c.Abort()
+			return
+		}
+
+		parsedIP := net.ParseIP(clientIPStr)
+		if parsedIP == nil {
+			zapLogger.Warn("Invalid client IP format", zap.String("client_ip_str", clientIPStr), zap.String("path", c.Request.URL.Path))
+			response.Forbidden(c, "Access denied: Invalid client IP format")
+			c.Abort()
+			return
+		}
+
+		c.Set(ClientIPContextKey, clientIPStr)
+		c.Set(ClientParsedIPContextKey, parsedIP)
+		logger.Debug(ctx, "Client IP extracted and parsed", zap.String("client_ip", clientIPStr))
 		c.Next()
 	}
 }
@@ -176,14 +250,7 @@ func getClientIP(c *gin.Context) string {
 }
 
 // isPrivateIP 判断IP是否为私有/内网IP
-func isPrivateIP(ipStr string, privateIPBlocks []*net.IPNet) bool {
-	// 解析IP地址
-	ip := net.ParseIP(ipStr)
-	if ip == nil {
-		// 无法解析的IP地址，拒绝访问
-		return false
-	}
-
+func isPrivateIP(ip net.IP, privateIPBlocks []*net.IPNet) bool {
 	// 检查是否为回环地址（127.0.0.1, ::1）
 	if ip.IsLoopback() {
 		return true

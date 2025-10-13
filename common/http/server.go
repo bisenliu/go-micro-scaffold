@@ -29,9 +29,9 @@ func NewBaseEngine(params EngineParams) *gin.Engine {
 		engine.Use(middleware.CORSMiddleware())
 	}
 
-	// 添加恢复中间件 和 日志中间件
+	engine.Use(middleware.ExtractClientIPMiddleware(params.Logger))
 	engine.Use(middleware.RecoveryMiddleware(params.Logger))
-	engine.Use(middleware.LoggerMiddleware(params.Logger))
+	engine.Use(middleware.TraceLoggerMiddleware(params.Logger))
 
 	return engine
 }
