@@ -17,7 +17,7 @@ func SetupRoutesFinal(
 	engine *gin.Engine,
 	userHandler *handler.UserHandler,
 	healthHandler *handler.HealthHandler,
-	permissionService *serviceInterface.PermissionService,
+	permissionService serviceInterface.PermissionServiceInterface,
 	zapLogger *zap.Logger,
 ) {
 	engine.Use(commonMiddleware.LoggerMiddleware(zapLogger))
@@ -27,7 +27,7 @@ func SetupRoutesFinal(
 
 	// 2. API v1 路由组（需要认证和授权）
 	v1 := engine.Group("/api/v1")
-	// v1.Use(commonMiddleware.CasbinMiddleware(permissionService.Enforce, zapLogger))
+	v1.Use(commonMiddleware.CasbinMiddleware(permissionService.Enforce, zapLogger))
 	{
 		// 添加认证中间件
 		setupUserAPIRoutes(v1, userHandler, zapLogger)
@@ -64,27 +64,27 @@ func setupUserAPIRoutes(rg *gin.RouterGroup, userHandler *handler.UserHandler, l
 }
 
 // initExamplePolicies 初始化示例权限策略
-func initExamplePolicies(permissionService *serviceInterface.PermissionService, logger *zap.Logger) {
+func initExamplePolicies(permissionService serviceInterface.PermissionServiceInterface, logger *zap.Logger) {
 	ctx := context.Background()
 
 	// 添加一些示例策略
 	// 1. 管理员可以访问所有用户接口
-	if err := permissionService.AddPolicy(ctx, "admin", "/api/v1/users", "*"); err != nil {
+	if _, err := permissionService.AddPolicy(ctx, "admin", "/api/v1/users", "*"); err != nil {
 		logger.Error("Failed to add admin policy", zap.Error(err))
 	}
 
 	// 2. 普通用户只能查看用户列表
-	if err := permissionService.AddPolicy(ctx, "user", "/api/v1/users", "GET"); err != nil {
+	if _, err := permissionService.AddPolicy(ctx, "user", "/api/v1/users", "GET"); err != nil {
 		logger.Error("Failed to add user policy", zap.Error(err))
 	}
 
 	// 3. 添加角色关系：alice 是管理员
-	if err := permissionService.AddRoleForUser(ctx, "alice", "admin"); err != nil {
+	if _, err := permissionService.AddRoleForUser(ctx, "alice", "admin"); err != nil {
 		logger.Error("Failed to add role for alice", zap.Error(err))
 	}
 
 	// 4. 添加角色关系：bob 是普通用户
-	if err := permissionService.AddRoleForUser(ctx, "bob", "user"); err != nil {
+	if _, err := permissionService.AddRoleForUser(ctx, "bob", "user"); err != nil {
 		logger.Error("Failed to add role for bob", zap.Error(err))
 	}
 
