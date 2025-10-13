@@ -144,65 +144,51 @@ func Error(c *gin.Context, err error) {
 
 // --- 快捷错误响应函数
 
+func getErrorMessage(defaultCode BusinessCode, customMessage string) string {
+	if customMessage != "" {
+		return customMessage
+	}
+	return defaultCode.Message
+}
+
 // BadRequest 400错误响应（参数格式错误、缺失必填字段等）
 func BadRequest(c *gin.Context, message string) {
-	msg := CodeInvalidParams.Message
-	if message != "" {
-		msg = message
-	}
+	msg := getErrorMessage(CodeInvalidParams, message)
 	Error(c, NewAppError(CodeInvalidParams.Type, CodeInvalidParams.Code, msg, nil))
 }
 
 // ValidationError 验证错误响应
 func ValidationError(c *gin.Context, message string, errors interface{}) {
-	msg := CodeValidationError.Message
-	if message != "" {
-		msg = message
-	}
+	msg := getErrorMessage(CodeInvalidParams, message)
 	Error(c, NewAppError(CodeValidationError.Type, CodeValidationError.Code, msg, errors))
 }
 
 // Unauthorized 401错误响应
 func Unauthorized(c *gin.Context, message string) {
-	msg := CodeUnauthorized.Message
-	if message != "" {
-		msg = message
-	}
+	msg := getErrorMessage(CodeInvalidParams, message)
 	Error(c, NewAppError(CodeUnauthorized.Type, CodeUnauthorized.Code, msg, nil))
 }
 
 // Forbidden 403错误响应
 func Forbidden(c *gin.Context, message string) {
-	msg := CodeForbidden.Message
-	if message != "" {
-		msg = message
-	}
+	msg := getErrorMessage(CodeInvalidParams, message)
 	Error(c, NewAppError(CodeForbidden.Type, CodeForbidden.Code, msg, nil))
 }
 
 // NotFound 404错误响应
 func NotFound(c *gin.Context, message string) {
-	msg := CodeNotFound.Message
-	if message != "" {
-		msg = message
-	}
+	msg := getErrorMessage(CodeInvalidParams, message)
 	Error(c, NewAppError(ErrorTypeNotFound, CodeNotFound.Code, msg, nil))
 }
 
 // InternalServerError 500错误响应
 func InternalServerError(c *gin.Context, message string) {
-	msg := CodeInternalError.Message
-	if message != "" {
-		msg = message
-	}
+	msg := getErrorMessage(CodeInvalidParams, message)
 	Error(c, NewAppError(CodeInternalError.Type, CodeInternalError.Code, msg, nil))
 }
 
 // ThirdPartyError 502错误响应
 func ThirdPartyError(c *gin.Context, message string) {
-	msg := CodeThirdPartyError.Message
-	if message != "" {
-		msg = message
-	}
+	msg := getErrorMessage(CodeInvalidParams, message)
 	Error(c, NewAppError(CodeThirdPartyError.Type, CodeThirdPartyError.Code, msg, nil))
 }

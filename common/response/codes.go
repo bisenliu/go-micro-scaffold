@@ -33,7 +33,7 @@ var (
 // 业务逻辑错误状态码 (4000-4999)
 var (
 	CodeBusinessError = BusinessCode{Code: 4001, Message: "业务处理失败", Type: ErrorTypeBusiness}
-	CodeNotFound      = BusinessCode{Code: 4004, Message: "资源未找到", Type: ErrorTypeBusiness}
+	CodeNotFound      = BusinessCode{Code: 4004, Message: "资源未找到", Type: ErrorTypeNotFound}
 )
 
 // 系统错误状态码 (5000-5999)
