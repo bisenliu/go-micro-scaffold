@@ -20,8 +20,8 @@ var InterfaceModuleFinal = fx.Module("interface_final",
 		NewServer,
 
 		// 创建 Casbin 中间件的 Provider
-		func(permissionService service.PermissionServiceInterface, logger *zap.Logger) CasbinMiddleware {
-			return CasbinMiddleware(commonMiddleware.CasbinMiddleware(permissionService.Enforce, logger))
+		func(permissionService service.PermissionServiceInterface, logger *zap.Logger) routes.CasbinMiddleware {
+			return routes.CasbinMiddleware(commonMiddleware.CasbinMiddleware(permissionService.Enforce, logger))
 		},
 	),
 
