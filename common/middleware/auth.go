@@ -9,6 +9,7 @@ import (
 
 	"common/config"
 	"common/logger"
+	"common/pkg/contextutil"
 	"common/pkg/jwt"
 	"common/response"
 )
@@ -18,8 +19,6 @@ const (
 	AuthHeaderKey = "Authorization"
 	// TokenPrefix Token前缀
 	TokenPrefix = "Bearer "
-	// UserIDKey 用户ID在context中的键名
-	UserIDKey = "user_id"
 )
 
 // AuthMiddleware 认证中间件
@@ -72,8 +71,8 @@ func AuthMiddleware(jwtService *jwt.JWT, cfg config.AuthConfig) gin.HandlerFunc 
 		}
 
 		// 将用户ID存储到context中
-		c.Set(UserIDKey, userID)
-		ctx = context.WithValue(ctx, UserIDKey, userID)
+		c.Set(contextutil.UserIDKey, userID)
+		ctx = context.WithValue(ctx, contextutil.UserIDKey, userID)
 		c.Request = c.Request.WithContext(ctx)
 
 		logger.Debug(ctx, "Authentication successful",
@@ -106,16 +105,3 @@ func validateToken(ctx context.Context, tokenString string, jwtService *jwt.JWT)
 	return claims.UserID, nil
 }
 
-// GetUserIDFromContext 从context中获取用户ID
-func GetUserIDFromContext(c *gin.Context) (string, bool) {
-	userID, exists := c.Get(UserIDKey)
-	if !exists {
-		return "", false
-	}
-
-	if id, ok := userID.(string); ok {
-		return id, true
-	}
-
-	return "", false
-}
