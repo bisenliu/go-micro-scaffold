@@ -9,18 +9,48 @@ import (
 
 // Config 应用配置结构
 type Config struct {
-	System         SystemConfig              `mapstructure:"system"`
-	Token          TokenConfig               `mapstructure:"token"`
-	SnowFlake      SnowFlakeConfig           `mapstructure:"snow_flake"`
+	// 1. 系统与服务器配置
+	System SystemConfig `mapstructure:"system"`
+	Server ServerConfig `mapstructure:"server"`
+
+	// 2. 中间件配置
+	Auth      AuthConfig      `mapstructure:"auth"`
+	RateLimit RateLimitConfig `mapstructure:"rate_limit"`
+
+	// 3. 业务逻辑相关配置
+	Token      TokenConfig      `mapstructure:"token"`
+	SnowFlake  SnowFlakeConfig  `mapstructure:"snow_flake"`
+	Validation ValidationConfig `mapstructure:"validation"`
+
+	// 4. 外部服务依赖配置
 	DatabaseCommon DatabaseConfig            `mapstructure:"database_common"`
 	Databases      map[string]DatabaseConfig `mapstructure:"databases"`
 	Redis          RedisConfig               `mapstructure:"redis"`
-	Server         ServerConfig              `mapstructure:"server"`
-	Zap            ZapConfig                 `mapstructure:"zap"`
-	Validation     ValidationConfig          `mapstructure:"validation"`
-	RateLimit      RateLimitConfig           `mapstructure:"rate_limit"`
-	Auth           AuthConfig                `mapstructure:"auth"`
+
+	// 5. 日志配置
+	Zap ZapConfig `mapstructure:"zap"`
 }
+
+// --- 1. 系统与服务器配置 ---
+
+type SystemConfig struct {
+	Env        string `mapstructure:"env"`
+	SecretKey  string `mapstructure:"secret_key"`
+	ServerName string `mapstructure:"server_name"`
+	Timezone   string `mapstructure:"timezone"`
+}
+
+type ServerConfig struct {
+	Port           string        `mapstructure:"port"`
+	Mode           string        `mapstructure:"mode"`
+	EnableCORS     bool          `mapstructure:"enable_cors"` // CORS开关也属于中间件配置
+	ReadTimeout    time.Duration `mapstructure:"read_timeout"`
+	WriteTimeout   time.Duration `mapstructure:"write_timeout"`
+	IdleTimeout    time.Duration `mapstructure:"idle_timeout"`
+	MaxHeaderBytes int           `mapstructure:"maxHeaderBytes"`
+}
+
+// --- 2. 中间件配置 ---
 
 type AuthConfig struct {
 	Whitelist []string `mapstructure:"whitelist"`
@@ -35,12 +65,7 @@ type RateLimitConfig struct {
 	BucketExpiry    time.Duration `mapstructure:"bucket_expiry"`
 }
 
-type SystemConfig struct {
-	Env        string `mapstructure:"env"`
-	SecretKey  string `mapstructure:"secret_key"`
-	ServerName string `mapstructure:"server_name"`
-	Timezone   string `mapstructure:"timezone"` // 添加时区配置
-}
+// --- 3. 业务逻辑相关配置 ---
 
 type TokenConfig struct {
 	ExpiredTime int `mapstructure:"expired_time"`
@@ -51,36 +76,11 @@ type SnowFlakeConfig struct {
 	MachineID int64  `mapstructure:"machine_id"`
 }
 
-type ServerConfig struct {
-	Port           string        `mapstructure:"port"`
-	Mode           string        `mapstructure:"mode"`
-	EnableCORS     bool          `mapstructure:"enable_cors"`
-	ReadTimeout    time.Duration `mapstructure:"read_timeout"`
-	WriteTimeout   time.Duration `mapstructure:"write_timeout"`
-	IdleTimeout    time.Duration `mapstructure:"idle_timeout"`
-	MaxHeaderBytes int           `mapstructure:"maxHeaderBytes"`
-}
-
-type RedisConfig struct {
-	Host      string `mapstructure:"host"`
-	Port      int    `mapstructure:"port"`
-	Password  string `mapstructure:"password"`
-	Database  int    `mapstructure:"database"`
-	DefaultDB int    `mapstructure:"default_db"`
-	PoolSize  int    `mapstructure:"pool_size"`
-}
-
-type ZapConfig struct {
-	Level      string `mapstructure:"level"`
-	Director   string `mapstructure:"director"`
-	MaxAge     int    `mapstructure:"max_age"`
-	MaxSize    int    `mapstructure:"max_size"`
-	MaxBackups int    `mapstructure:"max_backups"`
-}
-
 type ValidationConfig struct {
 	Locale string `mapstructure:"locale"`
 }
+
+// --- 4. 外部服务依赖配置 ---
 
 // DatabaseConfig 数据库配置
 type DatabaseConfig struct {
@@ -98,6 +98,27 @@ type DatabaseConfig struct {
 	ConnMaxLifetime time.Duration `mapstructure:"conn_max_lifetime"`
 	ConnMaxIdleTime time.Duration `mapstructure:"conn_max_idle_time"`
 }
+
+type RedisConfig struct {
+	Host      string `mapstructure:"host"`
+	Port      int    `mapstructure:"port"`
+	Password  string `mapstructure:"password"`
+	Database  int    `mapstructure:"database"`
+	DefaultDB int    `mapstructure:"default_db"`
+	PoolSize  int    `mapstructure:"pool_size"`
+}
+
+// --- 5. 日志配置 ---
+
+type ZapConfig struct {
+	Level      string `mapstructure:"level"`
+	Director   string `mapstructure:"director"`
+	MaxAge     int    `mapstructure:"max_age"`
+	MaxSize    int    `mapstructure:"max_size"`
+	MaxBackups int    `mapstructure:"max_backups"`
+}
+
+// --- 配置加载 ---
 
 // NewConfig 创建配置实例
 func NewConfig() (*Config, error) {
@@ -120,3 +141,4 @@ func NewConfig() (*Config, error) {
 
 // Module FX模块
 var Module = fx.Provide(NewConfig)
+

@@ -1,4 +1,6 @@
-# 系统配置
+# ===================================================================
+# 1. 系统与服务器配置 (System & Server)
+# ===================================================================
 system:
   # 运行环境 (development/production/test)
   env: "development"
@@ -9,36 +11,67 @@ system:
   # 系统时区，默认为 "Asia/Shanghai"
   timezone: "Asia/Shanghai"
 
-# 服务器配置
 server:
   # 服务端口
   port: "8080"
   # 运行模式(debug/release/test)
   mode: debug
-  # 是否开启CORS
+  # 是否开启CORS (跨域中间件)
   enable_cors: false
-  # 请求超时时间(秒) 
+  # 请求超时时间
   read_timeout: 5s
-  # 写入超时时间(秒) 
+  # 写入超时时间
   write_timeout: 10s
-  # 空闲超时(秒)
+  # 空闲超时
   idle_timeout: 120s
   # 请求头最大字节数(默认1M)
   maxHeaderBytes: 1048576
 
-# Token配置
+# ===================================================================
+# 2. 中间件配置 (Middlewares)
+# ===================================================================
+auth:
+  # 认证白名单路径 (Auth Middleware)
+  whitelist:
+    - /health
+    - /ping
+    - /api/v1/login # 示例：登录接口通常需要被排除
+
+rate_limit:
+  # 是否启用 (Rate Limit Middleware)
+  enabled: true
+  # 令牌桶填充间隔
+  fill_interval: 1s
+  # 令牌桶容量
+  capacity: 100
+  # 每次填充的令牌数量
+  quantum: 10
+  # 过期IP清理间隔
+  cleanup_interval: 10m
+  # IP过期时间
+  bucket_expiry: 30m
+
+# ===================================================================
+# 3. 业务逻辑相关配置 (Business Logic)
+# ===================================================================
 token:
   # Token过期时间(分钟)
   expired_time: 30 # 分钟
 
-# 雪花算法配置(用于生成唯一ID)
 snow_flake:
-  # 起始时间(格式: YYYY-MM-DD)
+  # 起始时间(格式: YYYY-MM-DD)，用于生成唯一ID
   start_time: "2024-01-01"
   # 机器ID(0-1023)
   machine_id: 1
 
-# 数据库公共配置
+validation:
+  # 验证错误的本地化设置(zh/en等)
+  locale: "zh"
+
+# ===================================================================
+# 4. 外部服务依赖配置 (External Services)
+# ===================================================================
+# 数据库公共配置 (可被多个数据源继承)
 database_common: &database_common
   # 数据库类型(mysql/postgres/sqlite)
   type: "mysql"
@@ -69,7 +102,7 @@ databases:
     <<: *database_common
     # 数据库名称
     database: go-micro-scaffold
-    
+
   # 数据库实例2
   db2:
     # 继承公共配置，可覆盖特定值
@@ -92,8 +125,9 @@ redis:
   # 连接池大小
   pool_size: 10
 
-
-# Zap日志配置
+# ===================================================================
+# 5. 日志配置 (Logging)
+# ===================================================================
 zap:
   # 日志级别(DEBUG/INFO/WARN/ERROR/DPANIC/PANIC/FATAL)
   level: "DEBUG"
@@ -105,31 +139,3 @@ zap:
   max_size: 500
   # 最大备份文件数量
   max_backups: 7
-
-# 验证配置
-validation:
-  # 本地化设置(zh/en等)
-  locale: "zh"
-
-# Rate Limit 中间件配置
-rate_limit:
-  # 是否启用
-  enabled: true
-  # 令牌桶填充间隔
-  fill_interval: 1s
-  # 令牌桶容量
-  capacity: 100
-  # 每次填充的令牌数量
-  quantum: 10
-  # 过期IP清理间隔
-  cleanup_interval: 10m
-  # IP过期时间
-  bucket_expiry: 30m
-
-# Auth 中间件配置
-auth:
-  # 认证白名单路径
-  whitelist:
-    - /health
-    - /ping
-    - /api/v1/login # 示例：登录接口通常需要被排除
