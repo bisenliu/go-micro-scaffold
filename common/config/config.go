@@ -19,6 +19,11 @@ type Config struct {
 	Zap            ZapConfig                 `mapstructure:"zap"`
 	Validation     ValidationConfig          `mapstructure:"validation"`
 	RateLimit      RateLimitConfig           `mapstructure:"rate_limit"`
+	Auth           AuthConfig                `mapstructure:"auth"`
+}
+
+type AuthConfig struct {
+	Whitelist []string `mapstructure:"whitelist"`
 }
 
 type RateLimitConfig struct {

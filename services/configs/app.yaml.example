@@ -125,3 +125,11 @@ rate_limit:
   cleanup_interval: 10m
   # IP过期时间
   bucket_expiry: 30m
+
+# Auth 中间件配置
+auth:
+  # 认证白名单路径
+  whitelist:
+    - /health
+    - /ping
+    - /api/v1/login # 示例：登录接口通常需要被排除

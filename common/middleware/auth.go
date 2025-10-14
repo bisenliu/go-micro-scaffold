@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 
+	"common/config"
 	"common/logger"
 	"common/pkg/jwt"
 	"common/response"
@@ -22,12 +23,12 @@ const (
 )
 
 // AuthMiddleware 认证中间件
-func AuthMiddleware(jwtService *jwt.JWT) gin.HandlerFunc {
+func AuthMiddleware(jwtService *jwt.JWT, cfg config.AuthConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := c.Request.Context()
 
 		// 检查是否为白名单路径
-		if isWhitelistedPath(c.Request.URL.Path) {
+		if isWhitelistedPath(c.Request.URL.Path, cfg.Whitelist) {
 			logger.Debug(ctx, "Whitelisted path, skipping authentication",
 				zap.String("path", c.Request.URL.Path))
 			c.Next()
@@ -83,13 +84,7 @@ func AuthMiddleware(jwtService *jwt.JWT) gin.HandlerFunc {
 }
 
 // isWhitelistedPath 检查是否为白名单路径
-func isWhitelistedPath(path string) bool {
-	// 白名单路径列表
-	whiteList := []string{
-		"/health",
-		"/ping",
-	}
-
+func isWhitelistedPath(path string, whiteList []string) bool {
 	for _, p := range whiteList {
 		if strings.HasPrefix(path, p) {
 			return true
