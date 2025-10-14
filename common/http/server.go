@@ -24,14 +24,19 @@ func NewBaseEngine(params EngineParams) *gin.Engine {
 	// 创建Gin引擎
 	engine := gin.New()
 
+	// 核心中间件：TraceID、Recovery
+	// TraceLoggerMiddleware 必须在最前面，以确保后续所有日志都有 traceID
+	engine.Use(middleware.TraceLoggerMiddleware(params.Logger))
+	// RecoveryMiddleware 必须在 TraceLoggerMiddleware 之后，以便在 panic 时记录 traceID
+	engine.Use(middleware.RecoveryMiddleware())
+
 	// 添加CORS 中间件
 	if params.Config.Server.EnableCORS {
 		engine.Use(middleware.CORSMiddleware())
 	}
 
-	engine.Use(middleware.ExtractClientIPMiddleware(params.Logger))
-	engine.Use(middleware.RecoveryMiddleware(params.Logger))
-	engine.Use(middleware.TraceLoggerMiddleware(params.Logger))
+	// 其他中间件
+	engine.Use(middleware.ExtractClientIPMiddleware())
 
 	return engine
 }

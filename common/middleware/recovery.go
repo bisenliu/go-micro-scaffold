@@ -11,7 +11,7 @@ import (
 )
 
 // RecoveryMiddleware 恢复中间件
-func RecoveryMiddleware(zapLogger *zap.Logger) gin.HandlerFunc {
+func RecoveryMiddleware() gin.HandlerFunc {
 	return gin.RecoveryWithWriter(nil, func(c *gin.Context, recovered interface{}) {
 		ctx := c.Request.Context()
 

@@ -22,7 +22,7 @@ const (
 )
 
 // AuthMiddleware 认证中间件
-func AuthMiddleware(zapLogger *zap.Logger, jwtService *jwt.JWT) gin.HandlerFunc {
+func AuthMiddleware(jwtService *jwt.JWT) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := c.Request.Context()
 
@@ -62,7 +62,7 @@ func AuthMiddleware(zapLogger *zap.Logger, jwtService *jwt.JWT) gin.HandlerFunc 
 		}
 
 		// 验证token并获取用户信息
-		userID, err := validateToken(ctx, token, jwtService, zapLogger)
+		userID, err := validateToken(ctx, token, jwtService)
 		if err != nil {
 			logger.Error(ctx, "Token validation failed", zap.Error(err))
 			response.Unauthorized(c, "Invalid token")
@@ -99,11 +99,11 @@ func isWhitelistedPath(path string) bool {
 }
 
 // validateToken 验证token并返回用户ID
-func validateToken(ctx context.Context, tokenString string, jwtService *jwt.JWT, logger *zap.Logger) (string, error) {
+func validateToken(ctx context.Context, tokenString string, jwtService *jwt.JWT) (string, error) {
 	// 解析JWT token
 	claims, err := jwtService.ParseToken(tokenString)
 	if err != nil {
-		logger.Debug("Token parsing failed", zap.Error(err), zap.String("token", tokenString[:10]+"..."))
+		logger.Debug(ctx, "Token parsing failed", zap.Error(err), zap.String("token", tokenString[:10]+"..."))
 		return "", err
 	}
 

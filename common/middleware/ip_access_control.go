@@ -26,7 +26,7 @@ const (
 )
 
 // IPWhitelistMiddleware IP白名单中间件
-func IPWhitelistMiddleware(allowedIPs []string, zapLogger *zap.Logger) gin.HandlerFunc {
+func IPWhitelistMiddleware(allowedIPs []string) gin.HandlerFunc {
 	// 解析允许的IP地址和CIDR
 	var allowedSingleIPs []net.IP
 	var allowedCIDRs []*net.IPNet
@@ -39,15 +39,9 @@ func IPWhitelistMiddleware(allowedIPs []string, zapLogger *zap.Logger) gin.Handl
 			// 尝试解析为单个IP
 			if ip := net.ParseIP(ipStr); ip != nil {
 				allowedSingleIPs = append(allowedSingleIPs, ip)
-			} else {
-				zapLogger.Warn("Invalid IP or CIDR in whitelist", zap.String("ip", ipStr))
 			}
 		}
 	}
-
-	zapLogger.Info("IP whitelist middleware initialized",
-		zap.Int("single_ips", len(allowedSingleIPs)),
-		zap.Int("cidr_ranges", len(allowedCIDRs)))
 
 	return func(c *gin.Context) {
 		ctx := c.Request.Context()
@@ -120,7 +114,7 @@ func IPWhitelistMiddleware(allowedIPs []string, zapLogger *zap.Logger) gin.Handl
 }
 
 // InternalIPMiddleware 内网IP访问限制中间件
-func InternalIPMiddleware(zapLogger *zap.Logger) gin.HandlerFunc {
+func InternalIPMiddleware() gin.HandlerFunc {
 	// 定义私有IP网段
 	privateIPBlocks := []*net.IPNet{}
 
@@ -137,7 +131,7 @@ func InternalIPMiddleware(zapLogger *zap.Logger) gin.HandlerFunc {
 	} {
 		_, block, err := net.ParseCIDR(cidr)
 		if err != nil {
-			zapLogger.Fatal("Failed to parse CIDR", zap.String("cidr", cidr), zap.Error(err))
+			panic("Failed to parse CIDR '" + cidr + "': " + err.Error())
 		}
 		privateIPBlocks = append(privateIPBlocks, block)
 	}
@@ -194,13 +188,13 @@ func InternalIPMiddleware(zapLogger *zap.Logger) gin.HandlerFunc {
 }
 
 // ExtractClientIPMiddleware 提取客户端IP并解析为net.IP，存储在Context中
-func ExtractClientIPMiddleware(zapLogger *zap.Logger) gin.HandlerFunc {
+func ExtractClientIPMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := c.Request.Context()
 		clientIPStr := getClientIP(c)
 
 		if clientIPStr == "" {
-			zapLogger.Warn("Unable to determine client IP", zap.String("path", c.Request.URL.Path))
+			logger.Warn(ctx, "Unable to determine client IP", zap.String("path", c.Request.URL.Path))
 			response.Forbidden(c, "Access denied: Unable to determine client IP")
 			c.Abort()
 			return
@@ -208,7 +202,7 @@ func ExtractClientIPMiddleware(zapLogger *zap.Logger) gin.HandlerFunc {
 
 		parsedIP := net.ParseIP(clientIPStr)
 		if parsedIP == nil {
-			zapLogger.Warn("Invalid client IP format", zap.String("client_ip_str", clientIPStr), zap.String("path", c.Request.URL.Path))
+			logger.Warn(ctx, "Invalid client IP format", zap.String("client_ip_str", clientIPStr), zap.String("path", c.Request.URL.Path))
 			response.Forbidden(c, "Access denied: Invalid client IP format")
 			c.Abort()
 			return

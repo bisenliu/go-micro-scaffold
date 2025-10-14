@@ -10,13 +10,9 @@ import (
 )
 
 // RateLimitMiddleware 限流中间件
-func RateLimitMiddleware(fillInterval int64, capacity int64, zapLogger *zap.Logger) gin.HandlerFunc {
+func RateLimitMiddleware(fillInterval int64, capacity int64) gin.HandlerFunc {
 	// 创建令牌桶
 	bucket := ratelimit.NewBucketWithRate(float64(fillInterval), capacity)
-
-	zapLogger.Info("Rate limit middleware initialized",
-		zap.Int64("fill_interval", fillInterval),
-		zap.Int64("capacity", capacity))
 
 	return func(c *gin.Context) {
 		ctx := c.Request.Context()

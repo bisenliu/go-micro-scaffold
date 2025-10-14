@@ -25,7 +25,7 @@ func (w *ResponseWriter) Write(b []byte) (int, error) {
 }
 
 // RequestLogMiddleware 请求日志中间件，记录请求信息并包含用户ID和真实业务状态码
-func RequestLogMiddleware(zapLogger *zap.Logger) gin.HandlerFunc {
+func RequestLogMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// 记录开始时间
 		startTime := time.Now()
@@ -89,7 +89,7 @@ func RequestLogMiddleware(zapLogger *zap.Logger) gin.HandlerFunc {
 }
 
 // RequestLogWithDetailsMiddleware 详细请求日志中间件，包含请求体和响应体（谨慎使用，可能包含敏感信息）
-func RequestLogWithDetailsMiddleware(zapLogger *zap.Logger) gin.HandlerFunc {
+func RequestLogWithDetailsMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// 记录开始时间
 		startTime := time.Now()
