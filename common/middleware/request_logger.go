@@ -10,6 +10,7 @@ import (
 	"go.uber.org/zap"
 
 	"common/logger"
+	"common/pkg/contextutil"
 	"common/response"
 )
 
@@ -48,7 +49,7 @@ func requestLoggerInternal(detailed bool) gin.HandlerFunc {
 
 		// 优先从 context 获取真实 IP
 		var clientIP string
-		if ip, exists := c.Get(ClientIPContextKey); exists {
+		if ip, exists := c.Get(contextutil.ClientIPContextKey); exists {
 			clientIP, _ = ip.(string)
 		} else {
 			clientIP = c.ClientIP() // Fallback
@@ -82,7 +83,7 @@ func requestLoggerInternal(detailed bool) gin.HandlerFunc {
 
 		// 获取用户ID（如果存在）
 		var userID any = "anonymous"
-		if id, exists := c.Get("userID"); exists {
+		if id, exists := c.Get(contextutil.UserIDKey); exists {
 			userID = id
 		}
 

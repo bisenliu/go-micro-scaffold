@@ -37,7 +37,7 @@ func NewBaseEngine(params EngineParams) *gin.Engine {
 	engine.Use(middleware.CORSMiddleware(params.Config.Server))
 
 	// 5. RateLimit: 基于IP进行限流(通过配置启用/禁用)，保护后端服务
-	engine.Use(middleware.RateLimitMiddleware(params.Config.RateLimit))
+	engine.Use(middleware.RateLimitMiddleware(params.Config.RateLimit, params.Logger))
 
 	return engine
 }

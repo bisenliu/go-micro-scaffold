@@ -5,6 +5,7 @@ import (
 	"go.uber.org/zap"
 
 	"common/logger"
+	"common/pkg/contextutil"
 )
 
 // TraceLoggerMiddleware 创建 Logger 中间件，自动为每个请求注入带 traceID 的 logger
@@ -19,7 +20,7 @@ func TraceLoggerMiddleware(zapLogger *zap.Logger) gin.HandlerFunc {
 		}
 
 		// 将 traceID 添加到 Gin context 和 Go context 中
-		c.Set("traceID", traceID)
+		c.Set(contextutil.TraceIDKey, traceID)
 		ctx = logger.WithTraceID(ctx, traceID)
 
 		// 创建带 traceID 的 logger 并存入 context

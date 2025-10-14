@@ -4,11 +4,20 @@ import (
 	"context"
 )
 
-// UserIDKey is the key for the user ID in the context.
-const UserIDKey = "user_id"
+// 用于在context中共享数据的键
+const (
+	// UserIDKey 是在context中存储用户ID的键
+	UserIDKey = "user_id"
+	// ClientIPContextKey 是在context中存储客户端IP字符串的键
+	ClientIPContextKey = "clientIP"
+	// ClientParsedIPContextKey 是在context中存储解析后的net.IP对象的键
+	ClientParsedIPContextKey = "clientParsedIP"
+	// TraceIDKey 是在context中存储追踪ID的键
+	TraceIDKey = "traceID"
+)
 
-// GetUserIDFromContext retrieves the user ID from the context.
-// It returns the user ID and a boolean indicating whether the user ID was found.
+// GetUserIDFromContext 从context中获取用户ID
+// 返回用户ID以及一个布尔值，表示是否成功找到了用户ID
 func GetUserIDFromContext(ctx context.Context) (string, bool) {
 	userID, ok := ctx.Value(UserIDKey).(string)
 	return userID, ok

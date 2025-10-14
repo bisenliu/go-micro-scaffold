@@ -7,6 +7,7 @@ import (
 	"go.uber.org/zap"
 
 	"common/logger"
+	"common/pkg/contextutil"
 	"common/response"
 )
 
@@ -32,7 +33,7 @@ func IPWhitelistMiddleware(allowedIPs []string) gin.HandlerFunc {
 		ctx := c.Request.Context()
 
 		// 从Context中获取预解析的IP
-		ipVal, exists := c.Get(ClientParsedIPContextKey)
+		ipVal, exists := c.Get(contextutil.ClientParsedIPContextKey)
 		if !exists {
 			logger.Error(ctx, "Parsed client IP not found in context")
 			response.Forbidden(c, "Access denied: Internal error")
@@ -47,7 +48,7 @@ func IPWhitelistMiddleware(allowedIPs []string) gin.HandlerFunc {
 			return
 		}
 
-		clientIPStrVal, exists := c.Get(ClientIPContextKey)
+		clientIPStrVal, exists := c.Get(contextutil.ClientIPContextKey)
 		if !exists {
 			logger.Error(ctx, "Client IP string not found in context")
 			response.Forbidden(c, "Access denied: Internal error")
@@ -125,7 +126,7 @@ func InternalIPMiddleware() gin.HandlerFunc {
 		ctx := c.Request.Context()
 
 		// 从Context中获取预解析的IP
-		ipVal, exists := c.Get(ClientParsedIPContextKey)
+		ipVal, exists := c.Get(contextutil.ClientParsedIPContextKey)
 		if !exists {
 			logger.Error(ctx, "Parsed client IP not found in context")
 			response.Forbidden(c, "Access denied: Internal error")
@@ -140,7 +141,7 @@ func InternalIPMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		clientIPStrVal, exists := c.Get(ClientIPContextKey)
+		clientIPStrVal, exists := c.Get(contextutil.ClientIPContextKey)
 		if !exists {
 			logger.Error(ctx, "Client IP string not found in context")
 			response.Forbidden(c, "Access denied: Internal error")

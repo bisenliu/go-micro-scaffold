@@ -7,6 +7,7 @@ import (
 	"go.uber.org/zap"
 
 	"common/logger"
+	"common/pkg/contextutil"
 	"common/response"
 )
 
@@ -17,11 +18,11 @@ type PermissionEnforceFunc func(ctx context.Context, sub, obj, act string) (bool
 func CasbinMiddleware(enforceFunc PermissionEnforceFunc) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := c.Request.Context()
-		// 这里应该从 JWT token 或 session 中获取用户信息
-		// 为了演示，我们使用一个示例用户 ID
-		userID := c.GetString("user_id")
-		if userID == "" {
-			// 如果没有用户 ID，可以尝试从其他地方获取，比如 JWT claims
+
+		var userID string
+		if id, ok := contextutil.GetUserIDFromContext(ctx); ok {
+			userID = id
+		} else {
 			userID = "anonymous"
 		}
 

@@ -7,6 +7,7 @@ import (
 	"go.uber.org/zap"
 
 	"common/logger"
+	"common/pkg/contextutil"
 	"common/response"
 )
 
@@ -16,7 +17,7 @@ func RecoveryMiddleware() gin.HandlerFunc {
 		ctx := c.Request.Context()
 
 		var clientIP string
-		if ip, exists := c.Get(ClientIPContextKey); exists {
+		if ip, exists := c.Get(contextutil.ClientIPContextKey); exists {
 			clientIP, _ = ip.(string)
 		} else {
 			clientIP = c.ClientIP() // Fallback
