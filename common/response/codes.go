@@ -39,6 +39,8 @@ var (
 // 系统错误状态码 (5000-5999)
 var (
 	CodeInternalError = BusinessCode{Code: 5001, Message: "内部服务器错误", Type: ErrorTypeSystem}
+	CodeRateLimit     = BusinessCode{Code: 5002, Message: "请求过于频繁", Type: ErrorTypeRateLimit}
+	CodeTimeout       = BusinessCode{Code: 5003, Message: "请求超时", Type: ErrorTypeTimeout}
 )
 
 // 第三方服务错误状态码 (6000-6999)
@@ -57,6 +59,8 @@ var AllBusinessCodes = map[int]BusinessCode{
 	CodeNotFound.Code:        CodeNotFound,
 	CodeInternalError.Code:   CodeInternalError,
 	CodeThirdPartyError.Code: CodeThirdPartyError,
+	CodeRateLimit.Code:       CodeRateLimit,
+	CodeTimeout.Code:         CodeTimeout,
 }
 
 // GetCodeMessage 获取状态码对应的消息

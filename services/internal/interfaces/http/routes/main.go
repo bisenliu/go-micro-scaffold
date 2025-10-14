@@ -1,6 +1,8 @@
 package routes
 
 import (
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
@@ -32,6 +34,7 @@ func SetupRoutesFinal(p RoutesParams) {
 	// 2. API v1 路由组（需要认证和授权）
 	v1 := p.Engine.Group("/api/v1")
 	v1.Use(commonMiddleware.RequestLogMiddleware())
+	v1.Use(commonMiddleware.RateLimitMiddleware(time.Second, 2, 1))
 	// v1.Use(gin.HandlerFunc(p.CasbinMiddleware))
 	{
 		SetupUserRoutes(v1, p.UserHandler, p.ZapLogger)

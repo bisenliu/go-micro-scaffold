@@ -48,7 +48,7 @@ func requestLoggerInternal(detailed bool) gin.HandlerFunc {
 
 		// 优先从 context 获取真实 IP
 		var clientIP string
-		if ip, exists := c.Get("clientIP"); exists {
+		if ip, exists := c.Get(ClientIPContextKey); exists {
 			clientIP, _ = ip.(string)
 		} else {
 			clientIP = c.ClientIP() // Fallback

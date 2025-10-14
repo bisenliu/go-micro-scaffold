@@ -2,27 +2,12 @@ package middleware
 
 import (
 	"net"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 
 	"common/logger"
 	"common/response"
-)
-
-const (
-	// XForwardedFor X-Forwarded-For头
-	XForwardedFor = "X-Forwarded-For"
-	// XRealIP X-Real-IP头
-	XRealIP = "X-Real-IP"
-	// XClientIP X-Client-IP头
-	XClientIP = "X-Client-IP"
-
-	// ClientIPContextKey 是在 gin.Context 中存储客户端 IP 字符串的键
-	ClientIPContextKey = "clientIP"
-	// ClientParsedIPContextKey 是在 gin.Context 中存储解析后的 net.IP 对象的键
-	ClientParsedIPContextKey = "clientParsedIP"
 )
 
 // IPWhitelistMiddleware IP白名单中间件
@@ -67,7 +52,7 @@ func IPWhitelistMiddleware(allowedIPs []string) gin.HandlerFunc {
 			logger.Error(ctx, "Client IP string not found in context")
 			response.Forbidden(c, "Access denied: Internal error")
 			c.Abort()
-			return
+return
 		}
 		clientIPStr, ok := clientIPStrVal.(string)
 		if !ok {
@@ -185,62 +170,6 @@ func InternalIPMiddleware() gin.HandlerFunc {
 			zap.String("path", c.Request.URL.Path))
 		c.Next()
 	}
-}
-
-// ExtractClientIPMiddleware 提取客户端IP并解析为net.IP，存储在Context中
-func ExtractClientIPMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		ctx := c.Request.Context()
-		clientIPStr := getClientIP(c)
-
-		if clientIPStr == "" {
-			logger.Warn(ctx, "Unable to determine client IP", zap.String("path", c.Request.URL.Path))
-			response.Forbidden(c, "Access denied: Unable to determine client IP")
-			c.Abort()
-			return
-		}
-
-		parsedIP := net.ParseIP(clientIPStr)
-		if parsedIP == nil {
-			logger.Warn(ctx, "Invalid client IP format", zap.String("client_ip_str", clientIPStr), zap.String("path", c.Request.URL.Path))
-			response.Forbidden(c, "Access denied: Invalid client IP format")
-			c.Abort()
-			return
-		}
-
-		c.Set(ClientIPContextKey, clientIPStr)
-		c.Set(ClientParsedIPContextKey, parsedIP)
-		logger.Debug(ctx, "Client IP extracted and parsed", zap.String("client_ip", clientIPStr))
-		c.Next()
-	}
-}
-
-// getClientIP 获取客户端真实IP
-func getClientIP(c *gin.Context) string {
-	// 1. 优先检查X-Forwarded-For头
-	xForwardedFor := c.GetHeader(XForwardedFor)
-	if xForwardedFor != "" {
-		// X-Forwarded-For可能包含多个IP，取第一个
-		ips := strings.Split(xForwardedFor, ",")
-		if len(ips) > 0 {
-			return strings.TrimSpace(ips[0])
-		}
-	}
-
-	// 2. 检查X-Real-IP头
-	xRealIP := c.GetHeader(XRealIP)
-	if xRealIP != "" {
-		return xRealIP
-	}
-
-	// 3. 检查X-Client-IP头
-	xClientIP := c.GetHeader(XClientIP)
-	if xClientIP != "" {
-		return xClientIP
-	}
-
-	// 4. 使用gin内置方法获取IP
-	return c.ClientIP()
 }
 
 // isPrivateIP 判断IP是否为私有/内网IP

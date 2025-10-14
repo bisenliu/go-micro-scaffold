@@ -17,6 +17,8 @@ const (
 	ErrorTypePermission                  // 权限错误
 	ErrorTypeNotFound                    // 未找到错误
 	ErrorTypeThirdParty                  // 第三方服务错误
+	ErrorTypeRateLimit                   // 频率限制错误
+	ErrorTypeTimeout                     // 超时错误
 )
 
 // BaseResponse 基础响应结构
@@ -79,6 +81,10 @@ func getHTTPStatusByErrorType(errorType ErrorType) int {
 		return http.StatusForbidden // 403
 	case ErrorTypeNotFound:
 		return http.StatusNotFound // 404
+	case ErrorTypeTimeout:
+		return http.StatusRequestTimeout // 408
+	case ErrorTypeRateLimit:
+		return http.StatusTooManyRequests // 429
 	case ErrorTypeSystem:
 		return http.StatusInternalServerError // 500
 	case ErrorTypeThirdParty:
@@ -159,36 +165,42 @@ func BadRequest(c *gin.Context, message string) {
 
 // ValidationError 验证错误响应
 func ValidationError(c *gin.Context, message string, errors interface{}) {
-	msg := getErrorMessage(CodeInvalidParams, message)
+	msg := getErrorMessage(CodeValidationError, message)
 	Error(c, NewAppError(CodeValidationError.Type, CodeValidationError.Code, msg, errors))
 }
 
 // Unauthorized 401错误响应
 func Unauthorized(c *gin.Context, message string) {
-	msg := getErrorMessage(CodeInvalidParams, message)
+	msg := getErrorMessage(CodeUnauthorized, message)
 	Error(c, NewAppError(CodeUnauthorized.Type, CodeUnauthorized.Code, msg, nil))
 }
 
 // Forbidden 403错误响应
 func Forbidden(c *gin.Context, message string) {
-	msg := getErrorMessage(CodeInvalidParams, message)
+	msg := getErrorMessage(CodeForbidden, message)
 	Error(c, NewAppError(CodeForbidden.Type, CodeForbidden.Code, msg, nil))
 }
 
 // NotFound 404错误响应
 func NotFound(c *gin.Context, message string) {
-	msg := getErrorMessage(CodeInvalidParams, message)
-	Error(c, NewAppError(ErrorTypeNotFound, CodeNotFound.Code, msg, nil))
+	msg := getErrorMessage(CodeNotFound, message)
+	Error(c, NewAppError(CodeNotFound.Type, CodeNotFound.Code, msg, nil))
+}
+
+// RateLimit 频率限制错误响应
+func RateLimit(c *gin.Context, message string) {
+	msg := getErrorMessage(CodeRateLimit, message)
+	Error(c, NewAppError(CodeRateLimit.Type, CodeRateLimit.Code, msg, nil))
 }
 
 // InternalServerError 500错误响应
 func InternalServerError(c *gin.Context, message string) {
-	msg := getErrorMessage(CodeInvalidParams, message)
+	msg := getErrorMessage(CodeInternalError, message)
 	Error(c, NewAppError(CodeInternalError.Type, CodeInternalError.Code, msg, nil))
 }
 
 // ThirdPartyError 502错误响应
 func ThirdPartyError(c *gin.Context, message string) {
-	msg := getErrorMessage(CodeInvalidParams, message)
+	msg := getErrorMessage(CodeThirdPartyError, message)
 	Error(c, NewAppError(CodeThirdPartyError.Type, CodeThirdPartyError.Code, msg, nil))
 }
