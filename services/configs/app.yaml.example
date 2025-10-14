@@ -110,3 +110,18 @@ zap:
 validation:
   # 本地化设置(zh/en等)
   locale: "zh"
+
+# Rate Limit 中间件配置
+rate_limit:
+  # 是否启用
+  enabled: true
+  # 令牌桶填充间隔
+  fill_interval: 1s
+  # 令牌桶容量
+  capacity: 100
+  # 每次填充的令牌数量
+  quantum: 10
+  # 过期IP清理间隔
+  cleanup_interval: 10m
+  # IP过期时间
+  bucket_expiry: 30m

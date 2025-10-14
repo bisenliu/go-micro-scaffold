@@ -18,6 +18,16 @@ type Config struct {
 	Server         ServerConfig              `mapstructure:"server"`
 	Zap            ZapConfig                 `mapstructure:"zap"`
 	Validation     ValidationConfig          `mapstructure:"validation"`
+	RateLimit      RateLimitConfig           `mapstructure:"rate_limit"`
+}
+
+type RateLimitConfig struct {
+	Enabled         bool          `mapstructure:"enabled"`
+	FillInterval    time.Duration `mapstructure:"fill_interval"`
+	Capacity        int64         `mapstructure:"capacity"`
+	Quantum         int64         `mapstructure:"quantum"`
+	CleanupInterval time.Duration `mapstructure:"cleanup_interval"`
+	BucketExpiry    time.Duration `mapstructure:"bucket_expiry"`
 }
 
 type SystemConfig struct {

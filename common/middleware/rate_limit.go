@@ -7,15 +7,37 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/juju/ratelimit"
 
+	"common/config"
 	"common/logger"
 	"common/response"
 )
 
-// 使用 sync.Map 来存储每个IP对应的令牌桶
-var ipBuckets sync.Map
+// ipLimiter 存储每个IP的令牌桶和最后访问时间
+type ipLimiter struct {
+	bucket   *ratelimit.Bucket
+	lastSeen time.Time
+	mu       sync.Mutex
+}
+
+var (
+	ipBuckets   sync.Map
+	cleanupOnce sync.Once
+)
 
 // RateLimitMiddleware 限流中间件
-func RateLimitMiddleware(fillInterval time.Duration, cap, quantum int64) gin.HandlerFunc {
+func RateLimitMiddleware(cfg config.RateLimitConfig) gin.HandlerFunc {
+	// 如果未启用，返回一个空操作的中间件
+	if !cfg.Enabled {
+		return func(c *gin.Context) {
+			c.Next()
+		}
+	}
+
+	// 确保清理goroutine只启动一次
+	cleanupOnce.Do(func() {
+		startCleanupGoroutine(cfg)
+	})
+
 	return func(c *gin.Context) {
 		ctx := c.Request.Context()
 		var ip string
@@ -24,7 +46,7 @@ func RateLimitMiddleware(fillInterval time.Duration, cap, quantum int64) gin.Han
 			ip, _ = clientIP.(string)
 		}
 
-		// 如果 context 中没有，则回退到 gin 的默认方法
+		// 如果 context 中没有，则回退
 		if ip == "" {
 			logger.Warn(ctx, "Client IP not found in context, falling back to c.ClientIP() for rate limiting")
 			ip = c.ClientIP()
@@ -37,19 +59,50 @@ func RateLimitMiddleware(fillInterval time.Duration, cap, quantum int64) gin.Han
 			return
 		}
 
-		// 获取或创建一个令牌桶
-		bucket, _ := ipBuckets.LoadOrStore(ip, ratelimit.NewBucketWithQuantum(fillInterval, cap, quantum))
+		var limiter *ipLimiter
+		val, ok := ipBuckets.Load(ip)
+		if ok {
+			limiter = val.(*ipLimiter)
+		} else {
+			newLimiter := &ipLimiter{
+				bucket: ratelimit.NewBucketWithQuantum(cfg.FillInterval, cfg.Capacity, cfg.Quantum),
+			}
+			val, _ = ipBuckets.LoadOrStore(ip, newLimiter)
+			limiter = val.(*ipLimiter)
+		}
 
-		// 强制类型转换
-		ipBucket := bucket.(*ratelimit.Bucket)
+		limiter.mu.Lock()
+		limiter.lastSeen = time.Now()
+		canTake := limiter.bucket.TakeAvailable(1) >= 1
+		limiter.mu.Unlock()
 
-		// 检查是否有可用令牌
-		if ipBucket.TakeAvailable(1) < 1 {
+		if !canTake {
 			response.RateLimit(c, "Rate limit exceeded")
 			c.Abort()
 			return
 		}
 		c.Next()
 	}
+}
 
+// startCleanupGoroutine 启动一个后台goroutine来定期清理过期的IP令牌桶
+func startCleanupGoroutine(cfg config.RateLimitConfig) {
+	go func() {
+		ticker := time.NewTicker(cfg.CleanupInterval)
+		defer ticker.Stop()
+
+		for range ticker.C {
+			ipBuckets.Range(func(key, value interface{}) bool {
+				limiter := value.(*ipLimiter)
+				limiter.mu.Lock()
+				isExpired := time.Since(limiter.lastSeen) > cfg.BucketExpiry
+				limiter.mu.Unlock()
+
+				if isExpired {
+					ipBuckets.Delete(key)
+				}
+				return true // continue iteration
+			})
+		}
+	}()
 }

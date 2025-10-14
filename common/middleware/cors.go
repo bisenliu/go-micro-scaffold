@@ -4,10 +4,19 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+
+	"common/config"
 )
 
 // CORSMiddleware 跨域中间件
-func CORSMiddleware() gin.HandlerFunc {
+func CORSMiddleware(cfg config.ServerConfig) gin.HandlerFunc {
+	// 如果未启用，返回一个空操作的中间件
+	if !cfg.EnableCORS {
+		return func(c *gin.Context) {
+			c.Next()
+		}
+	}
+
 	return func(c *gin.Context) {
 		method := c.Request.Method
 
