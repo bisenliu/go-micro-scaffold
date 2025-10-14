@@ -7,6 +7,8 @@ import (
 
 	entsql "entgo.io/ent/dialect/sql"
 	"go.uber.org/zap"
+
+	"common/logger"
 )
 
 // Client 数据库客户端接口
@@ -80,7 +82,7 @@ func (c *Client) WithTx(ctx context.Context, fn func(*sql.Tx) error) error {
 	defer func() {
 		if p := recover(); p != nil {
 			if rollbackErr := tx.Rollback(); rollbackErr != nil {
-				c.logger.Error("Failed to rollback transaction after panic",
+				logger.Error(ctx, "Failed to rollback transaction after panic",
 					zap.String("client", c.name),
 					zap.Error(rollbackErr),
 				)
@@ -88,7 +90,7 @@ func (c *Client) WithTx(ctx context.Context, fn func(*sql.Tx) error) error {
 			panic(p)
 		} else if err != nil {
 			if rollbackErr := tx.Rollback(); rollbackErr != nil {
-				c.logger.Error("Failed to rollback transaction",
+				logger.Error(ctx, "Failed to rollback transaction",
 					zap.String("client", c.name),
 					zap.Error(rollbackErr),
 				)
