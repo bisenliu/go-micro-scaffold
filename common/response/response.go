@@ -11,7 +11,8 @@ import (
 type ErrorType int
 
 const (
-	ErrorTypeBusiness   ErrorType = iota // 业务逻辑错误(验证错误、业务错误等)
+	ErrorTypeNone       ErrorType = iota // 无错误类型，用于成功响应
+	ErrorTypeBusiness                    // 业务逻辑错误(验证错误、业务错误等)
 	ErrorTypeSystem                      // 系统错误
 	ErrorTypeAuth                        // 认证错误
 	ErrorTypePermission                  // 权限错误

@@ -15,7 +15,7 @@ func (bc BusinessCode) IsSuccess() bool {
 // 通用状态码 (0-999)
 var (
 	// 成功状态码
-	CodeSuccess = BusinessCode{Code: 0, Message: "操作成功"}
+	CodeSuccess = BusinessCode{Code: 0, Message: "操作成功", Type: ErrorTypeNone}
 )
 
 // 客户端错误状态码 (1000-1999)
