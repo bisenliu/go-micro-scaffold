@@ -37,7 +37,7 @@ func SetupRoutesFinal(p RoutesParams) {
 	// 2. API v1 路由组
 	v1 := p.Engine.Group("/api/v1")
 
-	// 2.1 认证路由（无需Token）
+	// 2.1 认证相关路由（部分需要Token）
 	SetupAuthRoutes(v1, p.AuthHandler, p.AuthMiddleware, p.ZapLogger)
 
 	// 2.2 业务路由（需要认证和授权）
