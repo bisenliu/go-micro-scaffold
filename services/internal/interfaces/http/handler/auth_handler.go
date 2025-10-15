@@ -66,3 +66,28 @@ func (h *AuthHandler) LoginByWeChat(c *gin.Context) {
 	// 3. Generate JWT and return
 	response.Success(c, gin.H{"message": "WeChat login placeholder"})
 }
+
+// Logout 登出
+func (h *AuthHandler) Logout(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	claimsValue, exists := c.Get("claims")
+	if !exists {
+		response.Unauthorized(c, "无法获取用户信息")
+		return
+	}
+
+	claims, ok := claimsValue.(*jwt.CustomClaims)
+	if !ok {
+		response.InternalServerError(c, "用户信息类型断言失败")
+		return
+	}
+
+	if err := h.authService.Logout(ctx, claims.ID, claims.ExpiresAt.Time); err != nil {
+		logger.Error(ctx, "Logout failed", zap.Error(err))
+		HandleErrorResponse(c, err)
+		return
+	}
+
+	response.Success(c, "登出成功")
+}

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/google/uuid"
 
 	"common/config"
 )
@@ -32,7 +33,10 @@ func (j *JWT) Generate(userID string, username string) (string, error) {
 		UserID:   userID,
 		Username: username,
 		RegisteredClaims: jwt.RegisteredClaims{
+			ID:        uuid.NewString(),
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Duration(j.config.Token.ExpiredTime) * time.Minute)),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			NotBefore: jwt.NewNumericDate(time.Now()),
 			Issuer:    j.config.System.ServerName,
 		},
 	}

@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 
@@ -13,11 +14,13 @@ import (
 type AuthServiceInterface interface {
 	LoginByPassword(ctx context.Context, phoneNumber, password string) (string, string, error)
 	LoginByWeChat(ctx context.Context, code string) (string, string, error)
+	Logout(ctx context.Context, tokenID string, expiresAt time.Time) error
 }
 
 // AuthService 认证服务
 type AuthService struct {
 	userRepo repository.UserRepository
+	// redisClient *redis.Client // for blocklist
 }
 
 // NewAuthService 创建认证服务
@@ -52,4 +55,12 @@ func (s *AuthService) LoginByWeChat(ctx context.Context, code string) (string, s
 	//    - If yes, retrieve the user.
 	// 3. Return user ID and name.
 	return "wechat_user_id", "wechat_user_name", nil
+}
+
+// Logout 登出
+func (s *AuthService) Logout(ctx context.Context, tokenID string, expiresAt time.Time) error {
+	// In a real implementation, add the tokenID to a blocklist in Redis
+	// with an expiration equal to the token's remaining validity.
+	// e.g., redisClient.Set(ctx, tokenID, "", time.Until(expiresAt))
+	return nil
 }

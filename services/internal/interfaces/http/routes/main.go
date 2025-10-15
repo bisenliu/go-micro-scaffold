@@ -10,7 +10,10 @@ import (
 )
 
 // CasbinMiddleware 是一个具名类型，用于DI容器的类型安全注入
-type CasbinMiddleware gin.HandlerFunc
+type (
+	CasbinMiddleware gin.HandlerFunc
+	AuthMiddleware   gin.HandlerFunc
+)
 
 // RoutesParams 定义了 SetupRoutesFinal 函数的依赖项
 type RoutesParams struct {
@@ -21,6 +24,7 @@ type RoutesParams struct {
 	HealthHandler    *handler.HealthHandler
 	AuthHandler      *handler.AuthHandler
 	CasbinMiddleware CasbinMiddleware
+	AuthMiddleware   AuthMiddleware
 	ZapLogger        *zap.Logger
 }
 
@@ -34,7 +38,7 @@ func SetupRoutesFinal(p RoutesParams) {
 	v1 := p.Engine.Group("/api/v1")
 
 	// 2.1 认证路由（无需Token）
-	SetupAuthRoutes(v1, p.AuthHandler, p.ZapLogger)
+	SetupAuthRoutes(v1, p.AuthHandler, gin.HandlerFunc(p.AuthMiddleware), p.ZapLogger)
 
 	// 2.2 业务路由（需要认证和授权）
 	v1.Use(commonMiddleware.RequestLogMiddleware())

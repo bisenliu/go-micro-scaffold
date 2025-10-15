@@ -3,7 +3,9 @@ package http
 import (
 	"go.uber.org/fx"
 
+	"common/config"
 	commonMiddleware "common/middleware"
+	"common/pkg/jwt"
 	service "services/internal/application/service"
 	"services/internal/interfaces/http/handler"
 	"services/internal/interfaces/http/routes"
@@ -22,6 +24,11 @@ var InterfaceModuleFinal = fx.Module("interface_final",
 		// 创建 Casbin 中间件的 Provider
 		func(permissionService service.PermissionServiceInterface) routes.CasbinMiddleware {
 			return routes.CasbinMiddleware(commonMiddleware.CasbinMiddleware(permissionService.Enforce))
+		},
+
+		// 创建 Auth 中间件的 Provider
+		func(jwtService *jwt.JWT, config *config.Config) routes.AuthMiddleware {
+			return routes.AuthMiddleware(commonMiddleware.AuthMiddleware(jwtService, config.Auth))
 		},
 	),
 
