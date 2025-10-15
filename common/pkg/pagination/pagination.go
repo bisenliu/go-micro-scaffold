@@ -4,12 +4,12 @@ import (
 	"common/pkg/validation"
 )
 
-type Pagination struct {
+type PageParams struct {
 	Page     int `form:"page" binding:"omitempty,min=1" label:"页码"`
 	PageSize int `form:"page_size" binding:"omitempty,min=1" label:"每页大小"`
 }
 
-func (p *Pagination) SetDefaults() {
+func (p *PageParams) SetDefaults() {
 	if p.Page <= 0 {
 		p.Page = 1
 	}
@@ -18,4 +18,4 @@ func (p *Pagination) SetDefaults() {
 	}
 }
 
-var _ validation.Defaultable = (*Pagination)(nil)
+var _ validation.Defaultable = (*PageParams)(nil)
