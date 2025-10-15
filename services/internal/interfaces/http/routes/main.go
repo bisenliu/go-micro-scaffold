@@ -38,7 +38,7 @@ func SetupRoutesFinal(p RoutesParams) {
 	v1 := p.Engine.Group("/api/v1")
 
 	// 2.1 认证路由（无需Token）
-	SetupAuthRoutes(v1, p.AuthHandler, gin.HandlerFunc(p.AuthMiddleware), p.ZapLogger)
+	SetupAuthRoutes(v1, p.AuthHandler, p.AuthMiddleware, p.ZapLogger)
 
 	// 2.2 业务路由（需要认证和授权）
 	v1.Use(commonMiddleware.RequestLogMiddleware())
