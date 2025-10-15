@@ -29,9 +29,16 @@ func HandleErrorResponse(c *gin.Context, err error) {
 			return
 
 		// 将所有导致 400 Bad Request 的错误合并处理
-		case errors.Is(baseErr, domainerrors.ErrAlreadyExists),
-			errors.Is(baseErr, domainerrors.ErrInvalidData):
+		case errors.Is(baseErr, domainerrors.ErrAlreadyExists):
 			response.BadRequest(c, message)
+			return
+
+		case errors.Is(baseErr, domainerrors.ErrUnauthorized):
+			response.Unauthorized(c, message)
+			return
+
+		case errors.Is(baseErr, domainerrors.ErrForbidden):
+			response.Forbidden(c, message)
 			return
 		}
 	}
