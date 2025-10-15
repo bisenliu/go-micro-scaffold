@@ -81,7 +81,6 @@ func (h *UserHandler) ListUsers(c *gin.Context) {
 		return
 	}
 
-
 	// 构建查询对象
 	query := &user.ListUsersQuery{
 		Page:     req.Page,
@@ -149,7 +148,7 @@ func (h *UserHandler) GetUser(c *gin.Context) {
 	query := &user.GetUserQuery{ID: userID}
 
 	// 获取用户信息
-	userInfo, err := h.queryHandler.HandleGetUser(c.Request.Context(), query)
+	userInfo, err := h.queryHandler.HandleGetUser(ctx, query)
 	if err != nil {
 		logger.Error(ctx, "Failed to get user info", zap.Error(err), zap.String("user_id", userID))
 		HandleErrorResponse(c, err)
