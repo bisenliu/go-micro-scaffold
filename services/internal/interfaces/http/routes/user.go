@@ -14,8 +14,7 @@ func SetupUserRoutes(rg *gin.RouterGroup, userHandler *handler.UserHandler, logg
 		users.POST("", userHandler.CreateUser)
 		users.GET("", userHandler.ListUsers)
 		users.GET("/:id", userHandler.GetUser)
-		users.POST("/login", userHandler.Login)
 	}
 
-	logger.Info("User API routes registered", zap.Int("count", 4))
+	logger.Info("User API routes registered", zap.Int("count", 3))
 }

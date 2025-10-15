@@ -32,13 +32,11 @@ func NewUserHandler(
 	commandHandler *commandhandler.UserCommandHandler,
 	queryHandler *queryhandler.UserQueryHandler,
 	validator *validation.Validator,
-	jwtService *jwt.JWT,
 ) *UserHandler {
 	return &UserHandler{
 		commandHandler: commandHandler,
 		queryHandler:   queryHandler,
 		validator:      validator,
-		jwtService:     jwtService,
 	}
 }
 
@@ -119,23 +117,6 @@ func (h *UserHandler) ListUsers(c *gin.Context) {
 
 	// 返回分页响应
 	response.SuccessWithPagination(c, userResponses, req.Page, req.PageSize, total)
-}
-
-// Login 用户登录示例
-func (h *UserHandler) Login(c *gin.Context) {
-	// 注意：这只是一个示例，实际登录需要验证用户名和密码
-	// 假设已经验证了用户身份，用户ID为123，用户名为"testuser"
-
-	// 生成token
-	token, err := h.jwtService.Generate("123", "testuser")
-	if err != nil {
-		response.InternalServerError(c, "Failed to generate token")
-		return
-	}
-
-	response.Success(c, gin.H{
-		"token": token,
-	})
 }
 
 // GetUser 获取用户信息

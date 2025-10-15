@@ -27,6 +27,7 @@ var (
 	ErrPasswordTooShort = domainerrors.NewDomainError(domainerrors.ErrValidationFailed, "密码长度不能少于6位")
 	ErrPasswordTooLong  = domainerrors.NewDomainError(domainerrors.ErrValidationFailed, "密码长度不能超过20位")
 	ErrPasswordTooWeak  = domainerrors.NewDomainError(domainerrors.ErrValidationFailed, "密码强度不够，需要包含字母和数字")
+	ErrPasswordHashingFailed = domainerrors.NewDomainError(domainerrors.ErrBusinessRuleViolation, "密码处理失败")
 	// 性别
 	ErrInvalidGender    = domainerrors.NewDomainError(domainerrors.ErrValidationFailed, "无效的性别")
 )

@@ -35,7 +35,8 @@ auth:
   whitelist:
     - /health
     - /ping
-    - /api/v1/login # 示例：登录接口通常需要被排除
+    - /api/v1/auth/login/password # 密码登录
+    - /api/v1/auth/login/wechat   # 微信登录
 
 rate_limit:
   # 是否启用 (Rate Limit Middleware)

@@ -14,6 +14,7 @@ var InterfaceModuleFinal = fx.Module("interface_final",
 		// HTTP Handlers
 		handler.NewUserHandler,
 		handler.NewHealthHandler,
+		handler.NewAuthHandler,
 
 		// HTTP Server
 		NewServer,

@@ -3,6 +3,8 @@ package service
 import (
 	"context"
 
+	"golang.org/x/crypto/bcrypt"
+
 	"services/internal/domain/user/entity"
 	userErrors "services/internal/domain/user/errors"
 	"services/internal/domain/user/repository"
@@ -29,12 +31,17 @@ func NewUserDomainService(userRepo repository.UserRepository, userValidator vali
 
 // CreateUser 创建用户
 func (s *UserDomainService) CreateUser(ctx context.Context, openID, name, phoneNumber, password string, gender int) (*entity.User, error) {
-	// 使用验证器进行统一验证
 	if err := s.userValidator.ValidateForCreation(ctx, phoneNumber, password, name, gender); err != nil {
 		return nil, err
 	}
 
-	user := entity.NewUser(openID, name, phoneNumber, password, gender)
+	// Hash password
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, userErrors.ErrPasswordHashingFailed
+	}
+
+	user := entity.NewUser(openID, name, phoneNumber, string(hashedPassword), gender)
 	if err := s.userRepo.Create(ctx, user); err != nil {
 		return nil, err
 	}

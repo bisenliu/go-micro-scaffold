@@ -221,3 +221,18 @@ func (r *UserRepositoryImpl) GetByID(ctx context.Context, id string) (*entity.Us
 	user := r.entUserToEntity(entUser)
 	return user, nil
 }
+
+// FindByPhoneNumber 根据手机号获取用户
+func (r *UserRepositoryImpl) FindByPhoneNumber(ctx context.Context, phoneNumber string) (*entity.User, error) {
+	entUser, err := r.client.User.
+		Query().
+		Where(entuser.PhoneNumberEQ(phoneNumber)).
+		Only(ctx)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, usererrors.ErrUserNotFound
+		}
+		return nil, domainerrors.NewDomainError(err, "通过手机号查询用户失败")
+	}
+	return r.entUserToEntity(entUser), nil
+}

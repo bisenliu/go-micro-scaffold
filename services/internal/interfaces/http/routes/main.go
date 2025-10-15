@@ -19,6 +19,7 @@ type RoutesParams struct {
 	Engine           *gin.Engine
 	UserHandler      *handler.UserHandler
 	HealthHandler    *handler.HealthHandler
+	AuthHandler      *handler.AuthHandler
 	CasbinMiddleware CasbinMiddleware
 	ZapLogger        *zap.Logger
 }
@@ -29,8 +30,13 @@ func SetupRoutesFinal(p RoutesParams) {
 	// 1. 系统路由（无需认证）
 	SetupSystemRoutes(p.Engine, p.HealthHandler, p.ZapLogger)
 
-	// 2. API v1 路由组（需要认证和授权）
+	// 2. API v1 路由组
 	v1 := p.Engine.Group("/api/v1")
+
+	// 2.1 认证路由（无需Token）
+	SetupAuthRoutes(v1, p.AuthHandler, p.ZapLogger)
+
+	// 2.2 业务路由（需要认证和授权）
 	v1.Use(commonMiddleware.RequestLogMiddleware())
 	// v1.Use(gin.HandlerFunc(p.CasbinMiddleware))
 	{

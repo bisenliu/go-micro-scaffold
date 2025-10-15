@@ -34,4 +34,7 @@ type UserRepository interface {
 
 	// GetByID 根据ID获取用户
 	GetByID(ctx context.Context, id string) (*entity.User, error)
+
+	// FindByPhoneNumber 根据手机号获取用户
+	FindByPhoneNumber(ctx context.Context, phoneNumber string) (*entity.User, error)
 }

@@ -19,5 +19,8 @@ var ApplicationModule = fx.Module("application",
 
 		// 权限服务
 		service.NewPermissionService,
+
+		// 认证服务
+		service.NewAuthService,
 	),
 )
