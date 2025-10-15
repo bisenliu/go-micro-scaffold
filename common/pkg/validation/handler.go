@@ -20,6 +20,11 @@ type Validatable interface {
 	Validate() error
 }
 
+// Defaultable 可设置默认值接口
+type Defaultable interface {
+	SetDefaults()
+}
+
 // ValidationError 自定义验证错误
 type ValidationError struct {
 	Message string
@@ -40,6 +45,12 @@ func verify(c *gin.Context, params interface{}, bindMethod BindMethod, trans ut.
 		handleError(c, params, err, trans)
 		return false
 	}
+
+	// 如果参数实现了 Defaultable 接口，则调用 SetDefaults 方法
+	if d, ok := params.(Defaultable); ok {
+		d.SetDefaults()
+	}
+
 	return true
 }
 

@@ -81,8 +81,6 @@ func (h *UserHandler) ListUsers(c *gin.Context) {
 		return
 	}
 
-	// 设置默认值
-	req.SetDefaults()
 
 	// 构建查询对象
 	query := &user.ListUsersQuery{
