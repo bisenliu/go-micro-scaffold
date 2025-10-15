@@ -15,5 +15,5 @@ func SetupSystemRoutes(engine *gin.Engine, healthHandler *handler.HealthHandler,
 		response.Success(c, gin.H{"message": "pong"})
 	})
 
-	logger.Info("System routes registered", zap.Int("count", 2))
+	logger.Info("System routes registered")
 }

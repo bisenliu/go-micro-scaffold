@@ -18,5 +18,5 @@ func SetupAuthRoutes(rg *gin.RouterGroup, authHandler *handler.AuthHandler, auth
 		auth.POST("/logout", authMiddleware, authHandler.Logout)
 	}
 
-	logger.Info("Auth API routes registered", zap.Int("count", 3))
+	logger.Info("Auth API routes registered")
 }

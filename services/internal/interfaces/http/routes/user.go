@@ -16,5 +16,5 @@ func SetupUserRoutes(rg *gin.RouterGroup, userHandler *handler.UserHandler, logg
 		users.GET("/:id", userHandler.GetUser)
 	}
 
-	logger.Info("User API routes registered", zap.Int("count", 3))
+	logger.Info("User API routes registered")
 }
