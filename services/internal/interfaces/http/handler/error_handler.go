@@ -9,42 +9,54 @@ import (
 	domainerrors "services/internal/domain/shared/errors"
 )
 
+// DomainErrorAdapter 实现 response.CustomError 接口
+type DomainErrorAdapter struct {
+	domainErr *domainerrors.DomainError
+}
+
+func (d *DomainErrorAdapter) Error() string {
+	return d.domainErr.Message
+}
+
+func (d *DomainErrorAdapter) ErrorType() string {
+	baseErr := d.domainErr.Unwrap()
+	
+	switch {
+	case errors.Is(baseErr, domainerrors.ErrNotFound):
+		return "not_found"
+	case errors.Is(baseErr, domainerrors.ErrValidationFailed):
+		return "validation_failed"
+	case errors.Is(baseErr, domainerrors.ErrAlreadyExists):
+		return "already_exists"
+	case errors.Is(baseErr, domainerrors.ErrUnauthorized):
+		return "unauthorized"
+	case errors.Is(baseErr, domainerrors.ErrForbidden):
+		return "forbidden"
+	case errors.Is(baseErr, domainerrors.ErrBusinessRuleViolation):
+		return "business_rule_violation"
+	case errors.Is(baseErr, domainerrors.ErrConcurrencyConflict):
+		return "concurrency_conflict"
+	case errors.Is(baseErr, domainerrors.ErrResourceLocked):
+		return "resource_locked"
+	case errors.Is(baseErr, domainerrors.ErrInvalidData):
+		return "invalid_data"
+	default:
+		return "internal_server"
+	}
+}
+
 // HandleErrorResponse 集中处理从应用层返回的领域错误，并将其转换为适当的HTTP响应。
 func HandleErrorResponse(c *gin.Context, err error) {
 	var domainErr *domainerrors.DomainError
 
 	// 尝试将错误解包为自定义的 DomainError 类型
 	if errors.As(err, &domainErr) {
-		// 获取 DomainError 包装的底层错误和用户友好的消息
-		baseErr := domainErr.Unwrap()
-		message := domainErr.Message
-
-		switch {
-		case errors.Is(baseErr, domainerrors.ErrNotFound):
-			response.NotFound(c, message)
-			return
-
-		case errors.Is(baseErr, domainerrors.ErrValidationFailed):
-			response.ValidationError(c, message, nil)
-			return
-
-		// 将所有导致 400 Bad Request 的错误合并处理
-		case errors.Is(baseErr, domainerrors.ErrAlreadyExists):
-			response.BadRequest(c, message)
-			return
-
-		case errors.Is(baseErr, domainerrors.ErrUnauthorized):
-			response.Unauthorized(c, message)
-			return
-
-		case errors.Is(baseErr, domainerrors.ErrForbidden):
-			response.Forbidden(c, message)
-			return
-		}
+		// 创建适配器并使用新的响应系统
+		adapter := &DomainErrorAdapter{domainErr: domainErr}
+		response.Fail(c, adapter)
+		return
 	}
 
-	// 非 DomainError 类型，或 DomainError 中包含的底层错误不是预期的错误类型，
-	// 都作为未预期的内部服务器错误处理，并对外部隐藏详细错误信息。
-	// 实际的 err.Error() 应该在更上层或中间件中记录到日志。
-	response.InternalServerError(c, "服务器发生未知错误")
+	// 非 DomainError 类型，作为未预期的内部服务器错误处理
+	response.FailWithCode(c, response.CodeInternalError, "服务器发生未知错误")
 }

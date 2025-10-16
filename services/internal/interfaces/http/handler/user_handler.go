@@ -66,7 +66,7 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 
 	logger.Info(ctx, "User created successfully", zap.String("open_id", req.OpenID))
 
-	response.Success(c, responsedto.ToUserInfoResponse(user))
+	response.OK(c, responsedto.ToUserInfoResponse(user))
 }
 
 // ListUsers 获取用户列表
@@ -116,7 +116,7 @@ func (h *UserHandler) ListUsers(c *gin.Context) {
 	userResponses := responsedto.ToUserListResponse(users)
 
 	// 返回分页响应
-	response.SuccessWithPagination(c, userResponses, req.Page, req.PageSize, total)
+	response.OKWithPaging(c, userResponses, req.Page, req.PageSize, total)
 }
 
 // GetUser 获取用户信息
@@ -136,5 +136,5 @@ func (h *UserHandler) GetUser(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, responsedto.ToUserInfoResponse(userInfo))
+	response.OK(c, responsedto.ToUserInfoResponse(userInfo))
 }

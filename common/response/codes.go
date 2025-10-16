@@ -1,80 +1,145 @@
 package response
 
-// BusinessCode 定义业务码和消息的结构体
-type BusinessCode struct {
-	Code    int
-	Message string
-	Type    ErrorType // 成功状态码不使用此字段
+import "net/http"
+
+// 业务状态码定义
+const (
+	// 成功码 (0)
+	CodeSuccess = 0
+
+	// 客户端错误 (1000-1999)
+	CodeBadRequest   = 1000
+	CodeValidation   = 1001
+	CodeUnauthorized = 1002
+	CodeForbidden    = 1003
+	CodeNotFound     = 1004
+
+	// 业务错误 (2000-2999)
+	CodeBusinessError = 2000
+	CodeAlreadyExists = 2001
+	CodeConflict      = 2002
+
+	// 系统错误 (5000-5999)
+	CodeInternalError = 5000
+	CodeTimeout       = 5001
+	CodeRateLimit     = 5002
+	CodeThirdParty    = 5003
+)
+
+// CodeInfo 业务码信息
+type CodeInfo struct {
+	Code       int
+	Message    string
+	HTTPStatus int
+	Category   string
 }
 
-// IsSuccess 判断是否为成功状态码
-func (bc BusinessCode) IsSuccess() bool {
-	return bc.Code == 0
+// 业务码信息映射表
+var CodeInfoMap = map[int]*CodeInfo{
+	CodeSuccess: {
+		Code:       CodeSuccess,
+		Message:    "操作成功",
+		HTTPStatus: http.StatusOK,
+		Category:   "success",
+	},
+
+	// 客户端错误
+	CodeBadRequest: {
+		Code:       CodeBadRequest,
+		Message:    "请求参数错误",
+		HTTPStatus: http.StatusBadRequest,
+		Category:   "client_error",
+	},
+	CodeValidation: {
+		Code:       CodeValidation,
+		Message:    "数据验证失败",
+		HTTPStatus: http.StatusBadRequest,
+		Category:   "client_error",
+	},
+	CodeUnauthorized: {
+		Code:       CodeUnauthorized,
+		Message:    "未授权访问",
+		HTTPStatus: http.StatusUnauthorized,
+		Category:   "client_error",
+	},
+	CodeForbidden: {
+		Code:       CodeForbidden,
+		Message:    "禁止访问",
+		HTTPStatus: http.StatusForbidden,
+		Category:   "client_error",
+	},
+	CodeNotFound: {
+		Code:       CodeNotFound,
+		Message:    "资源不存在",
+		HTTPStatus: http.StatusNotFound,
+		Category:   "client_error",
+	},
+
+	// 业务错误
+	CodeBusinessError: {
+		Code:       CodeBusinessError,
+		Message:    "业务处理失败",
+		HTTPStatus: http.StatusBadRequest,
+		Category:   "business_error",
+	},
+	CodeAlreadyExists: {
+		Code:       CodeAlreadyExists,
+		Message:    "资源已存在",
+		HTTPStatus: http.StatusConflict,
+		Category:   "business_error",
+	},
+	CodeConflict: {
+		Code:       CodeConflict,
+		Message:    "资源冲突",
+		HTTPStatus: http.StatusConflict,
+		Category:   "business_error",
+	},
+
+	// 系统错误
+	CodeInternalError: {
+		Code:       CodeInternalError,
+		Message:    "内部服务器错误",
+		HTTPStatus: http.StatusInternalServerError,
+		Category:   "system_error",
+	},
+	CodeTimeout: {
+		Code:       CodeTimeout,
+		Message:    "请求超时",
+		HTTPStatus: http.StatusRequestTimeout,
+		Category:   "system_error",
+	},
+	CodeRateLimit: {
+		Code:       CodeRateLimit,
+		Message:    "请求过于频繁",
+		HTTPStatus: http.StatusTooManyRequests,
+		Category:   "system_error",
+	},
+	CodeThirdParty: {
+		Code:       CodeThirdParty,
+		Message:    "第三方服务错误",
+		HTTPStatus: http.StatusBadGateway,
+		Category:   "system_error",
+	},
 }
 
-// 通用状态码 (0-999)
-var (
-	// 成功状态码
-	CodeSuccess = BusinessCode{Code: 0, Message: "操作成功", Type: ErrorTypeNone}
-)
-
-// 客户端错误状态码 (1000-1999)
-var (
-	CodeInvalidParams   = BusinessCode{Code: 1001, Message: "参数错误", Type: ErrorTypeBusiness}
-	CodeValidationError = BusinessCode{Code: 1002, Message: "验证错误", Type: ErrorTypeBusiness}
-)
-
-// 认证授权错误状态码 (2000-2999)
-var (
-	CodeUnauthorized = BusinessCode{Code: 2001, Message: "未授权访问", Type: ErrorTypeAuth}
-	CodeForbidden    = BusinessCode{Code: 2002, Message: "禁止访问", Type: ErrorTypePermission}
-)
-
-// 业务逻辑错误状态码 (4000-4999)
-var (
-	CodeBusinessError = BusinessCode{Code: 4001, Message: "业务处理失败", Type: ErrorTypeBusiness}
-	CodeNotFound      = BusinessCode{Code: 4004, Message: "资源未找到", Type: ErrorTypeNotFound}
-)
-
-// 系统错误状态码 (5000-5999)
-var (
-	CodeInternalError = BusinessCode{Code: 5001, Message: "内部服务器错误", Type: ErrorTypeSystem}
-	CodeRateLimit     = BusinessCode{Code: 5002, Message: "请求过于频繁", Type: ErrorTypeRateLimit}
-	CodeTimeout       = BusinessCode{Code: 5003, Message: "请求超时", Type: ErrorTypeTimeout}
-)
-
-// 第三方服务错误状态码 (6000-6999)
-var (
-	CodeThirdPartyError = BusinessCode{Code: 6001, Message: "第三方服务错误", Type: ErrorTypeThirdParty}
-)
-
-// AllBusinessCodes 包含所有业务码的映射
-var AllBusinessCodes = map[int]BusinessCode{
-	CodeSuccess.Code:         CodeSuccess,
-	CodeInvalidParams.Code:   CodeInvalidParams,
-	CodeValidationError.Code: CodeValidationError,
-	CodeUnauthorized.Code:    CodeUnauthorized,
-	CodeForbidden.Code:       CodeForbidden,
-	CodeBusinessError.Code:   CodeBusinessError,
-	CodeNotFound.Code:        CodeNotFound,
-	CodeInternalError.Code:   CodeInternalError,
-	CodeThirdPartyError.Code: CodeThirdPartyError,
-	CodeRateLimit.Code:       CodeRateLimit,
-	CodeTimeout.Code:         CodeTimeout,
+// GetCodeInfo 获取业务码信息
+func GetCodeInfo(code int) (*CodeInfo, bool) {
+	info, exists := CodeInfoMap[code]
+	return info, exists
 }
 
-// GetCodeMessage 获取状态码对应的消息
+// GetCodeMessage 获取业务码对应的消息
 func GetCodeMessage(code int) string {
-	if status, exists := AllBusinessCodes[code]; exists {
-		return status.Message
+	if info, exists := CodeInfoMap[code]; exists {
+		return info.Message
 	}
 	return "未知错误"
 }
 
-// GetBusinessCode 获取业务码对象
-func GetBusinessCode(code int) BusinessCode {
-	if status, exists := AllBusinessCodes[code]; exists {
-		return status
+// GetHTTPStatus 获取业务码对应的HTTP状态码
+func GetHTTPStatus(code int) int {
+	if info, exists := CodeInfoMap[code]; exists {
+		return info.HTTPStatus
 	}
-	return BusinessCode{Code: code, Message: "未知错误", Type: ErrorTypeSystem}
+	return http.StatusInternalServerError
 }

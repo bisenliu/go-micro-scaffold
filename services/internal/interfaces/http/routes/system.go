@@ -12,7 +12,7 @@ import (
 func SetupSystemRoutes(engine *gin.Engine, healthHandler *handler.HealthHandler, logger *zap.Logger) {
 	engine.GET("/health", healthHandler.Health)
 	engine.GET("/ping", func(c *gin.Context) {
-		response.Success(c, gin.H{"message": "pong"})
+		response.OK(c, gin.H{"message": "pong"})
 	})
 
 	logger.Info("System routes registered")

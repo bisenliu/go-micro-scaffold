@@ -20,7 +20,7 @@ func ExtractClientIPMiddleware() gin.HandlerFunc {
 
 		if clientIPStr == "" {
 			logger.Warn(ctx, "Unable to determine client IP", zap.String("path", c.Request.URL.Path))
-			response.Forbidden(c, "Access denied: Unable to determine client IP")
+			response.FailWithCode(c, response.CodeForbidden, "Access denied: Unable to determine client IP")
 			c.Abort()
 			return
 		}
@@ -28,7 +28,7 @@ func ExtractClientIPMiddleware() gin.HandlerFunc {
 		parsedIP := net.ParseIP(clientIPStr)
 		if parsedIP == nil {
 			logger.Warn(ctx, "Invalid client IP format", zap.String("client_ip_str", clientIPStr), zap.String("path", c.Request.URL.Path))
-			response.Forbidden(c, "Access denied: Invalid client IP format")
+			response.FailWithCode(c, response.CodeForbidden, "Access denied: Invalid client IP format")
 			c.Abort()
 			return
 		}

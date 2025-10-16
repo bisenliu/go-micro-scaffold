@@ -50,11 +50,11 @@ func (h *AuthHandler) LoginByPassword(c *gin.Context) {
 	// 生成token
 	token, err := h.jwtService.Generate(userID, userName)
 	if err != nil {
-		response.InternalServerError(c, "Failed to generate token")
+		response.FailWithCode(c, response.CodeInternalError, "Failed to generate token")
 		return
 	}
 
-	response.Success(c, gin.H{
+	response.OK(c, gin.H{
 		"token": token,
 	})
 }
@@ -64,7 +64,7 @@ func (h *AuthHandler) LoginByWeChat(c *gin.Context) {
 	// 1. Get code from request
 	// 2. Call authService.LoginByWeChat
 	// 3. Generate JWT and return
-	response.Success(c, gin.H{"message": "WeChat login placeholder"})
+	response.OK(c, gin.H{"message": "WeChat login placeholder"})
 }
 
 // Logout 登出
@@ -73,13 +73,13 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 
 	claimsValue, exists := c.Get("claims")
 	if !exists {
-		response.Unauthorized(c, "无法获取用户信息")
+		response.FailWithCode(c, response.CodeUnauthorized, "无法获取用户信息")
 		return
 	}
 
 	claims, ok := claimsValue.(*jwt.CustomClaims)
 	if !ok {
-		response.InternalServerError(c, "用户信息类型断言失败")
+		response.FailWithCode(c, response.CodeInternalError, "用户信息类型断言失败")
 		return
 	}
 
@@ -89,5 +89,5 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, "登出成功")
+	response.OK(c, "登出成功")
 }

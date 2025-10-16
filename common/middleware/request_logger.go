@@ -90,7 +90,7 @@ func requestLoggerInternal(detailed bool) gin.HandlerFunc {
 		// 尝试解析响应体获取业务状态码
 		responseBody := blw.body.Bytes()
 		businessCode := httpStatus // 默认使用HTTP状态码
-		var responseData response.BaseResponse
+		var responseData response.Response
 		if err := json.Unmarshal(responseBody, &responseData); err == nil {
 			businessCode = responseData.Code
 		}
@@ -122,7 +122,7 @@ func requestLoggerInternal(detailed bool) gin.HandlerFunc {
 			msg = "Detailed request completed"
 		}
 
-		if businessCode != response.CodeSuccess.Code {
+		if businessCode != response.CodeSuccess {
 			logger.Error(ctx, msg+" with error", logFields...)
 		} else {
 			logger.Info(ctx, msg+" successfully", logFields...)
