@@ -27,6 +27,7 @@
 .DS_Store
 Thumbs.db # Windows specific
 .codebuddy
+.kiro
 
 # Log files
 *.log
