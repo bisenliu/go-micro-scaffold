@@ -8,15 +8,15 @@ import (
 
 // ResponseEngine 响应引擎
 type ResponseEngine struct {
-	errorProcessor *ErrorProcessor
-	pool           *ResponsePool
+	errorHandler *ErrorHandler
+	pool         *ResponsePool
 }
 
 // NewResponseEngine 创建新的响应引擎
 func NewResponseEngine() *ResponseEngine {
 	return &ResponseEngine{
-		errorProcessor: NewErrorProcessor(),
-		pool:           NewResponsePool(),
+		errorHandler: NewErrorHandler(),
+		pool:         NewResponsePool(),
 	}
 }
 
@@ -66,19 +66,19 @@ func (re *ResponseEngine) HandleSuccessWithPaging(c *gin.Context, data interface
 
 // HandleError 处理错误响应
 func (re *ResponseEngine) HandleError(c *gin.Context, err error) {
-	result := re.errorProcessor.Process(err)
+	result := re.errorHandler.Handle(err)
 	re.sendErrorResponse(c, result)
 }
 
 // HandleErrorWithCode 使用指定业务码处理错误响应
 func (re *ResponseEngine) HandleErrorWithCode(c *gin.Context, code int, message string) {
-	result := re.errorProcessor.ProcessWithCode(code, message)
+	result := re.errorHandler.HandleWithCode(code, message)
 	re.sendErrorResponse(c, result)
 }
 
 // HandleErrorWithData 处理带有额外数据的错误响应
 func (re *ResponseEngine) HandleErrorWithData(c *gin.Context, err error, data interface{}) {
-	result := re.errorProcessor.ProcessWithData(err, data)
+	result := re.errorHandler.HandleWithData(err, data)
 	re.sendErrorResponse(c, result)
 }
 

@@ -40,7 +40,7 @@ func (s *AuthService) LoginByPassword(ctx context.Context, phoneNumber, password
 
 	// 2. 验证密码
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password()), []byte(password)); err != nil {
-		return "", "", domainerrors.NewDomainError(domainerrors.ErrUnauthorized, "手机号或密码错误")
+		return "", "", domainerrors.NewUnauthorizedError("手机号或密码错误")
 	}
 
 	// 3. 登录成功，返回用户ID和用户名
