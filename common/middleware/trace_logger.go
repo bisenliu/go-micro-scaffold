@@ -2,14 +2,14 @@ package middleware
 
 import (
 	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 
+	"common/interfaces"
 	"common/logger"
 	"common/pkg/contextutil"
 )
 
 // TraceLoggerMiddleware 创建 Logger 中间件，自动为每个请求注入带 traceID 的 logger
-func TraceLoggerMiddleware(zapLogger *zap.Logger) gin.HandlerFunc {
+func TraceLoggerMiddleware(loggerInstance interfaces.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := c.Request.Context()
 
@@ -23,8 +23,8 @@ func TraceLoggerMiddleware(zapLogger *zap.Logger) gin.HandlerFunc {
 		c.Set(contextutil.TraceIDKey, traceID)
 		ctx = logger.WithTraceID(ctx, traceID)
 
-		// 创建带 traceID 的 logger 并存入 context
-		ctxLogger := logger.WithContext(zapLogger, ctx)
+		// 创建带有traceID的logger并存储到context中
+		ctxLogger := loggerInstance.WithContext(ctx)
 		ctx = logger.ToContext(ctx, ctxLogger)
 
 		// 更新 request context

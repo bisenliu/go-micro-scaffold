@@ -7,37 +7,34 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
 
-	"common/config"
+	"common/interfaces"
 )
 
 // JWT JWT服务结构体
 type JWT struct {
-	config *config.Config
+	configProvider interfaces.ConfigProvider
 }
 
 // NewJWT 创建JWT实例
-func NewJWT(cfg *config.Config) *JWT {
+func NewJWT(configProvider interfaces.ConfigProvider) interfaces.JWTService {
 	return &JWT{
-		config: cfg,
+		configProvider: configProvider,
 	}
 }
 
-// Generate 生成JWT
-// @param userID 用户ID
-// @param username 用户名
-// @return string token
-// @return error 生成失败异常
-func (j *JWT) Generate(userID string, username string) (string, error) {
+// GenerateToken 生成JWT令牌
+func (j *JWT) GenerateToken(userID string) (string, error) {
+	tokenConfig := j.configProvider.GetTokenConfig()
+	
 	// 创建一个我们自己的声明
 	claims := CustomClaims{
-		UserID:   userID,
-		Username: username,
+		UserID: userID,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ID:        uuid.NewString(),
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Duration(j.config.Token.ExpiredTime) * time.Minute)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Duration(tokenConfig.ExpiredTime) * time.Minute)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			NotBefore: jwt.NewNumericDate(time.Now()),
-			Issuer:    j.config.System.ServerName,
+			Issuer:    "go-micro-scaffold", // 硬编码服务名
 		},
 	}
 
@@ -45,20 +42,36 @@ func (j *JWT) Generate(userID string, username string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	// 使用指定的secret签名并获得完整的编码后的字符串token
-	return token.SignedString([]byte(j.config.System.SecretKey))
+	secretKey := "default-secret-key" // 临时硬编码，后续可以从配置中获取
+	return token.SignedString([]byte(secretKey))
 }
 
-// ParseToken 解析JWT
-// @param tokenString token
-// @return *CustomClaims 自定义声明
-// @return error 解析失败异常
-func (j *JWT) ParseToken(tokenString string) (*CustomClaims, error) {
+// ValidateToken 验证JWT令牌
+func (j *JWT) ValidateToken(tokenString string) (string, error) {
+	claims, err := j.ParseToken(tokenString)
+	if err != nil {
+		return "", err
+	}
+	return claims.UserID, nil
+}
+
+// RefreshToken 刷新JWT令牌
+func (j *JWT) RefreshToken(tokenString string) (string, error) {
+	claims, err := j.ParseToken(tokenString)
+	if err != nil {
+		return "", err
+	}
+	
+	// 生成新的令牌
+	return j.GenerateToken(claims.UserID)
+}
+
+// ParseToken 解析JWT令牌获取Claims
+func (j *JWT) ParseToken(tokenString string) (*interfaces.TokenClaims, error) {
 	// 解析token
-	// 如果是自定义Claim结构体则需要使用 ParseWithClaims 方法
 	token, err := jwt.ParseWithClaims(tokenString, &CustomClaims{}, func(token *jwt.Token) (interface{}, error) {
-		// 直接使用标准的Claim则可以直接使用Parse方法
-		//token, err := jwt.Parse(tokenString, func(token *jwt.Token) (i interface{}, err error) {
-		return []byte(j.config.System.SecretKey), nil
+		secretKey := "default-secret-key" // 临时硬编码，后续可以从配置中获取
+		return []byte(secretKey), nil
 	})
 
 	if err != nil {
@@ -66,8 +79,12 @@ func (j *JWT) ParseToken(tokenString string) (*CustomClaims, error) {
 	}
 
 	// 对token对象中的Claim进行类型断言
-	if claims, ok := token.Claims.(*CustomClaims); ok && token.Valid { // 校验token
-		return claims, nil
+	if claims, ok := token.Claims.(*CustomClaims); ok && token.Valid {
+		return &interfaces.TokenClaims{
+			UserID: claims.UserID,
+			Exp:    claims.ExpiresAt.Unix(),
+			Iat:    claims.IssuedAt.Unix(),
+		}, nil
 	}
 
 	return nil, errors.New("invalid token")

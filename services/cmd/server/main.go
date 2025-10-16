@@ -7,12 +7,6 @@ import (
 	"os"
 
 	"go.uber.org/fx"
-
-	commonDI "common/di"
-	"services/internal/application"
-	"services/internal/domain/user"
-	"services/internal/infrastructure"
-	"services/internal/interfaces/http"
 )
 
 func main() {
@@ -20,78 +14,100 @@ func main() {
 	var (
 		generateGraph = flag.Bool("graph", false, "Generate dependency graph and exit")
 		graphOutput   = flag.String("graph-output", "dependency-graph.dot", "Output file for dependency graph")
+		showModules   = flag.Bool("modules", false, "Show module information and exit")
 	)
 	flag.Parse()
 
+	// 创建应用配置
+	config := NewAppConfig()
+	
+	// 创建模块注册表
+	registry := NewModuleRegistry()
+
+	// 如果请求显示模块信息
+	if *showModules {
+		showModuleInfo(registry)
+		return
+	}
+
 	// 创建应用容器
-	app := fx.New(
-		// 使用common库的Web模块
-		commonDI.GetWebModules(),
+	app := createApplication(registry, config)
 
-		// 领域模块
-		user.DomainModule,
-
-		// 应用模块
-		application.ApplicationModule,
-
-		// 基础设施模块
-		infrastructure.InfrastructureModule,
-
-		// 接口模块
-		http.InterfaceModuleFinal,
-	)
-
+	// 检查应用初始化错误
 	if err := app.Err(); err != nil {
-		// 尝试生成依赖关系图以帮助调试
-		if visualization, verr := fx.VisualizeError(err); verr == nil {
-			fmt.Println("Dependency graph visualization:")
-			fmt.Println(visualization)
-		}
-
-		// 记录详细的错误信息并退出
-		log.Fatalf("Failed to initialize application dependencies: %v", err)
+		handleApplicationError(err)
 	}
 
 	// 如果请求生成依赖图
 	if *generateGraph {
-		generateDependencyGraph(app, *graphOutput)
+		generateDependencyGraph(registry, *graphOutput)
 		return
 	}
 
 	// 启动应用容器
+	fmt.Printf("Starting application in %s mode...\n", config.Environment)
 	app.Run()
 }
 
+// createApplication 创建应用容器
+func createApplication(registry *ModuleRegistry, config *AppConfig) *fx.App {
+	modules := registry.GetModulesForConfig(config)
+	
+	return fx.New(modules...)
+}
+
+// handleApplicationError 处理应用初始化错误
+func handleApplicationError(err error) {
+	// 尝试生成依赖关系图以帮助调试
+	if visualization, verr := fx.VisualizeError(err); verr == nil {
+		fmt.Println("=== Dependency Graph Visualization ===")
+		fmt.Println(visualization)
+		fmt.Println("=====================================")
+	}
+
+	// 记录详细的错误信息并退出
+	log.Fatalf("Failed to initialize application dependencies: %v", err)
+}
+
+// showModuleInfo 显示模块信息
+func showModuleInfo(registry *ModuleRegistry) {
+	fmt.Println("=== Application Module Information ===")
+	
+	modules := registry.GetModuleInfo()
+	for _, module := range modules {
+		fmt.Printf("%d. %s\n", module.Order, module.Name)
+		fmt.Printf("   Description: %s\n", module.Description)
+		fmt.Println()
+	}
+	
+	fmt.Println("Module loading order follows Clean Architecture principles:")
+	fmt.Println("- Inner layers (Domain) don't depend on outer layers")
+	fmt.Println("- Dependencies flow inward toward the domain")
+	fmt.Println("- Infrastructure implements domain interfaces")
+}
+
 // generateDependencyGraph 生成依赖关系图
-func generateDependencyGraph(app *fx.App, outputFile string) {
+func generateDependencyGraph(registry *ModuleRegistry, outputFile string) {
+	fmt.Println("Generating dependency graph...")
+	
 	// 创建一个新的应用来获取依赖图
 	var dotGraph string
 
+	// 使用完整的模块集合生成依赖图
+	modules := registry.GetAllModules()
+	
 	graphApp := fx.New(
-		// 使用common库的核心模块（不包括HTTP模块）
-		commonDI.GetCoreModules(),
+		append(modules, 
+			// 提供 DotGraph
+			fx.Provide(func(graph fx.DotGraph) string {
+				return string(graph)
+			}),
 
-		// 领域模块
-		user.DomainModule,
-
-		// 应用模块
-		application.ApplicationModule,
-
-		// 基础设施模块
-		infrastructure.InfrastructureModule,
-
-		// 接口模块（包含新的HTTP服务器实现）
-		http.InterfaceModuleFinal,
-
-		// 提供 DotGraph
-		fx.Provide(func(graph fx.DotGraph) string {
-			return string(graph)
-		}),
-
-		// 获取依赖图
-		fx.Invoke(func(graph fx.DotGraph) {
-			dotGraph = string(graph)
-		}),
+			// 获取依赖图
+			fx.Invoke(func(graph fx.DotGraph) {
+				dotGraph = string(graph)
+			}),
+		)...,
 	)
 
 	if err := graphApp.Err(); err != nil {
@@ -109,12 +125,8 @@ func generateDependencyGraph(app *fx.App, outputFile string) {
 		log.Fatalf("Failed to write dependency graph: %v", err)
 	}
 
-	/*
-		# 安装 Graphviz 后运行 (转为png)
-		dot -Tpng dependency-graph.dot -o graph.png
-	*/
 	fmt.Printf("Dependency graph generated successfully: %s\n", outputFile)
-	fmt.Println("To visualize the graph, you can:")
+	fmt.Println("\nTo visualize the graph, you can:")
 	fmt.Printf("1. Install Graphviz: brew install graphviz (macOS) or apt-get install graphviz (Ubuntu)\n")
 	fmt.Printf("2. Generate PNG: dot -Tpng %s -o dependency-graph.png\n", outputFile)
 	fmt.Printf("3. Generate SVG: dot -Tsvg %s -o dependency-graph.svg\n", outputFile)

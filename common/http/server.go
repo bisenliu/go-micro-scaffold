@@ -3,23 +3,26 @@ package http
 import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/fx"
-	"go.uber.org/zap"
 
 	"common/config"
+	"common/interfaces"
 	"common/middleware"
 )
 
 // EngineParams 定义了创建Gin引擎所需的依赖
 type EngineParams struct {
 	fx.In
-	Config *config.Config
-	Logger *zap.Logger
+	Config interfaces.ConfigProvider
+	Logger interfaces.Logger
 }
 
 // NewBaseEngine 创建一个带有通用配置和中间件的Gin引擎
 func NewBaseEngine(params EngineParams) *gin.Engine {
+	// 获取服务器配置
+	serverConfig := params.Config.GetServerConfig()
+
 	// 设置Gin模式
-	gin.SetMode(params.Config.Server.Mode)
+	gin.SetMode(serverConfig.Mode)
 
 	// 创建Gin引擎
 	engine := gin.New()
@@ -34,10 +37,23 @@ func NewBaseEngine(params EngineParams) *gin.Engine {
 	engine.Use(middleware.ExtractClientIPMiddleware())
 
 	// 4. CORS: 处理跨域请求(通过配置启用/禁用)，对于 OPTIONS 预检请求会直接中断后续中间件
-	engine.Use(middleware.CORSMiddleware(params.Config.Server))
+	// 需要转换为 config.ServerConfig 类型
+	cfg := config.ServerConfig{
+		Port:           serverConfig.Port,
+		Host:           serverConfig.Host,
+		Mode:           serverConfig.Mode,
+		EnableCORS:     serverConfig.EnableCORS,
+		ReadTimeout:    serverConfig.ReadTimeout,
+		WriteTimeout:   serverConfig.WriteTimeout,
+		IdleTimeout:    serverConfig.IdleTimeout,
+		MaxHeaderBytes: serverConfig.MaxHeaderBytes,
+		EnableMetrics:  serverConfig.EnableMetrics,
+		EnableTracing:  serverConfig.EnableTracing,
+	}
+	engine.Use(middleware.CORSMiddleware(cfg))
 
 	// 5. RateLimit: 基于IP进行限流(通过配置启用/禁用)，保护后端服务
-	engine.Use(middleware.RateLimitMiddleware(params.Config.RateLimit, params.Logger))
+	engine.Use(middleware.RateLimitMiddleware(params.Config.GetRateLimitConfig(), params.Logger.GetZapLogger()))
 
 	return engine
 }

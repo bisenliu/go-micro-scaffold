@@ -3,12 +3,16 @@ package http
 import (
 	"go.uber.org/fx"
 
+	"common/http"
 	"services/internal/interfaces/http/handler"
 	"services/internal/interfaces/http/routes"
 )
 
 var InterfaceModuleFinal = fx.Module("interface_final",
 	fx.Provide(
+		// Gin Engine
+		http.NewBaseEngine,
+
 		// HTTP Handlers
 		handler.NewUserHandler,
 		handler.NewHealthHandler,

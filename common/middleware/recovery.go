@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"net/http"
 	"runtime/debug"
 
 	"github.com/gin-gonic/gin"
@@ -8,7 +9,6 @@ import (
 
 	"common/logger"
 	"common/pkg/contextutil"
-	"common/response"
 )
 
 // RecoveryMiddleware 恢复中间件
@@ -32,6 +32,6 @@ func RecoveryMiddleware() gin.HandlerFunc {
 			zap.String("client_ip", clientIP))
 
 		// 返回统一的错误响应
-		response.FailWithCode(c, response.CodeInternalError, "Internal server error")
+		c.AbortWithStatus(http.StatusInternalServerError)
 	})
 }

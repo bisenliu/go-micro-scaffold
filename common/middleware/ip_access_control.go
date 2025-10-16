@@ -2,13 +2,11 @@ package middleware
 
 import (
 	"net"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 
-	"common/logger"
 	"common/pkg/contextutil"
-	"common/response"
 )
 
 // IPWhitelistMiddleware IP白名单中间件
@@ -30,36 +28,15 @@ func IPWhitelistMiddleware(allowedIPs []string) gin.HandlerFunc {
 	}
 
 	return func(c *gin.Context) {
-		ctx := c.Request.Context()
-
 		// 从Context中获取预解析的IP
 		ipVal, exists := c.Get(contextutil.ClientParsedIPContextKey)
 		if !exists {
-			logger.Error(ctx, "Parsed client IP not found in context")
-			response.FailWithCode(c, response.CodeForbidden, "Access denied: Internal error")
-			c.Abort()
+			c.AbortWithStatus(http.StatusForbidden)
 			return
 		}
 		ip, ok := ipVal.(net.IP)
 		if !ok {
-			logger.Error(ctx, "Parsed client IP in context is not of type net.IP")
-			response.FailWithCode(c, response.CodeForbidden, "Access denied: Internal error")
-			c.Abort()
-			return
-		}
-
-		clientIPStrVal, exists := c.Get(contextutil.ClientIPContextKey)
-		if !exists {
-			logger.Error(ctx, "Client IP string not found in context")
-			response.FailWithCode(c, response.CodeForbidden, "Access denied: Internal error")
-			c.Abort()
-			return
-		}
-		clientIPStr, ok := clientIPStrVal.(string)
-		if !ok {
-			logger.Error(ctx, "Client IP string in context is not of type string")
-			response.FailWithCode(c, response.CodeForbidden, "Access denied: Internal error")
-			c.Abort()
+			c.AbortWithStatus(http.StatusForbidden)
 			return
 		}
 
@@ -85,15 +62,9 @@ func IPWhitelistMiddleware(allowedIPs []string) gin.HandlerFunc {
 		}
 
 		if !allowed {
-			logger.Warn(ctx, "IP not in whitelist",
-				zap.String("client_ip", clientIPStr))
-			response.FailWithCode(c, response.CodeForbidden, "Access denied")
-			c.Abort()
+			c.AbortWithStatus(http.StatusForbidden)
 			return
 		}
-
-		logger.Debug(ctx, "IP whitelist check passed",
-			zap.String("client_ip", clientIPStr))
 
 		c.Next()
 	}
@@ -123,52 +94,23 @@ func InternalIPMiddleware() gin.HandlerFunc {
 	}
 
 	return func(c *gin.Context) {
-		ctx := c.Request.Context()
-
 		// 从Context中获取预解析的IP
 		ipVal, exists := c.Get(contextutil.ClientParsedIPContextKey)
 		if !exists {
-			logger.Error(ctx, "Parsed client IP not found in context")
-			response.FailWithCode(c, response.CodeForbidden, "Access denied: Internal error")
-			c.Abort()
+			c.AbortWithStatus(http.StatusForbidden)
 			return
 		}
 		ip, ok := ipVal.(net.IP)
 		if !ok {
-			logger.Error(ctx, "Parsed client IP in context is not of type net.IP")
-			response.FailWithCode(c, response.CodeForbidden, "Access denied: Internal error")
-			c.Abort()
-			return
-		}
-
-		clientIPStrVal, exists := c.Get(contextutil.ClientIPContextKey)
-		if !exists {
-			logger.Error(ctx, "Client IP string not found in context")
-			response.FailWithCode(c, response.CodeForbidden, "Access denied: Internal error")
-			c.Abort()
-			return
-		}
-		clientIPStr, ok := clientIPStrVal.(string)
-		if !ok {
-			logger.Error(ctx, "Client IP string in context is not of type string")
-			response.FailWithCode(c, response.CodeForbidden, "Access denied: Internal error")
-			c.Abort()
+			c.AbortWithStatus(http.StatusForbidden)
 			return
 		}
 
 		if !isPrivateIP(ip, privateIPBlocks) {
-			logger.Warn(ctx, "Access denied for external IP",
-				zap.String("ip", clientIPStr),
-				zap.String("path", c.Request.URL.Path),
-				zap.String("method", c.Request.Method))
-			response.FailWithCode(c, response.CodeForbidden, "Access denied: Internal network only")
-			c.Abort()
+			c.AbortWithStatus(http.StatusForbidden)
 			return
 		}
 
-		logger.Debug(ctx, "Internal IP access granted",
-			zap.String("ip", clientIPStr),
-			zap.String("path", c.Request.URL.Path))
 		c.Next()
 	}
 }

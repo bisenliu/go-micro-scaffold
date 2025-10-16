@@ -2,13 +2,13 @@ package middleware
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 
 	"common/logger"
 	"common/pkg/contextutil"
-	"common/response"
 )
 
 // PermissionEnforceFunc 权限检查函数类型
@@ -38,8 +38,7 @@ func CasbinMiddleware(enforceFunc PermissionEnforceFunc) gin.HandlerFunc {
 				zap.String("resource", resource),
 				zap.String("action", action),
 				zap.Error(err))
-			response.FailWithCode(c, response.CodeInternalError, "Authorization check failed")
-			c.Abort()
+			c.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}
 
@@ -48,8 +47,7 @@ func CasbinMiddleware(enforceFunc PermissionEnforceFunc) gin.HandlerFunc {
 				zap.String("user_id", userID),
 				zap.String("resource", resource),
 				zap.String("action", action))
-			response.FailWithCode(c, response.CodeForbidden, "Access denied")
-			c.Abort()
+			c.AbortWithStatus(http.StatusForbidden)
 			return
 		}
 

@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"net/http"
 	"sync"
 	"time"
 
@@ -8,10 +9,9 @@ import (
 	"github.com/juju/ratelimit"
 	"go.uber.org/zap"
 
-	"common/config"
+	"common/interfaces"
 	"common/logger"
 	"common/pkg/contextutil"
-	"common/response"
 )
 
 // ipLimiter 存储每个IP的令牌桶和最后访问时间
@@ -27,7 +27,7 @@ var (
 )
 
 // RateLimitMiddleware 限流中间件
-func RateLimitMiddleware(cfg config.RateLimitConfig, baseLogger *zap.Logger) gin.HandlerFunc {
+func RateLimitMiddleware(cfg interfaces.RateLimitConfig, baseLogger *zap.Logger) gin.HandlerFunc {
 	// 如果未启用，返回一个空操作的中间件
 	if !cfg.Enabled {
 		return func(c *gin.Context) {
@@ -41,7 +41,6 @@ func RateLimitMiddleware(cfg config.RateLimitConfig, baseLogger *zap.Logger) gin
 	})
 
 	return func(c *gin.Context) {
-		ctx := c.Request.Context()
 		var ip string
 		// 优先从 context 获取真实 IP
 		if clientIP, exists := c.Get(contextutil.ClientIPContextKey); exists {
@@ -50,14 +49,15 @@ func RateLimitMiddleware(cfg config.RateLimitConfig, baseLogger *zap.Logger) gin
 
 		// 如果 context 中没有，则回退
 		if ip == "" {
+			ctx := c.Request.Context()
 			logger.Warn(ctx, "Client IP not found in context, falling back to c.ClientIP() for rate limiting")
 			ip = c.ClientIP()
 		}
 
 		if ip == "" {
+			ctx := c.Request.Context()
 			logger.Error(ctx, "Could not determine client IP for rate limiting")
-			response.FailWithCode(c, response.CodeInternalError, "Could not determine client IP")
-			c.Abort()
+			c.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}
 
@@ -79,8 +79,7 @@ func RateLimitMiddleware(cfg config.RateLimitConfig, baseLogger *zap.Logger) gin
 		limiter.mu.Unlock()
 
 		if !canTake {
-			response.FailWithCode(c, response.CodeRateLimit, "Rate limit exceeded")
-			c.Abort()
+			c.AbortWithStatus(http.StatusTooManyRequests)
 			return
 		}
 		c.Next()
@@ -88,7 +87,7 @@ func RateLimitMiddleware(cfg config.RateLimitConfig, baseLogger *zap.Logger) gin
 }
 
 // startCleanupGoroutine 启动一个后台goroutine来定期清理过期的IP令牌桶
-func startCleanupGoroutine(cfg config.RateLimitConfig, log *zap.Logger) {
+func startCleanupGoroutine(cfg interfaces.RateLimitConfig, log *zap.Logger) {
 	go func() {
 		log.Info("Starting rate limit cleanup goroutine",
 			zap.Duration("cleanup_interval", cfg.CleanupInterval),

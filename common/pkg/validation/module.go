@@ -3,12 +3,13 @@ package validation
 import (
 	"go.uber.org/fx"
 
-	"common/config"
+	"common/interfaces"
 )
 
 // NewValidator 为依赖注入创建验证器
-func NewValidator(cfg *config.Config) (*Validator, error) {
-	validator, err := NewLocalizedValidator(cfg.Validation.Locale)
+func NewValidator(configProvider interfaces.ConfigProvider) (*Validator, error) {
+	cfg := configProvider.GetValidationConfig()
+	validator, err := NewLocalizedValidator(cfg.Locale)
 	if err != nil {
 		return nil, err
 	}

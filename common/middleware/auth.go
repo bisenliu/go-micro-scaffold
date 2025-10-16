@@ -2,16 +2,13 @@ package middleware
 
 import (
 	"context"
+	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 
-	"common/config"
-	"common/logger"
-	"common/pkg/contextutil"
-	"common/pkg/jwt"
-	"common/response"
+	"common/interfaces"
 )
 
 const (
@@ -19,17 +16,19 @@ const (
 	AuthHeaderKey = "Authorization"
 	// TokenPrefix Token前缀
 	TokenPrefix = "Bearer "
+	// UserIDKey 用户ID在context中的键名
+	UserIDKey = "user_id"
 )
 
 // AuthMiddleware 认证中间件
-func AuthMiddleware(jwtService *jwt.JWT, cfg config.AuthConfig) gin.HandlerFunc {
+// 职责：只负责身份验证，不处理响应格式
+func AuthMiddleware(jwtService interfaces.JWTService, authConfig interfaces.AuthConfig, logger interfaces.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := c.Request.Context()
 
 		// 检查是否为白名单路径
-		if isWhitelistedPath(c.Request.URL.Path, cfg.Whitelist) {
-			logger.Debug(ctx, "Whitelisted path, skipping authentication",
-				zap.String("path", c.Request.URL.Path))
+		if isWhitelistedPath(c.Request.URL.Path, authConfig.Whitelist) {
+			logger.Debug(ctx, "Whitelisted path, skipping authentication")
 			c.Next()
 			return
 		}
@@ -38,45 +37,40 @@ func AuthMiddleware(jwtService *jwt.JWT, cfg config.AuthConfig) gin.HandlerFunc 
 		authHeader := c.GetHeader(AuthHeaderKey)
 		if authHeader == "" {
 			logger.Warn(ctx, "Missing authorization header")
-			response.FailWithCode(c, response.CodeUnauthorized, "Missing authorization header")
-			c.Abort()
+			c.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
 
-		var token string
 		// 检查Bearer前缀
 		if !strings.HasPrefix(authHeader, TokenPrefix) {
 			logger.Warn(ctx, "Invalid authorization header format")
-			response.FailWithCode(c, response.CodeUnauthorized, "Invalid authorization header format")
-			c.Abort()
+			c.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
 
 		// 提取token
-		token = strings.TrimPrefix(authHeader, TokenPrefix)
+		token := strings.TrimPrefix(authHeader, TokenPrefix)
 		if token == "" {
 			logger.Warn(ctx, "Empty token")
-			response.FailWithCode(c, response.CodeUnauthorized, "Empty token")
-			c.Abort()
+			c.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
 
 		// 验证token并获取用户信息
-		userID, err := validateToken(ctx, token, jwtService)
+		userID, err := jwtService.ValidateToken(token)
 		if err != nil {
-			logger.Error(ctx, "Token validation failed", zap.Error(err))
-			response.FailWithCode(c, response.CodeUnauthorized, "Invalid token")
-			c.Abort()
+			logger.Error(ctx, "Token validation failed", 
+				zap.Error(err))
+			c.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
 
 		// 将用户ID存储到context中
-		c.Set(contextutil.UserIDKey, userID)
-		ctx = context.WithValue(ctx, contextutil.UserIDKey, userID)
+		c.Set(UserIDKey, userID)
+		ctx = context.WithValue(ctx, UserIDKey, userID)
 		c.Request = c.Request.WithContext(ctx)
 
-		logger.Debug(ctx, "Authentication successful",
-			zap.String("user_id", userID))
+		logger.Debug(ctx, "Authentication successful")
 
 		c.Next()
 	}
@@ -92,16 +86,21 @@ func isWhitelistedPath(path string, whiteList []string) bool {
 	return false
 }
 
-// validateToken 验证token并返回用户ID
-func validateToken(ctx context.Context, tokenString string, jwtService *jwt.JWT) (string, error) {
-	// 解析JWT token
-	claims, err := jwtService.ParseToken(tokenString)
-	if err != nil {
-		logger.Debug(ctx, "Token parsing failed", zap.Error(err), zap.String("token", tokenString[:10]+"..."))
-		return "", err
+// GetCurrentUserID 从context中获取当前用户ID
+func GetCurrentUserID(c *gin.Context) (string, bool) {
+	userID, exists := c.Get(UserIDKey)
+	if !exists {
+		return "", false
 	}
-
-	// 返回用户ID
-	return claims.UserID, nil
+	
+	if uid, ok := userID.(string); ok {
+		return uid, true
+	}
+	
+	return "", false
 }
 
+// RequireAuth 要求认证的中间件工厂
+func RequireAuth(jwtService interfaces.JWTService, authConfig interfaces.AuthConfig, logger interfaces.Logger) gin.HandlerFunc {
+	return AuthMiddleware(jwtService, authConfig, logger)
+}

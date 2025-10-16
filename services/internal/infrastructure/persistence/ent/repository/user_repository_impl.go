@@ -9,19 +9,28 @@ import (
 	"services/internal/domain/user/entity"
 	usererrors "services/internal/domain/user/errors"
 	"services/internal/domain/user/repository"
+	"services/internal/infrastructure/mapper"
 	"services/internal/infrastructure/persistence/ent/gen"
 	entuser "services/internal/infrastructure/persistence/ent/gen/user"
 )
 
 // UserRepositoryImpl Ent用户仓储实现
 type UserRepositoryImpl struct {
-	client *gen.Client
+	client       *gen.Client
+	userMapper   mapper.UserMapper
+	mapperHelper *mapper.UserMapperHelper
 }
 
 // NewUserRepository 创建用户仓储
-func NewUserRepository(client *gen.Client) repository.UserRepository {
+func NewUserRepository(
+	client *gen.Client,
+	userMapper mapper.UserMapper,
+	mapperHelper *mapper.UserMapperHelper,
+) repository.UserRepository {
 	return &UserRepositoryImpl{
-		client: client,
+		client:       client,
+		userMapper:   userMapper,
+		mapperHelper: mapperHelper,
 	}
 }
 
@@ -36,14 +45,11 @@ func (r *UserRepositoryImpl) Create(ctx context.Context, userEntity *entity.User
 		return usererrors.ErrPhoneAlreadyExists
 	}
 
-	user, err := r.client.User.Create().
-		SetOpenID(userEntity.OpenID()).
-		SetName(userEntity.Name()).
-		SetPhoneNumber(userEntity.PhoneNumber()).
-		SetPassword(userEntity.Password()).
-		SetGender(userEntity.Gender()).
-		Save(ctx)
-
+	// 使用映射器辅助类配置创建操作
+	createOp := r.client.User.Create()
+	createOp = r.mapperHelper.ConfigureCreate(createOp, userEntity)
+	
+	user, err := createOp.Save(ctx)
 	if err != nil {
 		if gen.IsConstraintError(err) {
 			return usererrors.ErrUserAlreadyExists
@@ -51,10 +57,8 @@ func (r *UserRepositoryImpl) Create(ctx context.Context, userEntity *entity.User
 		return domainerrors.NewInternalServerError("创建用户失败")
 	}
 
-	// 将数据库生成的ID/时间戳设置给领域实体，并返回给调用方回领域实体
-	userEntity.SetID(user.ID.String())
-	userEntity.SetUpdatedAt(user.UpdatedAt)
-	userEntity.SetCreatedAt(user.CreatedAt)
+	// 使用映射器辅助类应用数据库生成的字段到领域实体
+	r.mapperHelper.ApplyEntityChanges(userEntity, user)
 
 	return nil
 }
@@ -67,13 +71,13 @@ func (r *UserRepositoryImpl) Update(ctx context.Context, userEntity *entity.User
 		return domainerrors.NewInvalidDataError("无效的用户ID")
 	}
 
+	// 使用映射器辅助类配置更新操作
+	updateOp := r.client.User.UpdateOneID(userID)
+	updateOp = r.mapperHelper.ConfigureUpdate(updateOp, userEntity)
+	
 	// 更新用户时，updated_at 字段会自动更新为当前时间
 	// 因为在数据库层面已经配置了 UpdateDefault(time.Now)
-	_, err = r.client.User.UpdateOneID(userID).
-		SetName(userEntity.Name()).
-		SetPhoneNumber(userEntity.PhoneNumber()).
-		SetGender(userEntity.Gender()).
-		Save(ctx)
+	_, err = updateOp.Save(ctx)
 
 	if err != nil {
 		if gen.IsNotFound(err) {
@@ -104,17 +108,13 @@ func (r *UserRepositoryImpl) List(ctx context.Context, offset, limit int) ([]*en
 		return nil, 0, domainerrors.NewInternalServerError("查询用户总数失败")
 	}
 
-	// 转换为领域实体
-	users := make([]*entity.User, 0, len(entUsers))
-	for _, entUser := range entUsers {
-		user := r.entUserToEntity(entUser)
-		users = append(users, user)
-	}
+	// 使用映射器转换为领域实体
+	users := r.userMapper.ToEntities(entUsers)
 
 	return users, int64(total), nil
 }
 
-// List 获取用户列表
+// ListWithFilter 获取用户列表
 func (r *UserRepositoryImpl) ListWithFilter(ctx context.Context, filter *repository.UserListFilter, offset, limit int) ([]*entity.User, int64, error) {
 	// 构建基础查询（只构建一次）
 	baseQuery := r.buildUserQuery(filter)
@@ -135,12 +135,8 @@ func (r *UserRepositoryImpl) ListWithFilter(ctx context.Context, filter *reposit
 		return nil, 0, domainerrors.NewInternalServerError("查询用户列表失败")
 	}
 
-	// 转换为领域实体
-	users := make([]*entity.User, 0, len(entUsers))
-	for _, entUser := range entUsers {
-		user := r.entUserToEntity(entUser)
-		users = append(users, user)
-	}
+	// 使用映射器转换为领域实体
+	users := r.userMapper.ToEntities(entUsers)
 
 	return users, int64(total), nil
 }
@@ -181,28 +177,7 @@ func (r *UserRepositoryImpl) buildUserQuery(filter *repository.UserListFilter) *
 	return query
 }
 
-// entUserToEntity 将Ent用户实体转换为领域用户实体
-func (r *UserRepositoryImpl) entUserToEntity(entUser *gen.User) *entity.User {
-	if entUser == nil {
-		return nil
-	}
 
-	// 创建领域用户实体
-	user := entity.NewUser(
-		entUser.OpenID,
-		entUser.Name,
-		entUser.PhoneNumber,
-		entUser.Password,
-		entUser.Gender,
-	)
-
-	// 设置ID和其他字段
-	user.SetID(entUser.ID.String())
-	user.SetCreatedAt(entUser.CreatedAt)
-	user.SetUpdatedAt(entUser.UpdatedAt)
-
-	return user
-}
 
 func (r *UserRepositoryImpl) GetByID(ctx context.Context, id string) (*entity.User, error) {
 	userID, err := uuid.Parse(id)
@@ -218,7 +193,8 @@ func (r *UserRepositoryImpl) GetByID(ctx context.Context, id string) (*entity.Us
 		return nil, domainerrors.NewInternalServerError("查询用户失败")
 	}
 
-	user := r.entUserToEntity(entUser)
+	// 使用映射器转换为领域实体
+	user := r.userMapper.ToEntityWithID(entUser)
 	return user, nil
 }
 
@@ -234,5 +210,7 @@ func (r *UserRepositoryImpl) FindByPhoneNumber(ctx context.Context, phoneNumber 
 		}
 		return nil, domainerrors.NewInternalServerError("通过手机号查询用户失败")
 	}
-	return r.entUserToEntity(entUser), nil
+	
+	// 使用映射器转换为领域实体
+	return r.userMapper.ToEntityWithID(entUser), nil
 }

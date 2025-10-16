@@ -3,7 +3,6 @@ package logger
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"time"
 
@@ -13,7 +12,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"common/config"
+	"common/interfaces"
 )
 
 const (
@@ -21,34 +20,41 @@ const (
 	TraceIDKey = "traceID"
 )
 
-// NewLogger 创建logger实例
-func NewLogger(cfg *config.Config) (*zap.Logger, error) {
+// LoggerImpl 日志实现
+type LoggerImpl struct {
+	logger *zap.Logger
+}
+
+// NewLogger 创建日志器
+func NewLogger(configProvider interfaces.ConfigProvider) (interfaces.Logger, error) {
+	config := configProvider.GetLoggerConfig()
+	
 	// 设置日志级别
 	var level zapcore.Level
-	switch cfg.Zap.Level {
-	case "DEBUG":
+	switch config.Level {
+	case "DEBUG", "debug":
 		level = zapcore.DebugLevel
-	case "INFO":
+	case "INFO", "info":
 		level = zapcore.InfoLevel
-	case "WARN":
+	case "WARN", "warn":
 		level = zapcore.WarnLevel
-	case "ERROR":
+	case "ERROR", "error":
 		level = zapcore.ErrorLevel
 	default:
 		level = zapcore.InfoLevel
 	}
 
 	// 创建日志目录
-	if err := os.MkdirAll(cfg.Zap.Director, 0755); err != nil {
-		return nil, err
+	if err := os.MkdirAll(config.Director, 0755); err != nil {
+		return nil, fmt.Errorf("failed to create log directory: %w", err)
 	}
 
 	// 通用文件输出 - 所有日志（按天分割）
 	allWriter, err := getLogWriter(
-		cfg.Zap.Director+"/app",
-		time.Duration(cfg.Zap.MaxAge),
-		int64(cfg.Zap.MaxSize),
-		uint(cfg.Zap.MaxBackups),
+		config.Director+"/app",
+		time.Duration(config.MaxAge),
+		int64(config.MaxSize),
+		uint(config.MaxBackups),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create all log writer: %w", err)
@@ -56,10 +62,10 @@ func NewLogger(cfg *config.Config) (*zap.Logger, error) {
 
 	// Info及以上等级文件输出（按天分割）
 	infoWriter, err := getLogWriter(
-		cfg.Zap.Director+"/info",
-		time.Duration(cfg.Zap.MaxAge),
-		int64(cfg.Zap.MaxSize),
-		uint(cfg.Zap.MaxBackups),
+		config.Director+"/info",
+		time.Duration(config.MaxAge),
+		int64(config.MaxSize),
+		uint(config.MaxBackups),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create info log writer: %w", err)
@@ -67,10 +73,10 @@ func NewLogger(cfg *config.Config) (*zap.Logger, error) {
 
 	// Error等级单独文件输出（按天分割）
 	errorWriter, err := getLogWriter(
-		cfg.Zap.Director+"/error",
-		time.Duration(cfg.Zap.MaxAge),
-		int64(cfg.Zap.MaxSize),
-		uint(cfg.Zap.MaxBackups),
+		config.Director+"/error",
+		time.Duration(config.MaxAge),
+		int64(config.MaxSize),
+		uint(config.MaxBackups),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create error log writer: %w", err)
@@ -124,9 +130,69 @@ func NewLogger(cfg *config.Config) (*zap.Logger, error) {
 		),
 	)
 
-	logger := zap.New(core, zap.AddCaller(), zap.AddStacktrace(zapcore.ErrorLevel))
+	zapLogger := zap.New(core, zap.AddCaller(), zap.AddStacktrace(zapcore.ErrorLevel))
 
-	return logger, nil
+	return &LoggerImpl{
+		logger: zapLogger,
+	}, nil
+}
+
+// Debug 记录调试级别日志
+func (l *LoggerImpl) Debug(ctx context.Context, msg string, fields ...zap.Field) {
+	l.withContext(ctx).Debug(msg, fields...)
+}
+
+// Info 记录信息级别日志
+func (l *LoggerImpl) Info(ctx context.Context, msg string, fields ...zap.Field) {
+	l.withContext(ctx).Info(msg, fields...)
+}
+
+// Warn 记录警告级别日志
+func (l *LoggerImpl) Warn(ctx context.Context, msg string, fields ...zap.Field) {
+	l.withContext(ctx).Warn(msg, fields...)
+}
+
+// Error 记录错误级别日志
+func (l *LoggerImpl) Error(ctx context.Context, msg string, fields ...zap.Field) {
+	l.withContext(ctx).Error(msg, fields...)
+}
+
+// Fatal 记录致命错误日志并退出程序
+func (l *LoggerImpl) Fatal(ctx context.Context, msg string, fields ...zap.Field) {
+	l.withContext(ctx).Fatal(msg, fields...)
+}
+
+// With 创建带有预设字段的子日志器
+func (l *LoggerImpl) With(fields ...zap.Field) interfaces.Logger {
+	return &LoggerImpl{
+		logger: l.logger.With(fields...),
+	}
+}
+
+// WithContext 从上下文中提取字段创建子日志器
+func (l *LoggerImpl) WithContext(ctx context.Context) interfaces.Logger {
+	return &LoggerImpl{
+		logger: l.withContext(ctx),
+	}
+}
+
+// Sync 同步日志缓冲区
+func (l *LoggerImpl) Sync() error {
+	return l.logger.Sync()
+}
+
+// GetZapLogger 获取底层的zap.Logger实例
+func (l *LoggerImpl) GetZapLogger() *zap.Logger {
+	return l.logger
+}
+
+// withContext 从上下文中提取 traceID 并创建带有 traceID 的 logger
+func (l *LoggerImpl) withContext(ctx context.Context) *zap.Logger {
+	traceID := GetTraceID(ctx)
+	if traceID != "" {
+		return l.logger.With(zap.String("traceID", traceID))
+	}
+	return l.logger
 }
 
 // getLogWriter 创建按天分割的日志写入器
@@ -150,7 +216,6 @@ func getLogWriter(filename string, maxAge time.Duration, maxSize int64, maxBacku
 func GenerateTraceID() string {
 	id, err := uuid.NewRandom()
 	if err != nil {
-		log.Printf("Failed to generate UUID: %v", err)
 		return "unknown"
 	}
 	return id.String()
@@ -163,51 +228,69 @@ func WithTraceID(ctx context.Context, traceID string) context.Context {
 
 // GetTraceID 从 context 中获取 traceID
 func GetTraceID(ctx context.Context) string {
+	if ctx == nil {
+		return ""
+	}
 	if traceID, ok := ctx.Value(TraceIDKey).(string); ok {
 		return traceID
 	}
 	return ""
 }
 
-// WithContext 创建带有 traceID 的 logger
-func WithContext(logger *zap.Logger, ctx context.Context) *zap.Logger {
-	traceID := GetTraceID(ctx)
-	return logger.With(zap.String("traceID", traceID))
+// LoggerFactoryImpl 日志工厂实现
+type LoggerFactoryImpl struct{}
+
+// NewLoggerFactory 创建日志工厂
+func NewLoggerFactory() interfaces.LoggerFactory {
+	return &LoggerFactoryImpl{}
 }
 
-// ToContext 将 logger 存入 context
-func ToContext(ctx context.Context, logger *zap.Logger) context.Context {
-	return context.WithValue(ctx, "contextLogger", logger)
+// CreateLogger 创建日志器
+func (f *LoggerFactoryImpl) CreateLogger(config interfaces.LoggerConfig) (interfaces.Logger, error) {
+	// 创建临时配置提供者
+	tempProvider := &tempConfigProvider{loggerConfig: config}
+	return NewLogger(tempProvider)
 }
 
-// FromContext 从 context 中获取 logger
-func FromContext(ctx context.Context) *zap.Logger {
-	if logger, ok := ctx.Value("contextLogger").(*zap.Logger); ok {
-		return logger
+// CreateDevelopmentLogger 创建开发环境日志器
+func (f *LoggerFactoryImpl) CreateDevelopmentLogger() (interfaces.Logger, error) {
+	zapLogger, err := zap.NewDevelopment()
+	if err != nil {
+		return nil, err
 	}
-	// 返回 noop logger，避免 panic
-	return zap.NewNop()
+	
+	return &LoggerImpl{logger: zapLogger}, nil
 }
 
-// Info 从 context 获取 logger 记录 Info 日志
-func Info(ctx context.Context, msg string, fields ...zap.Field) {
-	FromContext(ctx).Info(msg, fields...)
+// CreateProductionLogger 创建生产环境日志器
+func (f *LoggerFactoryImpl) CreateProductionLogger(config interfaces.LoggerConfig) (interfaces.Logger, error) {
+	return f.CreateLogger(config)
 }
 
-// Error 从 context 获取 logger 记录 Error 日志
-func Error(ctx context.Context, msg string, fields ...zap.Field) {
-	FromContext(ctx).Error(msg, fields...)
+// tempConfigProvider 临时配置提供者，用于工厂方法
+type tempConfigProvider struct {
+	loggerConfig interfaces.LoggerConfig
 }
 
-// Warn 从 context 获取 logger 记录 Warn 日志
-func Warn(ctx context.Context, msg string, fields ...zap.Field) {
-	FromContext(ctx).Warn(msg, fields...)
+func (t *tempConfigProvider) GetLoggerConfig() interfaces.LoggerConfig {
+	return t.loggerConfig
 }
 
-// Debug 从 context 获取 logger 记录 Debug 日志
-func Debug(ctx context.Context, msg string, fields ...zap.Field) {
-	FromContext(ctx).Debug(msg, fields...)
-}
+func (t *tempConfigProvider) GetDatabaseConfig() interfaces.DatabaseConfig { return interfaces.DatabaseConfig{} }
+func (t *tempConfigProvider) GetServerConfig() interfaces.ServerConfig     { return interfaces.ServerConfig{} }
+func (t *tempConfigProvider) GetAuthConfig() interfaces.AuthConfig         { return interfaces.AuthConfig{} }
+func (t *tempConfigProvider) GetRedisConfig() interfaces.RedisConfig       { return interfaces.RedisConfig{} }
+func (t *tempConfigProvider) GetTokenConfig() interfaces.TokenConfig       { return interfaces.TokenConfig{} }
+func (t *tempConfigProvider) GetValidationConfig() interfaces.ValidationConfig { return interfaces.ValidationConfig{} }
+func (t *tempConfigProvider) GetRateLimitConfig() interfaces.RateLimitConfig { return interfaces.RateLimitConfig{} }
+func (t *tempConfigProvider) Reload() error                                { return nil }
+func (t *tempConfigProvider) GetEnv() string                               { return "development" }
 
 // Module FX模块
-var Module = fx.Provide(NewLogger)
+var Module = fx.Module("logger",
+	fx.Provide(NewLogger, NewLoggerFactory),
+	fx.Invoke(func(logger interfaces.Logger) {
+		// 设置全局logger实例
+		SetGlobalLogger(logger)
+	}),
+)

@@ -9,7 +9,7 @@ import (
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 
-	"common/config"
+	"common/interfaces"
 )
 
 // ServerParams 定义创建HTTP服务器所需的依赖
@@ -17,35 +17,37 @@ type ServerParams struct {
 	fx.In
 
 	Engine *gin.Engine
-	Config *config.Config
-	Logger *zap.Logger
+	ConfigProvider interfaces.ConfigProvider
 }
 
 // NewServer 创建一个新的HTTP服务器实例
 func NewServer(params ServerParams) *http.Server {
-	// 从配置文件中读取服务器配置，如果未设置则使用默认值
-	readTimeout := params.Config.Server.ReadTimeout
+	// 从配置提供者中读取服务器配置
+	serverConfig := params.ConfigProvider.GetServerConfig()
+	
+	// 使用配置中的值，如果未设置则使用默认值
+	readTimeout := serverConfig.ReadTimeout
 	if readTimeout == 0 {
 		readTimeout = 5 * time.Second
 	}
 
-	writeTimeout := params.Config.Server.WriteTimeout
+	writeTimeout := serverConfig.WriteTimeout
 	if writeTimeout == 0 {
 		writeTimeout = 10 * time.Second
 	}
 
-	idleTimeout := params.Config.Server.IdleTimeout
+	idleTimeout := serverConfig.IdleTimeout
 	if idleTimeout == 0 {
 		idleTimeout = 120 * time.Second
 	}
 
-	maxHeaderBytes := params.Config.Server.MaxHeaderBytes
+	maxHeaderBytes := serverConfig.MaxHeaderBytes
 	if maxHeaderBytes == 0 {
 		maxHeaderBytes = 1 << 20 // 1MB
 	}
 
 	server := &http.Server{
-		Addr:           ":" + params.Config.Server.Port,
+		Addr:           ":" + serverConfig.Port,
 		Handler:        params.Engine,
 		ReadTimeout:    readTimeout,
 		WriteTimeout:   writeTimeout,
@@ -62,26 +64,26 @@ type ServerLifecycleParams struct {
 
 	Server    *http.Server
 	Lifecycle fx.Lifecycle
-	Logger    *zap.Logger
+	Logger    interfaces.Logger
 }
 
 // RegisterServerLifecycle 注册服务器的启动和停止生命周期钩子
 func RegisterServerLifecycle(params ServerLifecycleParams) {
 	params.Lifecycle.Append(fx.Hook{
-		OnStart: func(context.Context) error {
-			params.Logger.Info("Starting HTTP server", zap.String("addr", params.Server.Addr))
+		OnStart: func(ctx context.Context) error {
+			params.Logger.Info(ctx, "Starting HTTP server", zap.String("addr", params.Server.Addr))
 
 			// 在goroutine中启动服务器，避免阻塞应用启动
 			go func() {
 				if err := params.Server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-					params.Logger.Error("Failed to start HTTP server", zap.Error(err))
+					params.Logger.Error(ctx, "Failed to start HTTP server", zap.Error(err))
 				}
 			}()
 
 			return nil
 		},
 		OnStop: func(ctx context.Context) error {
-			params.Logger.Info("Shutting down HTTP server")
+			params.Logger.Info(ctx, "Shutting down HTTP server")
 
 			// 在这里可以添加服务特定的清理逻辑
 			// 例如：断开数据库连接、确保消息队列中的消息处理完毕等

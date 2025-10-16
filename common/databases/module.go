@@ -3,22 +3,18 @@ package databases
 import (
 	"go.uber.org/fx"
 
-	"common/databases/mysql"
-	"common/databases/redis"
-)
-
-// MySQLModule provides MySQL related functionalities
-var MySQLModule = fx.Module("mysql",
-	mysql.Module,
+	// 暂时移除 redis 导入，等后续任务重构
+	// "common/databases/redis"
 )
 
 // RedisModule provides Redis related functionalities
-var RedisModule = fx.Module("redis",
-	redis.RedisModule,
-)
+// var RedisModule = fx.Module("redis",
+//     redis.RedisModule,
+// )
 
 // Module provides all database related functionalities
 var Module = fx.Module("database",
-	MySQLModule,
-	RedisModule,
+	DatabaseModule,
+	// 暂时禁用 Redis 模块，等后续任务重构
+	// RedisModule,
 )

@@ -8,7 +8,7 @@ import (
 	"github.com/go-redis/redis/v8"
 	"go.uber.org/fx"
 
-	"common/config"
+	"common/interfaces"
 )
 
 // RedisClient Redis客户端
@@ -16,22 +16,16 @@ type RedisClient struct {
 	*redis.Client
 }
 
-// RedisClientParams 客户端依赖参数
-type RedisClientParams struct {
-	fx.In
-	Config *config.Config
-}
-
 // NewRedisClient 创建新的Redis客户端
-func NewRedisClient(params RedisClientParams) (*RedisClient, error) {
-	cfg := params.Config
+func NewRedisClient(configProvider interfaces.ConfigProvider) (*RedisClient, error) {
+	cfg := configProvider.GetRedisConfig()
 
 	// 创建Redis客户端
 	rdb := redis.NewClient(&redis.Options{
-		Addr:     fmt.Sprintf("%s:%d", cfg.Redis.Host, cfg.Redis.Port),
-		Password: cfg.Redis.Password,
-		DB:       cfg.Redis.Database,
-		PoolSize: cfg.Redis.PoolSize,
+		Addr:     fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
+		Password: cfg.Password,
+		DB:       cfg.Database,
+		PoolSize: cfg.PoolSize,
 	})
 
 	// 测试连接

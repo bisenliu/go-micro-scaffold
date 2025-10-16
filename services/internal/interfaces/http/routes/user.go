@@ -1,14 +1,16 @@
 package routes
 
 import (
-	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
+	"context"
 
+	"github.com/gin-gonic/gin"
+
+	"common/interfaces"
 	"services/internal/interfaces/http/handler"
 )
 
 // SetupUserRoutes 设置用户API路由
-func SetupUserRoutes(rg *gin.RouterGroup, userHandler *handler.UserHandler, logger *zap.Logger) {
+func SetupUserRoutes(rg *gin.RouterGroup, userHandler *handler.UserHandler, logger interfaces.Logger) {
 	users := rg.Group("/users")
 	{
 		users.POST("", userHandler.CreateUser)
@@ -16,5 +18,6 @@ func SetupUserRoutes(rg *gin.RouterGroup, userHandler *handler.UserHandler, logg
 		users.GET("/:id", userHandler.GetUser)
 	}
 
-	logger.Info("User API routes registered")
+	ctx := context.Background()
+	logger.Info(ctx, "User API routes registered")
 }

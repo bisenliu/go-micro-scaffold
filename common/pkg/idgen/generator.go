@@ -6,7 +6,7 @@ import (
 
 	"github.com/bwmarrin/snowflake"
 
-	"common/config"
+	"common/interfaces"
 )
 
 // Generator ID生成器接口
@@ -21,18 +21,16 @@ type snowflakeGenerator struct {
 }
 
 // NewSnowflakeGenerator 创建snowflake ID生成器
-func NewSnowflakeGenerator(cfg *config.Config) (Generator, error) {
-	// 解析配置中的起始时间
-	startTime, err := time.Parse(time.DateOnly, cfg.SnowFlake.StartTime)
-	if err != nil {
-		return nil, fmt.Errorf("invalid snowflake start time format: %v", err)
-	}
+func NewSnowflakeGenerator(configProvider interfaces.ConfigProvider) (Generator, error) {
+	// 使用默认配置，后续可以从配置中获取
+	startTime := time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC)
+	machineID := int64(1)
 
 	// 设置snowflake起始时间
 	snowflake.Epoch = startTime.UnixNano() / 1000000
 
 	// 创建snowflake节点
-	node, err := snowflake.NewNode(cfg.SnowFlake.MachineID)
+	node, err := snowflake.NewNode(machineID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create snowflake node: %v", err)
 	}

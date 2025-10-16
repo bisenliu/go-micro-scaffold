@@ -1,144 +1,83 @@
 package config
 
 import (
-	"time"
-
-	"github.com/spf13/viper"
 	"go.uber.org/fx"
+
+	"common/interfaces"
 )
 
-// Config 应用配置结构
-type Config struct {
-	// 1. 系统与服务器配置
-	System SystemConfig `mapstructure:"system"`
-	Server ServerConfig `mapstructure:"server"`
-
-	// 2. 中间件配置
-	Auth      AuthConfig      `mapstructure:"auth"`
-	RateLimit RateLimitConfig `mapstructure:"rate_limit"`
-
-	// 3. 业务逻辑相关配置
-	Token      TokenConfig      `mapstructure:"token"`
-	SnowFlake  SnowFlakeConfig  `mapstructure:"snow_flake"`
-	Validation ValidationConfig `mapstructure:"validation"`
-
-	// 4. 外部服务依赖配置
-	DatabaseCommon DatabaseConfig            `mapstructure:"database_common"`
-	Databases      map[string]DatabaseConfig `mapstructure:"databases"`
-	Redis          RedisConfig               `mapstructure:"redis"`
-
-	// 5. 日志配置
-	Zap ZapConfig `mapstructure:"zap"`
+// ConfigProviderImpl 配置提供者实现
+type ConfigProviderImpl struct {
+	serverConfig     interfaces.ServerConfig
+	databaseConfig   interfaces.DatabaseConfig
+	authConfig       interfaces.AuthConfig
+	loggerConfig     interfaces.LoggerConfig
+	redisConfig      interfaces.RedisConfig
+	tokenConfig      interfaces.TokenConfig
+	validationConfig interfaces.ValidationConfig
+	rateLimitConfig  interfaces.RateLimitConfig
+	env              string
+	factory          *ConfigFactory
 }
 
-// --- 1. 系统与服务器配置 ---
-
-type SystemConfig struct {
-	Env        string `mapstructure:"env"`
-	SecretKey  string `mapstructure:"secret_key"`
-	ServerName string `mapstructure:"server_name"`
-	Timezone   string `mapstructure:"timezone"`
+// NewConfigProvider 创建配置提供者
+func NewConfigProvider() (interfaces.ConfigProvider, error) {
+	factory := NewConfigFactory()
+	return factory.CreateConfigProvider()
 }
 
-type ServerConfig struct {
-	Port           string        `mapstructure:"port"`
-	Mode           string        `mapstructure:"mode"`
-	EnableCORS     bool          `mapstructure:"enable_cors"` // CORS开关也属于中间件配置
-	ReadTimeout    time.Duration `mapstructure:"read_timeout"`
-	WriteTimeout   time.Duration `mapstructure:"write_timeout"`
-	IdleTimeout    time.Duration `mapstructure:"idle_timeout"`
-	MaxHeaderBytes int           `mapstructure:"maxHeaderBytes"`
+// GetDatabaseConfig 获取数据库配置
+func (p *ConfigProviderImpl) GetDatabaseConfig() interfaces.DatabaseConfig {
+	return p.databaseConfig
 }
 
-// --- 2. 中间件配置 ---
-
-type AuthConfig struct {
-	Whitelist []string `mapstructure:"whitelist"`
+// GetServerConfig 获取服务器配置
+func (p *ConfigProviderImpl) GetServerConfig() interfaces.ServerConfig {
+	return p.serverConfig
 }
 
-type RateLimitConfig struct {
-	Enabled         bool          `mapstructure:"enabled"`
-	FillInterval    time.Duration `mapstructure:"fill_interval"`
-	Capacity        int64         `mapstructure:"capacity"`
-	Quantum         int64         `mapstructure:"quantum"`
-	CleanupInterval time.Duration `mapstructure:"cleanup_interval"`
-	BucketExpiry    time.Duration `mapstructure:"bucket_expiry"`
+// GetAuthConfig 获取认证配置
+func (p *ConfigProviderImpl) GetAuthConfig() interfaces.AuthConfig {
+	return p.authConfig
 }
 
-// --- 3. 业务逻辑相关配置 ---
-
-type TokenConfig struct {
-	ExpiredTime int `mapstructure:"expired_time"`
+// GetLoggerConfig 获取日志配置
+func (p *ConfigProviderImpl) GetLoggerConfig() interfaces.LoggerConfig {
+	return p.loggerConfig
 }
 
-type SnowFlakeConfig struct {
-	StartTime string `mapstructure:"start_time"`
-	MachineID int64  `mapstructure:"machine_id"`
+// GetRedisConfig 获取Redis配置
+func (p *ConfigProviderImpl) GetRedisConfig() interfaces.RedisConfig {
+	return p.redisConfig
 }
 
-type ValidationConfig struct {
-	Locale string `mapstructure:"locale"`
+// GetTokenConfig 获取Token配置
+func (p *ConfigProviderImpl) GetTokenConfig() interfaces.TokenConfig {
+	return p.tokenConfig
 }
 
-// --- 4. 外部服务依赖配置 ---
-
-// DatabaseConfig 数据库配置
-type DatabaseConfig struct {
-	Type     string `mapstructure:"type"` // "mysql", "postgres", "sqlite" 等
-	Host     string `mapstructure:"host"`
-	Port     int    `mapstructure:"port"`
-	Database string `mapstructure:"database"`
-	Username string `mapstructure:"username"`
-	Password string `mapstructure:"password"`
-	Charset  string `mapstructure:"charset"`
-
-	// 连接池配置
-	MaxOpenConns    int           `mapstructure:"max_open_conns"`
-	MaxIdleConns    int           `mapstructure:"max_idle_conns"`
-	ConnMaxLifetime time.Duration `mapstructure:"conn_max_lifetime"`
-	ConnMaxIdleTime time.Duration `mapstructure:"conn_max_idle_time"`
+// GetValidationConfig 获取验证配置
+func (p *ConfigProviderImpl) GetValidationConfig() interfaces.ValidationConfig {
+	return p.validationConfig
 }
 
-type RedisConfig struct {
-	Host      string `mapstructure:"host"`
-	Port      int    `mapstructure:"port"`
-	Password  string `mapstructure:"password"`
-	Database  int    `mapstructure:"database"`
-	DefaultDB int    `mapstructure:"default_db"`
-	PoolSize  int    `mapstructure:"pool_size"`
+// GetRateLimitConfig 获取限流配置
+func (p *ConfigProviderImpl) GetRateLimitConfig() interfaces.RateLimitConfig {
+	return p.rateLimitConfig
 }
 
-// --- 5. 日志配置 ---
-
-type ZapConfig struct {
-	Level      string `mapstructure:"level"`
-	Director   string `mapstructure:"director"`
-	MaxAge     int    `mapstructure:"max_age"`
-	MaxSize    int    `mapstructure:"max_size"`
-	MaxBackups int    `mapstructure:"max_backups"`
-}
-
-// --- 配置加载 ---
-
-// NewConfig 创建配置实例
-func NewConfig() (*Config, error) {
-	viper.SetConfigName("app")
-	viper.SetConfigType("yaml")
-	viper.AddConfigPath("./configs")
-	viper.AddConfigPath(".")
-
-	if err := viper.ReadInConfig(); err != nil {
-		return nil, err
+// Reload 重新加载配置
+func (p *ConfigProviderImpl) Reload() error {
+	if p.factory != nil {
+		return p.factory.Reload()
 	}
+	return nil
+}
 
-	var config Config
-	if err := viper.Unmarshal(&config); err != nil {
-		return nil, err
-	}
-
-	return &config, nil
+// GetEnv 获取当前环境
+func (p *ConfigProviderImpl) GetEnv() string {
+	return p.env
 }
 
 // Module FX模块
-var Module = fx.Provide(NewConfig)
-
+var Module = fx.Provide(NewConfigProvider)

@@ -1,9 +1,8 @@
 package http
 
 import (
-	"common/config"
+	"common/interfaces"
 	commonMiddleware "common/middleware"
-	"common/pkg/jwt"
 	service "services/internal/application/service"
 	"services/internal/interfaces/http/routes"
 )
@@ -14,6 +13,7 @@ func NewCasbinMiddleware(permissionService service.PermissionServiceInterface) r
 }
 
 // NewAuthMiddleware 创建 Auth 中间件的 Provider
-func NewAuthMiddleware(jwtService *jwt.JWT, config *config.Config) routes.AuthMiddleware {
-	return routes.AuthMiddleware(commonMiddleware.AuthMiddleware(jwtService, config.Auth))
+func NewAuthMiddleware(jwtService interfaces.JWTService, configProvider interfaces.ConfigProvider, logger interfaces.Logger) routes.AuthMiddleware {
+	authConfig := configProvider.GetAuthConfig()
+	return routes.AuthMiddleware(commonMiddleware.AuthMiddleware(jwtService, authConfig, logger))
 }

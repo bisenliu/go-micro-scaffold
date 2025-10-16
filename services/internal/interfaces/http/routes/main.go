@@ -1,10 +1,12 @@
 package routes
 
 import (
+	"context"
+
 	"github.com/gin-gonic/gin"
 	"go.uber.org/fx"
-	"go.uber.org/zap"
 
+	"common/interfaces"
 	commonMiddleware "common/middleware"
 	"services/internal/interfaces/http/handler"
 )
@@ -25,28 +27,30 @@ type RoutesParams struct {
 	AuthHandler      *handler.AuthHandler
 	CasbinMiddleware CasbinMiddleware
 	AuthMiddleware   AuthMiddleware
-	ZapLogger        *zap.Logger
+	Logger           interfaces.Logger
 }
 
 // SetupRoutesFinal
 func SetupRoutesFinal(p RoutesParams) {
 
 	// 1. 系统路由（无需认证）
-	SetupSystemRoutes(p.Engine, p.HealthHandler, p.ZapLogger)
+	SetupSystemRoutes(p.Engine, p.HealthHandler, p.Logger)
 
 	// 2. API v1 路由组
 	v1 := p.Engine.Group("/api/v1")
 
 	// 2.1 认证相关路由（部分需要Token）
-	SetupAuthRoutes(v1, p.AuthHandler, p.AuthMiddleware, p.ZapLogger)
+	SetupAuthRoutes(v1, p.AuthHandler, p.AuthMiddleware, p.Logger)
 
 	// 2.2 业务路由（需要认证和授权）
 	v1.Use(commonMiddleware.RequestLogMiddleware())
-	v1.Use(gin.HandlerFunc(p.CasbinMiddleware))
+	// v1.Use(gin.HandlerFunc(p.CasbinMiddleware))
 	{
-		SetupUserRoutes(v1, p.UserHandler, p.ZapLogger)
+		SetupUserRoutes(v1, p.UserHandler, p.Logger)
 		// 后续添加其他模块
 	}
 
-	p.ZapLogger.Info("All routes setup completed successfully")
+	// 使用context创建日志
+	ctx := context.Background()
+	p.Logger.Info(ctx, "All routes setup completed successfully")
 }

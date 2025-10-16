@@ -3,12 +3,12 @@ package idgen
 import (
 	"go.uber.org/fx"
 
-	"common/config"
+	"common/interfaces"
 )
 
 // NewGenerator 创建ID生成器实例
-func NewGenerator(cfg *config.Config) (Generator, error) {
-	return NewSnowflakeGenerator(cfg)
+func NewGenerator(configProvider interfaces.ConfigProvider) (Generator, error) {
+	return NewSnowflakeGenerator(configProvider)
 }
 
 // Module ID生成器模块

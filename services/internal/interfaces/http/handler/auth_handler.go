@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 
+	"common/interfaces"
 	"common/logger"
 	"common/pkg/jwt"
 	"common/pkg/validation"
@@ -16,14 +17,14 @@ import (
 type AuthHandler struct {
 	authService service.AuthServiceInterface
 	validator   *validation.Validator
-	jwtService  *jwt.JWT
+	jwtService  interfaces.JWTService
 }
 
 // NewAuthHandler 创建认证HTTP处理器
 func NewAuthHandler(
 	authService service.AuthServiceInterface,
 	validator *validation.Validator,
-	jwtService *jwt.JWT,
+	jwtService interfaces.JWTService,
 ) *AuthHandler {
 	return &AuthHandler{
 		authService: authService,
@@ -40,7 +41,7 @@ func (h *AuthHandler) LoginByPassword(c *gin.Context) {
 		return
 	}
 
-	userID, userName, err := h.authService.LoginByPassword(ctx, req.PhoneNumber, req.Password)
+	userID, _, err := h.authService.LoginByPassword(ctx, req.PhoneNumber, req.Password)
 	if err != nil {
 		logger.Error(ctx, "Login failed", zap.Error(err))
 		HandleError(c, err)
@@ -48,7 +49,7 @@ func (h *AuthHandler) LoginByPassword(c *gin.Context) {
 	}
 
 	// 生成token
-	token, err := h.jwtService.Generate(userID, userName)
+	token, err := h.jwtService.GenerateToken(userID)
 	if err != nil {
 		HandleErrorWithCode(c, response.CodeInternalError, "Failed to generate token")
 		return
