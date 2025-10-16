@@ -5,7 +5,6 @@ import (
 	"go.uber.org/zap"
 
 	"common/logger"
-	"common/pkg/jwt"
 	"common/pkg/validation"
 	"common/response"
 	command "services/internal/application/command/user"
@@ -21,7 +20,6 @@ type UserHandler struct {
 	commandHandler *commandhandler.UserCommandHandler
 	queryHandler   *queryhandler.UserQueryHandler
 	validator      *validation.Validator
-	jwtService     *jwt.JWT
 }
 
 // Ensure UserHandler implements Handler interface
@@ -60,7 +58,7 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	user, err := h.commandHandler.HandleCreateUser(ctx, command)
 	if err != nil {
 		logger.Error(ctx, "Failed to create user", zap.Error(err))
-		HandleErrorResponse(c, err)
+		HandleError(c, err)
 		return
 	}
 
@@ -103,7 +101,7 @@ func (h *UserHandler) ListUsers(c *gin.Context) {
 	users, total, err := h.queryHandler.HandleListUsers(ctx, query)
 	if err != nil {
 		logger.Error(ctx, "Failed to list users", zap.Error(err))
-		HandleErrorResponse(c, err)
+		HandleError(c, err)
 		return
 	}
 
@@ -132,7 +130,7 @@ func (h *UserHandler) GetUser(c *gin.Context) {
 	userInfo, err := h.queryHandler.HandleGetUser(ctx, query)
 	if err != nil {
 		logger.Error(ctx, "Failed to get user info", zap.Error(err), zap.String("user_id", userID))
-		HandleErrorResponse(c, err)
+		HandleError(c, err)
 		return
 	}
 

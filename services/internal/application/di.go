@@ -17,10 +17,8 @@ var ApplicationModule = fx.Module("application",
 		// 查询处理器
 		queryhandler.NewUserQueryHandler,
 
-		// 权限服务
+		// 应用服务
 		service.NewPermissionService,
-
-		// 认证服务
 		service.NewAuthService,
 	),
 )

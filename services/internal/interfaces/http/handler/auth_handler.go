@@ -43,14 +43,14 @@ func (h *AuthHandler) LoginByPassword(c *gin.Context) {
 	userID, userName, err := h.authService.LoginByPassword(ctx, req.PhoneNumber, req.Password)
 	if err != nil {
 		logger.Error(ctx, "Login failed", zap.Error(err))
-		HandleErrorResponse(c, err)
+		HandleError(c, err)
 		return
 	}
 
 	// 生成token
 	token, err := h.jwtService.Generate(userID, userName)
 	if err != nil {
-		response.FailWithCode(c, response.CodeInternalError, "Failed to generate token")
+		HandleErrorWithCode(c, response.CodeInternalError, "Failed to generate token")
 		return
 	}
 
@@ -73,19 +73,19 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 
 	claimsValue, exists := c.Get("claims")
 	if !exists {
-		response.FailWithCode(c, response.CodeUnauthorized, "无法获取用户信息")
+		HandleErrorWithCode(c, response.CodeUnauthorized, "无法获取用户信息")
 		return
 	}
 
 	claims, ok := claimsValue.(*jwt.CustomClaims)
 	if !ok {
-		response.FailWithCode(c, response.CodeInternalError, "用户信息类型断言失败")
+		HandleErrorWithCode(c, response.CodeInternalError, "用户信息类型断言失败")
 		return
 	}
 
 	if err := h.authService.Logout(ctx, claims.ID, claims.ExpiresAt.Time); err != nil {
 		logger.Error(ctx, "Logout failed", zap.Error(err))
-		HandleErrorResponse(c, err)
+		HandleError(c, err)
 		return
 	}
 
