@@ -35,6 +35,7 @@ type CodeInfo struct {
 }
 
 // 业务码信息映射表
+// 注意：此映射表主要用于初始化代码注册表，运行时应使用 CodeRegistry 进行查找操作
 var CodeInfoMap = map[int]*CodeInfo{
 	CodeSuccess: {
 		Code:       CodeSuccess,
@@ -123,23 +124,19 @@ var CodeInfoMap = map[int]*CodeInfo{
 }
 
 // GetCodeInfo 获取业务码信息
+// 已重构为使用统一的代码注册表，消除重复的查找逻辑
 func GetCodeInfo(code int) (*CodeInfo, bool) {
-	info, exists := CodeInfoMap[code]
-	return info, exists
+	return GetDefaultCodeRegistry().GetInfo(code)
 }
 
 // GetCodeMessage 获取业务码对应的消息
+// 已重构为使用统一的代码注册表，提供高效的查找机制
 func GetCodeMessage(code int) string {
-	if info, exists := CodeInfoMap[code]; exists {
-		return info.Message
-	}
-	return "未知错误"
+	return GetDefaultCodeRegistry().GetMessage(code)
 }
 
 // GetHTTPStatus 获取业务码对应的HTTP状态码
+// 已重构为使用统一的代码注册表，消除重复的查找逻辑
 func GetHTTPStatus(code int) int {
-	if info, exists := CodeInfoMap[code]; exists {
-		return info.HTTPStatus
-	}
-	return http.StatusInternalServerError
+	return GetDefaultCodeRegistry().GetHTTPStatus(code)
 }

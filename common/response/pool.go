@@ -12,12 +12,12 @@ type ResponsePool struct {
 func NewResponsePool() *ResponsePool {
 	return &ResponsePool{
 		responsePool: sync.Pool{
-			New: func() interface{} {
+			New: func() any {
 				return &Response{}
 			},
 		},
 		pageDataPool: sync.Pool{
-			New: func() interface{} {
+			New: func() any {
 				return &PageData{}
 			},
 		},

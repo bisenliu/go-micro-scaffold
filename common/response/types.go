@@ -2,9 +2,9 @@ package response
 
 // Response 统一的响应结构
 type Response struct {
-	Code    int         `json:"code"`
-	Message string      `json:"message"`
-	Data    interface{} `json:"data,omitempty"`
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+	Data    any    `json:"data,omitempty"`
 }
 
 // Pagination 分页信息结构
@@ -17,7 +17,7 @@ type Pagination struct {
 
 // PageData 分页数据结构
 type PageData struct {
-	Items interface{} `json:"items"`
+	Items any `json:"items"`
 	*Pagination
 }
 
@@ -26,5 +26,5 @@ type ErrorResult struct {
 	Code       int
 	Message    string
 	HTTPStatus int
-	Data       interface{}
+	Data       any
 }

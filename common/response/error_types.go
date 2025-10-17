@@ -2,7 +2,6 @@ package response
 
 import (
 	"fmt"
-	"net/http"
 )
 
 // ErrorType 错误类型枚举
@@ -43,7 +42,7 @@ type DomainError struct {
 	Type    ErrorType
 	Message string
 	BaseErr error
-	Context map[string]interface{}
+	Context map[string]any
 }
 
 // Error 实现error接口
@@ -59,403 +58,96 @@ func (e *DomainError) Unwrap() error {
 	return e.BaseErr
 }
 
-func (e *DomainError) WithContext(key string, value interface{}) *DomainError {
+// GetContext 安全地获取上下文信息
+func (e *DomainError) GetContext() map[string]any {
+	if e.Context == nil {
+		return nil
+	}
+	// 返回上下文的副本以防止外部修改
+	contextManager := GetDefaultContextManager()
+	return contextManager.Copy(e.Context)
+}
+
+// GetContextValue 获取指定键的上下文值
+func (e *DomainError) GetContextValue(key string) (any, bool) {
+	if e.Context == nil {
+		return nil, false
+	}
+	value, exists := e.Context[key]
+	return value, exists
+}
+
+// HasContext 检查是否有上下文信息
+func (e *DomainError) HasContext() bool {
+	return len(e.Context) > 0
+}
+
+func (e *DomainError) WithContext(key string, value any) *DomainError {
+	// 优化：如果当前上下文为空且新值为nil，直接返回自身避免不必要的分配
+	if e.Context == nil && value == nil {
+		return e
+	}
+
+	// 使用上下文管理器进行高效的上下文复制
+	contextManager := GetDefaultContextManager()
+	newContext := contextManager.CopyWithNew(e.Context, key, value)
+
+	// 优化：如果新上下文与原上下文相同（都为nil），返回自身
+	if newContext == nil && e.Context == nil {
+		return e
+	}
+
 	// 创建新实例，避免修改原始错误
 	newErr := &DomainError{
 		Type:    e.Type,
 		Message: e.Message,
 		BaseErr: e.BaseErr,
-		Context: make(map[string]interface{}),
+		Context: newContext,
 	}
-
-	// 复制现有上下文
-	if e.Context != nil {
-		for k, v := range e.Context {
-			newErr.Context[k] = v
-		}
-	}
-
-	// 添加新的上下文
-	newErr.Context[key] = value
 
 	return newErr
 }
 
 // WithContextMap 批量添加上下文信息
-func (e *DomainError) WithContextMap(contextMap map[string]interface{}) *DomainError {
+func (e *DomainError) WithContextMap(contextMap map[string]any) *DomainError {
+	// 优化：如果当前上下文和新上下文都为空，直接返回自身
+	if e.Context == nil && len(contextMap) == 0 {
+		return e
+	}
+
+	// 使用上下文管理器进行高效的上下文复制
+	contextManager := GetDefaultContextManager()
+	newContext := contextManager.CopyWithMap(e.Context, contextMap)
+
+	// 优化：如果新上下文与原上下文相同（都为nil），返回自身
+	if newContext == nil && e.Context == nil {
+		return e
+	}
+
+	// 创建新实例，避免修改原始错误
 	newErr := &DomainError{
 		Type:    e.Type,
 		Message: e.Message,
 		BaseErr: e.BaseErr,
-		Context: make(map[string]interface{}),
-	}
-
-	// 复制现有上下文
-	if e.Context != nil {
-		for k, v := range e.Context {
-			newErr.Context[k] = v
-		}
-	}
-
-	// 添加新的上下文
-	for k, v := range contextMap {
-		newErr.Context[k] = v
+		Context: newContext,
 	}
 
 	return newErr
 }
 
-// NewDomainError 创建新的领域错误
-func NewDomainError(errorType ErrorType, message string) *DomainError {
-	return &DomainError{
-		Type:    errorType,
-		Message: message,
-		BaseErr: nil,
-		Context: make(map[string]interface{}),
-	}
-}
+// 注意：NewDomainError 和 NewDomainErrorWithCause 函数已移至 factory.go 文件中
+// 使用 CreateError() 和 CreateErrorWithContext() 函数创建领域错误，提供更好的性能和一致性
 
-// NewDomainErrorWithCause 创建带有原因的领域错误
-func NewDomainErrorWithCause(errorType ErrorType, message string, cause error) *DomainError {
-	return &DomainError{
-		Type:    errorType,
-		Message: message,
-		BaseErr: cause,
-		Context: make(map[string]interface{}),
-	}
-}
-
-// ErrorMapper 错误映射器
-type ErrorMapper struct {
-	mappings map[ErrorType]*ErrorMapping
+// ErrorMapper 错误映射器接口
+type ErrorMapper interface {
+	GetMapping(errorType ErrorType) (*ErrorMapping, bool)
 }
 
 // NewErrorMapper 创建新的错误映射器
-func NewErrorMapper() *ErrorMapper {
-	mapper := &ErrorMapper{
-		mappings: make(map[ErrorType]*ErrorMapping),
-	}
-	mapper.initDefaultMappings()
-	return mapper
+// 现在返回延迟初始化的映射器以提高启动性能
+func NewErrorMapper() ErrorMapper {
+	return NewLazyErrorMapper()
 }
 
-// initDefaultMappings 初始化默认错误映射
-func (m *ErrorMapper) initDefaultMappings() {
-	m.mappings[ErrorTypeNotFound] = &ErrorMapping{
-		BusinessCode:   CodeNotFound,
-		HTTPStatus:     http.StatusNotFound,
-		DefaultMessage: "资源不存在",
-	}
-	m.mappings[ErrorTypeValidationFailed] = &ErrorMapping{
-		BusinessCode:   CodeValidation,
-		HTTPStatus:     http.StatusBadRequest,
-		DefaultMessage: "验证失败",
-	}
-	m.mappings[ErrorTypeAlreadyExists] = &ErrorMapping{
-		BusinessCode:   CodeAlreadyExists,
-		HTTPStatus:     http.StatusConflict,
-		DefaultMessage: "资源已存在",
-	}
-	m.mappings[ErrorTypeUnauthorized] = &ErrorMapping{
-		BusinessCode:   CodeUnauthorized,
-		HTTPStatus:     http.StatusUnauthorized,
-		DefaultMessage: "未授权访问",
-	}
-	m.mappings[ErrorTypeForbidden] = &ErrorMapping{
-		BusinessCode:   CodeForbidden,
-		HTTPStatus:     http.StatusForbidden,
-		DefaultMessage: "禁止访问",
-	}
-	m.mappings[ErrorTypeBusinessRuleViolation] = &ErrorMapping{
-		BusinessCode:   CodeBusinessError,
-		HTTPStatus:     http.StatusBadRequest,
-		DefaultMessage: "业务规则违反",
-	}
-	m.mappings[ErrorTypeConcurrencyConflict] = &ErrorMapping{
-		BusinessCode:   CodeConflict,
-		HTTPStatus:     http.StatusConflict,
-		DefaultMessage: "并发冲突",
-	}
-	m.mappings[ErrorTypeResourceLocked] = &ErrorMapping{
-		BusinessCode:   CodeConflict,
-		HTTPStatus:     http.StatusConflict,
-		DefaultMessage: "资源已锁定",
-	}
-	m.mappings[ErrorTypeInvalidData] = &ErrorMapping{
-		BusinessCode:   CodeValidation,
-		HTTPStatus:     http.StatusBadRequest,
-		DefaultMessage: "无效的数据",
-	}
-	m.mappings[ErrorTypeCommandValidation] = &ErrorMapping{
-		BusinessCode:   CodeValidation,
-		HTTPStatus:     http.StatusBadRequest,
-		DefaultMessage: "命令验证失败",
-	}
-	m.mappings[ErrorTypeCommandExecution] = &ErrorMapping{
-		BusinessCode:   CodeInternalError,
-		HTTPStatus:     http.StatusInternalServerError,
-		DefaultMessage: "命令执行失败",
-	}
-	m.mappings[ErrorTypeQueryExecution] = &ErrorMapping{
-		BusinessCode:   CodeInternalError,
-		HTTPStatus:     http.StatusInternalServerError,
-		DefaultMessage: "查询执行失败",
-	}
-	m.mappings[ErrorTypeInternalServer] = &ErrorMapping{
-		BusinessCode:   CodeInternalError,
-		HTTPStatus:     http.StatusInternalServerError,
-		DefaultMessage: "内部服务器错误",
-	}
-	m.mappings[ErrorTypeInvalidRequest] = &ErrorMapping{
-		BusinessCode:   CodeBadRequest,
-		HTTPStatus:     http.StatusBadRequest,
-		DefaultMessage: "无效的请求",
-	}
-	m.mappings[ErrorTypeDatabaseConnection] = &ErrorMapping{
-		BusinessCode:   CodeInternalError,
-		HTTPStatus:     http.StatusInternalServerError,
-		DefaultMessage: "数据库连接失败",
-	}
-	m.mappings[ErrorTypeRecordNotFound] = &ErrorMapping{
-		BusinessCode:   CodeNotFound,
-		HTTPStatus:     http.StatusNotFound,
-		DefaultMessage: "记录不存在",
-	}
-	m.mappings[ErrorTypeDuplicateKey] = &ErrorMapping{
-		BusinessCode:   CodeAlreadyExists,
-		HTTPStatus:     http.StatusConflict,
-		DefaultMessage: "重复键值",
-	}
-	m.mappings[ErrorTypeExternalServiceUnavailable] = &ErrorMapping{
-		BusinessCode:   CodeThirdParty,
-		HTTPStatus:     http.StatusBadGateway,
-		DefaultMessage: "外部服务不可用",
-	}
-	m.mappings[ErrorTypeTimeout] = &ErrorMapping{
-		BusinessCode:   CodeTimeout,
-		HTTPStatus:     http.StatusRequestTimeout,
-		DefaultMessage: "请求超时",
-	}
-	m.mappings[ErrorTypeNetworkError] = &ErrorMapping{
-		BusinessCode:   CodeThirdParty,
-		HTTPStatus:     http.StatusBadGateway,
-		DefaultMessage: "网络错误",
-	}
-}
-
-// GetMapping 根据错误类型获取错误映射
-func (m *ErrorMapper) GetMapping(errorType ErrorType) (*ErrorMapping, bool) {
-	mapping, exists := m.mappings[errorType]
-	return mapping, exists
-}
-
-// ErrorHandler 统一错误处理器
-type ErrorHandler struct {
-	mapper *ErrorMapper
-}
-
-// NewErrorHandler 创建新的错误处理器
-func NewErrorHandler() *ErrorHandler {
-	return &ErrorHandler{
-		mapper: NewErrorMapper(),
-	}
-}
-
-// Handle 处理错误并返回错误结果
-func (h *ErrorHandler) Handle(err error) *ErrorResult {
-	if err == nil {
-		return &ErrorResult{
-			Code:       CodeSuccess,
-			Message:    "操作成功",
-			HTTPStatus: http.StatusOK,
-		}
-	}
-
-	// 检查是否为DomainError
-	if domainErr, ok := err.(*DomainError); ok {
-		return h.handleDomainError(domainErr)
-	}
-
-	// 默认处理为内部服务器错误
-	return &ErrorResult{
-		Code:       CodeInternalError,
-		Message:    err.Error(),
-		HTTPStatus: http.StatusInternalServerError,
-	}
-}
-
-// HandleWithCode 使用指定业务码处理错误
-func (h *ErrorHandler) HandleWithCode(code int, message string) *ErrorResult {
-	if codeInfo, exists := GetCodeInfo(code); exists {
-		finalMessage := message
-		if finalMessage == "" {
-			finalMessage = codeInfo.Message
-		}
-		return &ErrorResult{
-			Code:       code,
-			Message:    finalMessage,
-			HTTPStatus: codeInfo.HTTPStatus,
-		}
-	}
-
-	finalMessage := message
-	if finalMessage == "" {
-		finalMessage = "未知错误"
-	}
-	return &ErrorResult{
-		Code:       code,
-		Message:    finalMessage,
-		HTTPStatus: http.StatusInternalServerError,
-	}
-}
-
-// HandleWithData 处理带有额外数据的错误
-func (h *ErrorHandler) HandleWithData(err error, data interface{}) *ErrorResult {
-	result := h.Handle(err)
-	result.Data = data
-	return result
-}
-
-// handleDomainError 处理领域错误
-func (h *ErrorHandler) handleDomainError(err *DomainError) *ErrorResult {
-	if mapping, exists := h.mapper.GetMapping(err.Type); exists {
-		message := err.Message
-		if message == "" {
-			message = mapping.DefaultMessage
-		}
-		return &ErrorResult{
-			Code:       mapping.BusinessCode,
-			Message:    message,
-			HTTPStatus: mapping.HTTPStatus,
-		}
-	}
-
-	message := err.Message
-	if message == "" {
-		message = "业务处理失败"
-	}
-	return &ErrorResult{
-		Code:       CodeBusinessError,
-		Message:    message,
-		HTTPStatus: http.StatusBadRequest,
-	}
-}
-
-// 便捷函数：创建特定类型的领域错误
-
-// NewNotFoundError 创建资源不存在错误
-func NewNotFoundError(message string, cause ...error) *DomainError {
-	var rootCause error
-	if len(cause) > 0 {
-		rootCause = cause[0]
-	}
-	return NewDomainErrorWithCause(ErrorTypeNotFound, message, rootCause)
-}
-
-// NewValidationError 创建验证失败错误
-func NewValidationError(message string, cause ...error) *DomainError {
-	var rootCause error
-	if len(cause) > 0 {
-		rootCause = cause[0]
-	}
-	return NewDomainErrorWithCause(ErrorTypeValidationFailed, message, rootCause)
-}
-
-// NewAlreadyExistsError 创建资源已存在错误
-func NewAlreadyExistsError(message string, cause ...error) *DomainError {
-	var rootCause error
-	if len(cause) > 0 {
-		rootCause = cause[0]
-	}
-	return NewDomainErrorWithCause(ErrorTypeAlreadyExists, message, rootCause)
-}
-
-// NewUnauthorizedError 创建未授权错误
-func NewUnauthorizedError(message string, cause ...error) *DomainError {
-	var rootCause error
-	if len(cause) > 0 {
-		rootCause = cause[0]
-	}
-	return NewDomainErrorWithCause(ErrorTypeUnauthorized, message, rootCause)
-}
-
-// NewForbiddenError 创建禁止访问错误
-func NewForbiddenError(message string, cause ...error) *DomainError {
-	var rootCause error
-	if len(cause) > 0 {
-		rootCause = cause[0]
-	}
-	return NewDomainErrorWithCause(ErrorTypeForbidden, message, rootCause)
-}
-
-// NewBusinessRuleViolationError 创建业务规则违反错误
-func NewBusinessRuleViolationError(message string, cause ...error) *DomainError {
-	var rootCause error
-	if len(cause) > 0 {
-		rootCause = cause[0]
-	}
-	return NewDomainErrorWithCause(ErrorTypeBusinessRuleViolation, message, rootCause)
-}
-
-// NewInvalidDataError 创建无效数据错误
-func NewInvalidDataError(message string, cause ...error) *DomainError {
-	var rootCause error
-	if len(cause) > 0 {
-		rootCause = cause[0]
-	}
-	return NewDomainErrorWithCause(ErrorTypeInvalidData, message, rootCause)
-}
-
-// NewInternalServerError 创建内部服务器错误
-func NewInternalServerError(message string, cause ...error) *DomainError {
-	var rootCause error
-	if len(cause) > 0 {
-		rootCause = cause[0]
-	}
-	return NewDomainErrorWithCause(ErrorTypeInternalServer, message, rootCause)
-}
-
-// NewDatabaseConnectionError 创建数据库连接错误
-func NewDatabaseConnectionError(message string, cause ...error) *DomainError {
-	var rootCause error
-	if len(cause) > 0 {
-		rootCause = cause[0]
-	}
-	return NewDomainErrorWithCause(ErrorTypeDatabaseConnection, message, rootCause)
-}
-
-// NewTimeoutError 创建超时错误
-func NewTimeoutError(message string, cause ...error) *DomainError {
-	var rootCause error
-	if len(cause) > 0 {
-		rootCause = cause[0]
-	}
-	return NewDomainErrorWithCause(ErrorTypeTimeout, message, rootCause)
-}
-
-// NewNetworkError 创建网络错误
-func NewNetworkError(message string, cause ...error) *DomainError {
-	var rootCause error
-	if len(cause) > 0 {
-		rootCause = cause[0]
-	}
-	return NewDomainErrorWithCause(ErrorTypeNetworkError, message, rootCause)
-}
-
-// NewRecordNotFoundError 创建记录不存在错误
-func NewRecordNotFoundError(message string, cause ...error) *DomainError {
-	var rootCause error
-	if len(cause) > 0 {
-		rootCause = cause[0]
-	}
-	return NewDomainErrorWithCause(ErrorTypeRecordNotFound, message, rootCause)
-}
-
-// NewDuplicateKeyError 创建重复键值错误
-func NewDuplicateKeyError(message string, cause ...error) *DomainError {
-	var rootCause error
-	if len(cause) > 0 {
-		rootCause = cause[0]
-	}
-	return NewDomainErrorWithCause(ErrorTypeDuplicateKey, message, rootCause)
-}
+// 注意：ErrorHandler 已移至 handler.go 文件中，现在使用 UnifiedErrorHandler 统一架构
+// 便捷的错误创建函数已移至 factory.go 文件中，使用统一的错误工厂实现
