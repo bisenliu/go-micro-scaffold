@@ -50,7 +50,7 @@ func (h *AuthHandler) LoginByPassword(c *gin.Context) {
 	// 生成token
 	token, err := h.jwtService.Generate(userID, userName)
 	if err != nil {
-		response.HandleWith(c, nil, err, response.WithCode(response.CodeInternalError), response.WithMessage("Failed to generate token"))
+		HandleWithLogging(c, nil, response.NewInternalServerError("Failed to generate token", err))
 		return
 	}
 
@@ -73,13 +73,13 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 
 	claimsValue, exists := c.Get("claims")
 	if !exists {
-		HandleErrorWithCode(c, response.CodeUnauthorized, "无法获取用户信息")
+		HandleWithLogging(c, nil, response.NewUnauthorizedError("无法获取用户信息"))
 		return
 	}
 
 	claims, ok := claimsValue.(*jwt.CustomClaims)
 	if !ok {
-		HandleErrorWithCode(c, response.CodeInternalError, "用户信息类型断言失败")
+		HandleWithLogging(c, nil, response.NewInternalServerError("用户信息类型断言失败"))
 		return
 	}
 

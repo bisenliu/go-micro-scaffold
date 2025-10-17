@@ -49,12 +49,8 @@ func NewResponseEngineWithConfig(config *ResponseEngineConfig) *ResponseEngine {
 	errorFactory := NewErrorFactoryWithContextManager(contextManager)
 
 	// 创建错误映射器（支持延迟初始化）
-	var errorMapper ErrorMapper
-	if config.EnableLazyMapping {
-		errorMapper = NewLazyErrorMapper()
-	} else {
-		errorMapper = NewLazyErrorMapper() // 默认使用延迟映射器
-	}
+	// 默认使用延迟映射器以提高启动性能
+	var errorMapper ErrorMapper = NewLazyErrorMapper()
 
 	// 创建统一错误处理器
 	errorHandler := NewUnifiedErrorHandlerWithDependencies(errorMapper, errorFactory)
