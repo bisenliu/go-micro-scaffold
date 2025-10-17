@@ -340,3 +340,122 @@ func (h *ErrorHandler) handleDomainError(err *DomainError) *ErrorResult {
 		HTTPStatus: http.StatusBadRequest,
 	}
 }
+
+// 便捷函数：创建特定类型的领域错误
+
+// NewNotFoundError 创建资源不存在错误
+func NewNotFoundError(message string, cause ...error) *DomainError {
+	var rootCause error
+	if len(cause) > 0 {
+		rootCause = cause[0]
+	}
+	return NewDomainErrorWithCause(ErrorTypeNotFound, message, rootCause)
+}
+
+// NewValidationError 创建验证失败错误
+func NewValidationError(message string, cause ...error) *DomainError {
+	var rootCause error
+	if len(cause) > 0 {
+		rootCause = cause[0]
+	}
+	return NewDomainErrorWithCause(ErrorTypeValidationFailed, message, rootCause)
+}
+
+// NewAlreadyExistsError 创建资源已存在错误
+func NewAlreadyExistsError(message string, cause ...error) *DomainError {
+	var rootCause error
+	if len(cause) > 0 {
+		rootCause = cause[0]
+	}
+	return NewDomainErrorWithCause(ErrorTypeAlreadyExists, message, rootCause)
+}
+
+// NewUnauthorizedError 创建未授权错误
+func NewUnauthorizedError(message string, cause ...error) *DomainError {
+	var rootCause error
+	if len(cause) > 0 {
+		rootCause = cause[0]
+	}
+	return NewDomainErrorWithCause(ErrorTypeUnauthorized, message, rootCause)
+}
+
+// NewForbiddenError 创建禁止访问错误
+func NewForbiddenError(message string, cause ...error) *DomainError {
+	var rootCause error
+	if len(cause) > 0 {
+		rootCause = cause[0]
+	}
+	return NewDomainErrorWithCause(ErrorTypeForbidden, message, rootCause)
+}
+
+// NewBusinessRuleViolationError 创建业务规则违反错误
+func NewBusinessRuleViolationError(message string, cause ...error) *DomainError {
+	var rootCause error
+	if len(cause) > 0 {
+		rootCause = cause[0]
+	}
+	return NewDomainErrorWithCause(ErrorTypeBusinessRuleViolation, message, rootCause)
+}
+
+// NewInvalidDataError 创建无效数据错误
+func NewInvalidDataError(message string, cause ...error) *DomainError {
+	var rootCause error
+	if len(cause) > 0 {
+		rootCause = cause[0]
+	}
+	return NewDomainErrorWithCause(ErrorTypeInvalidData, message, rootCause)
+}
+
+// NewInternalServerError 创建内部服务器错误
+func NewInternalServerError(message string, cause ...error) *DomainError {
+	var rootCause error
+	if len(cause) > 0 {
+		rootCause = cause[0]
+	}
+	return NewDomainErrorWithCause(ErrorTypeInternalServer, message, rootCause)
+}
+
+// NewDatabaseConnectionError 创建数据库连接错误
+func NewDatabaseConnectionError(message string, cause ...error) *DomainError {
+	var rootCause error
+	if len(cause) > 0 {
+		rootCause = cause[0]
+	}
+	return NewDomainErrorWithCause(ErrorTypeDatabaseConnection, message, rootCause)
+}
+
+// NewTimeoutError 创建超时错误
+func NewTimeoutError(message string, cause ...error) *DomainError {
+	var rootCause error
+	if len(cause) > 0 {
+		rootCause = cause[0]
+	}
+	return NewDomainErrorWithCause(ErrorTypeTimeout, message, rootCause)
+}
+
+// NewNetworkError 创建网络错误
+func NewNetworkError(message string, cause ...error) *DomainError {
+	var rootCause error
+	if len(cause) > 0 {
+		rootCause = cause[0]
+	}
+	return NewDomainErrorWithCause(ErrorTypeNetworkError, message, rootCause)
+}
+
+// NewRecordNotFoundError 创建记录不存在错误
+func NewRecordNotFoundError(message string, cause ...error) *DomainError {
+	var rootCause error
+	if len(cause) > 0 {
+		rootCause = cause[0]
+	}
+	return NewDomainErrorWithCause(ErrorTypeRecordNotFound, message, rootCause)
+}
+
+// NewDuplicateKeyError 创建重复键值错误
+func NewDuplicateKeyError(message string, cause ...error) *DomainError {
+	var rootCause error
+	if len(cause) > 0 {
+		rootCause = cause[0]
+	}
+	return NewDomainErrorWithCause(ErrorTypeDuplicateKey, message, rootCause)
+}

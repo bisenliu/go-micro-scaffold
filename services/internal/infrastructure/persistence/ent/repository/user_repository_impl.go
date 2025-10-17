@@ -1,16 +1,14 @@
 package repository
 
 import (
+	"common/response"
 	"context"
-
-	"github.com/google/uuid"
-
-	domainerrors "services/internal/domain/shared/errors"
 	"services/internal/domain/user/entity"
-	usererrors "services/internal/domain/user/errors"
 	"services/internal/domain/user/repository"
 	"services/internal/infrastructure/persistence/ent/gen"
+	domainuser "services/internal/domain/user/errors"
 	entuser "services/internal/infrastructure/persistence/ent/gen/user"
+	"github.com/google/uuid"
 )
 
 // UserRepositoryImpl Ent用户仓储实现
@@ -33,7 +31,7 @@ func (r *UserRepositoryImpl) Create(ctx context.Context, userEntity *entity.User
 		return err // 直接返回错误，因为ExistsByPhoneNumber已经包装过
 	}
 	if exists {
-		return domainerrors.NewAlreadyExistsError(usererrors.MsgPhoneAlreadyExists)
+		return response.NewAlreadyExistsError(domainuser.MsgPhoneAlreadyExists)
 	}
 
 	user, err := r.client.User.Create().
@@ -46,9 +44,9 @@ func (r *UserRepositoryImpl) Create(ctx context.Context, userEntity *entity.User
 
 	if err != nil {
 		if gen.IsConstraintError(err) {
-			return domainerrors.NewAlreadyExistsError(usererrors.MsgUserAlreadyExists, err)
+			return response.NewAlreadyExistsError(domainuser.MsgUserAlreadyExists, err)
 		}
-		return domainerrors.NewInternalServerError(usererrors.MsgCreateUserFailed, err)
+		return response.NewInternalServerError(domainuser.MsgCreateUserFailed, err)
 	}
 
 	// 将数据库生成的ID/时间戳设置给领域实体，并返回给调用方回领域实体
@@ -64,7 +62,7 @@ func (r *UserRepositoryImpl) Update(ctx context.Context, userEntity *entity.User
 	// 将字符串类型的ID转换为uuid.UUID类型
 	userID, err := uuid.Parse(userEntity.ID())
 	if err != nil {
-		return domainerrors.NewInvalidDataError(usererrors.MsgInvalidUserID, err)
+		return response.NewInvalidDataError(domainuser.MsgInvalidUserID, err)
 	}
 
 	// 更新用户时，updated_at 字段会自动更新为当前时间
@@ -77,12 +75,12 @@ func (r *UserRepositoryImpl) Update(ctx context.Context, userEntity *entity.User
 
 	if err != nil {
 		if gen.IsNotFound(err) {
-			return domainerrors.NewNotFoundError(usererrors.MsgUserNotFound, err)
+			return response.NewNotFoundError(domainuser.MsgUserNotFound, err)
 		}
 		if gen.IsConstraintError(err) {
-			return domainerrors.NewAlreadyExistsError(usererrors.MsgPhoneAlreadyExists, err)
+			return response.NewAlreadyExistsError(domainuser.MsgPhoneAlreadyExists, err)
 		}
-		return domainerrors.NewInternalServerError(usererrors.MsgUpdateUserFailed, err)
+		return response.NewInternalServerError(domainuser.MsgUpdateUserFailed, err)
 	}
 	return nil
 }
@@ -95,13 +93,13 @@ func (r *UserRepositoryImpl) List(ctx context.Context, offset, limit int) ([]*en
 		Order(gen.Desc(entuser.FieldCreatedAt)).
 		All(ctx)
 	if err != nil {
-		return nil, 0, domainerrors.NewInternalServerError(usererrors.MsgQueryUserListFailed, err)
+		return nil, 0, response.NewInternalServerError(domainuser.MsgQueryUserListFailed, err)
 	}
 
 	// 查询总数
 	total, err := r.client.User.Query().Count(ctx)
 	if err != nil {
-		return nil, 0, domainerrors.NewInternalServerError(usererrors.MsgQueryUserCountFailed, err)
+		return nil, 0, response.NewInternalServerError(domainuser.MsgQueryUserCountFailed, err)
 	}
 
 	// 转换为领域实体
@@ -122,7 +120,7 @@ func (r *UserRepositoryImpl) ListWithFilter(ctx context.Context, filter *reposit
 	// 先查询总数（使用 Clone 避免修改原始查询）
 	total, err := baseQuery.Clone().Count(ctx)
 	if err != nil {
-		return nil, 0, domainerrors.NewInternalServerError(usererrors.MsgQueryUserCountFailed, err)
+		return nil, 0, response.NewInternalServerError(domainuser.MsgQueryUserCountFailed, err)
 	}
 
 	// 再查询分页数据（复用相同的查询条件）
@@ -132,7 +130,7 @@ func (r *UserRepositoryImpl) ListWithFilter(ctx context.Context, filter *reposit
 		Order(gen.Desc(entuser.FieldCreatedAt)).
 		All(ctx)
 	if err != nil {
-		return nil, 0, domainerrors.NewInternalServerError(usererrors.MsgQueryUserListFailed, err)
+		return nil, 0, response.NewInternalServerError(domainuser.MsgQueryUserListFailed, err)
 	}
 
 	// 转换为领域实体
@@ -151,7 +149,7 @@ func (r *UserRepositoryImpl) ExistsByPhoneNumber(ctx context.Context, phoneNumbe
 		Where(entuser.PhoneNumber(phoneNumber)).
 		Exist(ctx)
 	if err != nil {
-		return false, domainerrors.NewInternalServerError(usererrors.MsgCheckPhoneExistsFailed, err)
+		return false, response.NewInternalServerError(domainuser.MsgCheckPhoneExistsFailed, err)
 	}
 
 	return exists, nil
@@ -207,15 +205,15 @@ func (r *UserRepositoryImpl) entUserToEntity(entUser *gen.User) *entity.User {
 func (r *UserRepositoryImpl) GetByID(ctx context.Context, id string) (*entity.User, error) {
 	userID, err := uuid.Parse(id)
 	if err != nil {
-		return nil, domainerrors.NewInvalidDataError(usererrors.MsgInvalidUserID, err)
+		return nil, response.NewInvalidDataError(domainuser.MsgInvalidUserID, err)
 	}
 
 	entUser, err := r.client.User.Get(ctx, userID)
 	if err != nil {
 		if gen.IsNotFound(err) {
-			return nil, domainerrors.NewNotFoundError(usererrors.MsgUserNotFound, err)
+			return nil, response.NewNotFoundError(domainuser.MsgUserNotFound, err)
 		}
-		return nil, domainerrors.NewInternalServerError(usererrors.MsgQueryUserFailed, err)
+		return nil, response.NewInternalServerError(domainuser.MsgQueryUserFailed, err)
 	}
 
 	user := r.entUserToEntity(entUser)
@@ -230,9 +228,9 @@ func (r *UserRepositoryImpl) FindByPhoneNumber(ctx context.Context, phoneNumber 
 		Only(ctx)
 	if err != nil {
 		if gen.IsNotFound(err) {
-			return nil, domainerrors.NewNotFoundError(usererrors.MsgUserNotFound, err)
+			return nil, response.NewNotFoundError(domainuser.MsgUserNotFound, err)
 		}
-		return nil, domainerrors.NewInternalServerError(usererrors.MsgFindUserByPhoneFailed, err)
+		return nil, response.NewInternalServerError(domainuser.MsgFindUserByPhoneFailed, err)
 	}
 	return r.entUserToEntity(entUser), nil
 }

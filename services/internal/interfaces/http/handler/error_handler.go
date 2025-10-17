@@ -1,19 +1,17 @@
 package handler
 
 import (
+	"common/logger"
+	"common/response"
 	"fmt"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
-
-	"common/logger"
-	"common/response"
-	domainerrors "services/internal/domain/shared/errors"
 )
 
 // HandleError 处理错误响应
 func HandleError(c *gin.Context, err error) {
-	if domainErr, ok := err.(*domainerrors.DomainError); ok {
+	if domainErr, ok := err.(*response.DomainError); ok {
 		// 构建日志字段
 		logFields := []zap.Field{
 			zap.String("error_type", fmt.Sprintf("%d", domainErr.Type)),

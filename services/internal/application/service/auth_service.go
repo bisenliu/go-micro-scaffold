@@ -1,13 +1,12 @@
 package service
 
 import (
+	"common/response"
 	"context"
+	"services/internal/domain/user/repository"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
-
-	domainerrors "services/internal/domain/shared/errors"
-	"services/internal/domain/user/repository"
 )
 
 // AuthServiceInterface 认证服务接口
@@ -40,7 +39,7 @@ func (s *AuthService) LoginByPassword(ctx context.Context, phoneNumber, password
 
 	// 2. 验证密码
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password()), []byte(password)); err != nil {
-		return "", "", domainerrors.NewUnauthorizedError("手机号或密码错误")
+		return "", "", response.NewUnauthorizedError("手机号或密码错误")
 	}
 
 	// 3. 登录成功，返回用户ID和用户名
