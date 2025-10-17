@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/spf13/viper"
@@ -23,9 +24,10 @@ type Config struct {
 	Validation ValidationConfig `mapstructure:"validation"`
 
 	// 4. 外部服务依赖配置
-	DatabaseCommon DatabaseConfig            `mapstructure:"database_common"`
-	Databases      map[string]DatabaseConfig `mapstructure:"databases"`
-	Redis          RedisConfig               `mapstructure:"redis"`
+	DatabaseCommon  DatabaseConfig            `mapstructure:"database_common"`
+	Databases       map[string]DatabaseConfig `mapstructure:"databases"`
+	DatabaseAliases map[string]string         `mapstructure:"database_aliases"`
+	Redis           RedisConfig               `mapstructure:"redis"`
 
 	// 5. 日志配置
 	Zap ZapConfig `mapstructure:"zap"`
@@ -136,7 +138,28 @@ func NewConfig() (*Config, error) {
 		return nil, err
 	}
 
+	// 验证数据库别名配置
+	if err := validateDatabaseAliases(&config); err != nil {
+		return nil, err
+	}
+
 	return &config, nil
+}
+
+// validateDatabaseAliases 验证数据库别名配置的有效性
+func validateDatabaseAliases(config *Config) error {
+	if config.DatabaseAliases == nil {
+		return nil // 别名配置是可选的
+	}
+
+	// 检查每个别名是否指向存在的数据库
+	for alias, dbName := range config.DatabaseAliases {
+		if _, exists := config.Databases[dbName]; !exists {
+			return fmt.Errorf("database alias '%s' points to non-existent database '%s'", alias, dbName)
+		}
+	}
+
+	return nil
 }
 
 // Module FX模块

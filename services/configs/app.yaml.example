@@ -111,6 +111,35 @@ databases:
     # 数据库名称
     database: go-micro-scaffold
 
+# 数据库别名配置 (可选)
+# 提供业务语义化的数据库访问方式
+database_aliases:
+  # 默认数据库
+  default: "db1"
+  
+  # 组件专用别名 - 支持不同组件使用不同数据库
+  ent: "db1"            # Ent ORM使用的数据库
+  casbin: "db1"         # 权限管理使用的数据库
+  health_check: "db1"   # 健康检查使用的数据库
+  
+  # 业务别名 - 可以使用任意有意义的名称
+  user: "db1"           # 用户相关数据
+  order: "db1"          # 订单数据
+  analytics: "db2"      # 分析数据
+  
+  # 中文别名
+  用户库: "db1"
+  分析库: "db2"
+  
+  # 功能别名 - 支持读写分离等高级配置
+  primary: "db1"        # 主库
+  secondary: "db2"      # 从库
+  read_only: "db2"      # 只读库
+  
+  # 团队自定义别名
+  backend_main: "db1"
+  data_warehouse: "db2"
+
 # Redis配置
 redis:
   # Redis主机地址

@@ -9,16 +9,16 @@ import (
 	"go.uber.org/zap"
 
 	"common/config"
-	"common/databases/mysql"
 	"common/databases/redis"
 	"common/logger"
+	"services/internal/infrastructure/persistence"
 )
 
 // HealthHandler 健康检查处理器
 type HealthHandler struct {
-	mysqlManager mysql.ManagerInterface
-	redisClient  *redis.RedisClient
-	config       *config.Config
+	dbProvider  *persistence.DatabaseProvider
+	redisClient *redis.RedisClient
+	config      *config.Config
 }
 
 // Ensure HealthHandler implements Handler interface
@@ -26,14 +26,14 @@ var _ Handler = (*HealthHandler)(nil)
 
 // NewHealthHandler 创建健康检查处理器
 func NewHealthHandler(
-	mysqlManager mysql.ManagerInterface,
+	dbProvider *persistence.DatabaseProvider,
 	redisClient *redis.RedisClient,
 	config *config.Config,
 ) *HealthHandler {
 	return &HealthHandler{
-		mysqlManager: mysqlManager,
-		redisClient:  redisClient,
-		config:       config,
+		dbProvider:  dbProvider,
+		redisClient: redisClient,
+		config:      config,
 	}
 }
 
@@ -84,7 +84,7 @@ func (h *HealthHandler) Health(c *gin.Context) {
 
 // checkDatabase 检查数据库连接
 func (h *HealthHandler) checkDatabase(ctx context.Context) error {
-	client, err := h.mysqlManager.Primary()
+	client, err := h.dbProvider.GetHealthCheckClient()
 	if err != nil {
 		return err
 	}

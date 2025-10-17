@@ -8,26 +8,16 @@ import (
 	entsql "entgo.io/ent/dialect/sql"
 	"go.uber.org/zap"
 
+	"common/config"
 	"common/logger"
 )
-
-// Client 数据库客户端接口
-type ClientInterface interface {
-	Name() string
-	Driver() *entsql.Driver
-	DB() *sql.DB
-	Config() *DatabaseConfigWrapper
-	Ping(ctx context.Context) error
-	Close() error
-	WithTx(ctx context.Context, fn func(*sql.Tx) error) error
-}
 
 // Client 数据库客户端实现
 type Client struct {
 	name   string
 	driver *entsql.Driver
 	db     *sql.DB
-	config *DatabaseConfigWrapper
+	config config.DatabaseConfig
 	logger *zap.Logger
 }
 
@@ -47,7 +37,7 @@ func (c *Client) DB() *sql.DB {
 }
 
 // Config 获取配置信息
-func (c *Client) Config() *DatabaseConfigWrapper {
+func (c *Client) Config() config.DatabaseConfig {
 	return c.config
 }
 
@@ -104,4 +94,14 @@ func (c *Client) WithTx(ctx context.Context, fn func(*sql.Tx) error) error {
 
 	err = fn(tx)
 	return err
+}
+
+// configureConnectionPool 配置数据库连接池
+func (c *Client) configureConnectionPool() {
+	c.db.SetMaxOpenConns(c.config.MaxOpenConns)
+	c.db.SetMaxIdleConns(c.config.MaxIdleConns)
+	c.db.SetConnMaxLifetime(c.config.ConnMaxLifetime)
+	if c.config.ConnMaxIdleTime > 0 {
+		c.db.SetConnMaxIdleTime(c.config.ConnMaxIdleTime)
+	}
 }
