@@ -11,10 +11,6 @@ import (
 	"services/internal/domain/user/validator"
 )
 
-var (
-	ErrPhoneAlreadyExists = userErrors.ErrPhoneAlreadyExists
-)
-
 // UserDomainService 用户领域服务
 type UserDomainService struct {
 	userRepo      repository.UserRepository

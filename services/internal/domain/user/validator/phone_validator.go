@@ -60,7 +60,7 @@ func (v *phoneValidator) CheckUniqueness(ctx context.Context, phoneNumber string
 	}
 
 	if exists {
-		return userErrors.ErrPhoneAlreadyExists
+		return userErrors.ErrPhoneNotUnique
 	}
 
 	return nil
