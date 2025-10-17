@@ -1,25 +1,43 @@
 package handler
 
 import (
-	"errors"
+	"fmt"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 
+	"common/logger"
 	"common/response"
 	domainerrors "services/internal/domain/shared/errors"
 )
 
 // HandleError 处理错误响应
 func HandleError(c *gin.Context, err error) {
-	var domainErr *domainerrors.DomainError
+	if domainErr, ok := err.(*domainerrors.DomainError); ok {
+		// 构建日志字段
+		logFields := []zap.Field{
+			zap.String("error_type", fmt.Sprintf("%d", domainErr.Type)),
+			zap.String("message", domainErr.Message),
+		}
 
-	// 检查是否为领域错误
-	if errors.As(err, &domainErr) {
+		// 添加上下文字段
+		if domainErr.Context != nil {
+			for key, value := range domainErr.Context {
+				logFields = append(logFields, zap.Any(key, value))
+			}
+		}
+
+		// 添加底层错误
+		if domainErr.BaseErr != nil {
+			logFields = append(logFields, zap.String("underlying_error", domainErr.BaseErr.Error()))
+		}
+
+		logger.Error(c.Request.Context(), "request processing failed", logFields...)
+
 		response.Fail(c, domainErr)
 		return
 	}
 
-	// 非领域错误，作为内部服务器错误处理
 	response.FailWithCode(c, response.CodeInternalError, "服务器发生未知错误")
 }
 

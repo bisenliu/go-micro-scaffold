@@ -117,3 +117,21 @@ func NewNetworkError(message string, cause ...error) *DomainError {
 	}
 	return NewDomainErrorWithCause(response.ErrorTypeNetworkError, message, rootCause)
 }
+
+// NewRecordNotFoundError 创建记录不存在错误
+func NewRecordNotFoundError(message string, cause ...error) *DomainError {
+	var rootCause error
+	if len(cause) > 0 {
+		rootCause = cause[0]
+	}
+	return NewDomainErrorWithCause(response.ErrorTypeRecordNotFound, message, rootCause)
+}
+
+// NewDuplicateKeyError 创建重复键值错误
+func NewDuplicateKeyError(message string, cause ...error) *DomainError {
+	var rootCause error
+	if len(cause) > 0 {
+		rootCause = cause[0]
+	}
+	return NewDomainErrorWithCause(response.ErrorTypeDuplicateKey, message, rootCause)
+}

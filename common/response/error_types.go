@@ -43,6 +43,7 @@ type DomainError struct {
 	Type    ErrorType
 	Message string
 	BaseErr error
+	Context map[string]interface{}
 }
 
 // Error 实现error接口
@@ -58,12 +59,59 @@ func (e *DomainError) Unwrap() error {
 	return e.BaseErr
 }
 
+func (e *DomainError) WithContext(key string, value interface{}) *DomainError {
+	// 创建新实例，避免修改原始错误
+	newErr := &DomainError{
+		Type:    e.Type,
+		Message: e.Message,
+		BaseErr: e.BaseErr,
+		Context: make(map[string]interface{}),
+	}
+
+	// 复制现有上下文
+	if e.Context != nil {
+		for k, v := range e.Context {
+			newErr.Context[k] = v
+		}
+	}
+
+	// 添加新的上下文
+	newErr.Context[key] = value
+
+	return newErr
+}
+
+// WithContextMap 批量添加上下文信息
+func (e *DomainError) WithContextMap(contextMap map[string]interface{}) *DomainError {
+	newErr := &DomainError{
+		Type:    e.Type,
+		Message: e.Message,
+		BaseErr: e.BaseErr,
+		Context: make(map[string]interface{}),
+	}
+
+	// 复制现有上下文
+	if e.Context != nil {
+		for k, v := range e.Context {
+			newErr.Context[k] = v
+		}
+	}
+
+	// 添加新的上下文
+	for k, v := range contextMap {
+		newErr.Context[k] = v
+	}
+
+	return newErr
+}
+
 // NewDomainError 创建新的领域错误
 func NewDomainError(errorType ErrorType, message string) *DomainError {
 	return &DomainError{
 		Type:    errorType,
 		Message: message,
 		BaseErr: nil,
+		Context: make(map[string]interface{}),
 	}
 }
 
@@ -73,6 +121,7 @@ func NewDomainErrorWithCause(errorType ErrorType, message string, cause error) *
 		Type:    errorType,
 		Message: message,
 		BaseErr: cause,
+		Context: make(map[string]interface{}),
 	}
 }
 

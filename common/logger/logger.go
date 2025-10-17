@@ -124,7 +124,23 @@ func NewLogger(cfg *config.Config) (*zap.Logger, error) {
 		),
 	)
 
-	logger := zap.New(core, zap.AddCaller(), zap.AddStacktrace(zapcore.ErrorLevel))
+	// 根据环境和配置决定是否添加堆栈跟踪
+	var logger *zap.Logger
+
+	// 判断是否为开发环境
+	isDevelopment := cfg.System.Env == "development" || cfg.System.Env == "dev" || cfg.System.Env == "local"
+
+	if isDevelopment {
+		// 开发环境：添加堆栈跟踪，便于调试
+		logger = zap.New(core,
+			zap.AddCaller(),
+			zap.AddStacktrace(zapcore.ErrorLevel),
+			zap.Development(), // 开发模式，更友好的错误格式
+		)
+	} else {
+		// 生产环境：不添加堆栈跟踪，减少日志大小和性能影响
+		logger = zap.New(core, zap.AddCaller())
+	}
 
 	return logger, nil
 }
