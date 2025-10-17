@@ -43,14 +43,14 @@ func (h *AuthHandler) LoginByPassword(c *gin.Context) {
 	userID, userName, err := h.authService.LoginByPassword(ctx, req.PhoneNumber, req.Password)
 	if err != nil {
 		logger.Error(ctx, "Login failed", zap.Error(err))
-		HandleError(c, err)
+		HandleWithLogging(c, nil, err)
 		return
 	}
 
 	// 生成token
 	token, err := h.jwtService.Generate(userID, userName)
 	if err != nil {
-		HandleErrorWithCode(c, response.CodeInternalError, "Failed to generate token")
+		response.HandleWith(c, nil, err, response.WithCode(response.CodeInternalError), response.WithMessage("Failed to generate token"))
 		return
 	}
 
@@ -83,11 +83,11 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 		return
 	}
 
-	if err := h.authService.Logout(ctx, claims.ID, claims.ExpiresAt.Time); err != nil {
+	err := h.authService.Logout(ctx, claims.ID, claims.ExpiresAt.Time)
+	if err != nil {
 		logger.Error(ctx, "Logout failed", zap.Error(err))
-		HandleError(c, err)
-		return
 	}
 
-	response.OK(c, "登出成功")
+	// 使用带日志功能的统一API，自动判断成功或错误并记录DomainError上下文
+	HandleWithLogging(c, "登出成功", err)
 }

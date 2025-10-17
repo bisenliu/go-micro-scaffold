@@ -6,7 +6,6 @@ import (
 
 	"common/logger"
 	"common/pkg/validation"
-	"common/response"
 	command "services/internal/application/command/user"
 	"services/internal/application/commandhandler"
 	"services/internal/application/query/user"
@@ -58,13 +57,12 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	user, err := h.commandHandler.HandleCreateUser(ctx, command)
 	if err != nil {
 		logger.Error(ctx, "Failed to create user", zap.Error(err))
-		HandleError(c, err)
-		return
+	} else {
+		logger.Info(ctx, "User created successfully", zap.String("open_id", req.OpenID))
 	}
 
-	logger.Info(ctx, "User created successfully", zap.String("open_id", req.OpenID))
-
-	response.OK(c, responsedto.ToUserInfoResponse(user))
+	// 使用带日志功能的统一API，自动判断成功或错误并记录DomainError上下文
+	HandleWithLogging(c, responsedto.ToUserInfoResponse(user), err)
 }
 
 // ListUsers 获取用户列表
@@ -101,20 +99,18 @@ func (h *UserHandler) ListUsers(c *gin.Context) {
 	users, total, err := h.queryHandler.HandleListUsers(ctx, query)
 	if err != nil {
 		logger.Error(ctx, "Failed to list users", zap.Error(err))
-		HandleError(c, err)
-		return
+	} else {
+		logger.Info(ctx, "User list retrieved successfully",
+			zap.Int64("total", total),
+			zap.Int("page", req.Page),
+			zap.Int("page_size", req.PageSize))
 	}
-
-	logger.Info(ctx, "User list retrieved successfully",
-		zap.Int64("total", total),
-		zap.Int("page", req.Page),
-		zap.Int("page_size", req.PageSize))
 
 	// 将领域实体转换为DTO
 	userResponses := responsedto.ToUserListResponse(users)
 
-	// 返回分页响应
-	response.OKWithPaging(c, userResponses, req.Page, req.PageSize, total)
+	// 使用带日志功能的统一分页API，自动判断成功或错误并记录DomainError上下文
+	HandlePagingWithLogging(c, userResponses, req.Page, req.PageSize, total, err)
 }
 
 // GetUser 获取用户信息
@@ -130,9 +126,8 @@ func (h *UserHandler) GetUser(c *gin.Context) {
 	userInfo, err := h.queryHandler.HandleGetUser(ctx, query)
 	if err != nil {
 		logger.Error(ctx, "Failed to get user info", zap.Error(err), zap.String("user_id", userID))
-		HandleError(c, err)
-		return
 	}
 
-	response.OK(c, responsedto.ToUserInfoResponse(userInfo))
+	// 使用带日志功能的统一API，自动判断成功或错误并记录DomainError上下文
+	HandleWithLogging(c, responsedto.ToUserInfoResponse(userInfo), err)
 }

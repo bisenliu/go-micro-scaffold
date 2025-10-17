@@ -79,7 +79,7 @@ func handleError(c *gin.Context, params interface{}, err error, trans ut.Transla
 		response.FailWithCode(c, response.CodeValidation, err.Message)
 	case validator.ValidationErrors:
 		// 验证器错误
-		validationErr := response.NewDomainError(response.ErrorTypeValidationFailed, ErrValidationFailed)
+		validationErr := response.CreateError(response.ErrorTypeValidationFailed, ErrValidationFailed)
 		response.FailWithData(c, validationErr, removeTopStruct(err.Translate(trans)))
 	case *json.UnmarshalTypeError:
 		// JSON类型错误

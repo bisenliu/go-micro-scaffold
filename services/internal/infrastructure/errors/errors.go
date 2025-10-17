@@ -7,7 +7,7 @@ import (
 // 基础设施层通用错误
 var (
 	ErrInternalServer = response.NewInternalServerError("内部服务器错误")
-	ErrInvalidRequest = response.NewDomainError(response.ErrorTypeInvalidRequest, "无效的请求")
+	ErrInvalidRequest = response.CreateError(response.ErrorTypeInvalidRequest, "无效的请求")
 	ErrUnauthorized   = response.NewUnauthorizedError("未授权")
 	ErrForbidden      = response.NewForbiddenError("禁止访问")
 )
@@ -21,7 +21,7 @@ var (
 
 // 外部服务相关错误
 var (
-	ErrExternalServiceUnavailable = response.NewDomainError(response.ErrorTypeExternalServiceUnavailable, "外部服务不可用")
+	ErrExternalServiceUnavailable = response.CreateError(response.ErrorTypeExternalServiceUnavailable, "外部服务不可用")
 	ErrTimeout                    = response.NewTimeoutError("请求超时")
 	ErrNetworkError               = response.NewNetworkError("网络错误")
 )
