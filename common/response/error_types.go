@@ -41,21 +41,21 @@ type ErrorMapping struct {
 type DomainError struct {
 	Type    ErrorType
 	Message string
-	BaseErr error
+	Cause   error
 	Context map[string]any
 }
 
 // Error 实现error接口
 func (e *DomainError) Error() string {
-	if e.BaseErr != nil {
-		return fmt.Sprintf("%s: %s", e.BaseErr.Error(), e.Message)
+	if e.Cause != nil {
+		return fmt.Sprintf("%s: %s", e.Cause.Error(), e.Message)
 	}
 	return e.Message
 }
 
 // Unwrap 返回被包装的底层错误
 func (e *DomainError) Unwrap() error {
-	return e.BaseErr
+	return e.Cause
 }
 
 // GetContext 安全地获取上下文信息
@@ -82,6 +82,7 @@ func (e *DomainError) HasContext() bool {
 	return len(e.Context) > 0
 }
 
+// WithContext 添加上下文信息
 func (e *DomainError) WithContext(key string, value any) *DomainError {
 	// 优化：如果当前上下文为空且新值为nil，直接返回自身避免不必要的分配
 	if e.Context == nil && value == nil {
@@ -98,14 +99,12 @@ func (e *DomainError) WithContext(key string, value any) *DomainError {
 	}
 
 	// 创建新实例，避免修改原始错误
-	newErr := &DomainError{
+	return &DomainError{
 		Type:    e.Type,
 		Message: e.Message,
-		BaseErr: e.BaseErr,
+		Cause:   e.Cause,
 		Context: newContext,
 	}
-
-	return newErr
 }
 
 // WithContextMap 批量添加上下文信息
@@ -125,29 +124,10 @@ func (e *DomainError) WithContextMap(contextMap map[string]any) *DomainError {
 	}
 
 	// 创建新实例，避免修改原始错误
-	newErr := &DomainError{
+	return &DomainError{
 		Type:    e.Type,
 		Message: e.Message,
-		BaseErr: e.BaseErr,
+		Cause:   e.Cause,
 		Context: newContext,
 	}
-
-	return newErr
 }
-
-// 注意：NewDomainError 和 NewDomainErrorWithCause 函数已移至 factory.go 文件中
-// 使用 CreateError() 和 CreateErrorWithContext() 函数创建领域错误，提供更好的性能和一致性
-
-// ErrorMapper 错误映射器接口
-type ErrorMapper interface {
-	GetMapping(errorType ErrorType) (*ErrorMapping, bool)
-}
-
-// NewErrorMapper 创建新的错误映射器
-// 现在返回延迟初始化的映射器以提高启动性能
-func NewErrorMapper() ErrorMapper {
-	return NewLazyErrorMapper()
-}
-
-// 注意：ErrorHandler 已移至 handler.go 文件中，现在使用 UnifiedErrorHandler 统一架构
-// 便捷的错误创建函数已移至 factory.go 文件中，使用统一的错误工厂实现

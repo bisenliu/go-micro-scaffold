@@ -36,14 +36,16 @@ func IPWhitelistMiddleware(allowedIPs []string) gin.HandlerFunc {
 		ipVal, exists := c.Get(contextutil.ClientParsedIPContextKey)
 		if !exists {
 			logger.Error(ctx, "Parsed client IP not found in context")
-			response.FailWithCode(c, response.CodeForbidden, "Access denied: Internal error")
+			err := response.NewForbiddenError("Access denied: Internal error")
+			response.Handle(c, nil, err)
 			c.Abort()
 			return
 		}
 		ip, ok := ipVal.(net.IP)
 		if !ok {
 			logger.Error(ctx, "Parsed client IP in context is not of type net.IP")
-			response.FailWithCode(c, response.CodeForbidden, "Access denied: Internal error")
+			err := response.NewForbiddenError("Access denied: Internal error")
+			response.Handle(c, nil, err)
 			c.Abort()
 			return
 		}
@@ -51,14 +53,16 @@ func IPWhitelistMiddleware(allowedIPs []string) gin.HandlerFunc {
 		clientIPStrVal, exists := c.Get(contextutil.ClientIPContextKey)
 		if !exists {
 			logger.Error(ctx, "Client IP string not found in context")
-			response.FailWithCode(c, response.CodeForbidden, "Access denied: Internal error")
+			err := response.NewForbiddenError("Access denied: Internal error")
+			response.Handle(c, nil, err)
 			c.Abort()
 			return
 		}
 		clientIPStr, ok := clientIPStrVal.(string)
 		if !ok {
 			logger.Error(ctx, "Client IP string in context is not of type string")
-			response.FailWithCode(c, response.CodeForbidden, "Access denied: Internal error")
+			err := response.NewForbiddenError("Access denied: Internal error")
+			response.Handle(c, nil, err)
 			c.Abort()
 			return
 		}
@@ -87,7 +91,8 @@ func IPWhitelistMiddleware(allowedIPs []string) gin.HandlerFunc {
 		if !allowed {
 			logger.Warn(ctx, "IP not in whitelist",
 				zap.String("client_ip", clientIPStr))
-			response.FailWithCode(c, response.CodeForbidden, "Access denied")
+			err := response.NewForbiddenError("Access denied")
+			response.Handle(c, nil, err)
 			c.Abort()
 			return
 		}
@@ -129,14 +134,16 @@ func InternalIPMiddleware() gin.HandlerFunc {
 		ipVal, exists := c.Get(contextutil.ClientParsedIPContextKey)
 		if !exists {
 			logger.Error(ctx, "Parsed client IP not found in context")
-			response.FailWithCode(c, response.CodeForbidden, "Access denied: Internal error")
+			err := response.NewForbiddenError("Access denied: Internal error")
+			response.Handle(c, nil, err)
 			c.Abort()
 			return
 		}
 		ip, ok := ipVal.(net.IP)
 		if !ok {
 			logger.Error(ctx, "Parsed client IP in context is not of type net.IP")
-			response.FailWithCode(c, response.CodeForbidden, "Access denied: Internal error")
+			err := response.NewForbiddenError("Access denied: Internal error")
+			response.Handle(c, nil, err)
 			c.Abort()
 			return
 		}
@@ -144,14 +151,16 @@ func InternalIPMiddleware() gin.HandlerFunc {
 		clientIPStrVal, exists := c.Get(contextutil.ClientIPContextKey)
 		if !exists {
 			logger.Error(ctx, "Client IP string not found in context")
-			response.FailWithCode(c, response.CodeForbidden, "Access denied: Internal error")
+			err := response.NewForbiddenError("Access denied: Internal error")
+			response.Handle(c, nil, err)
 			c.Abort()
 			return
 		}
 		clientIPStr, ok := clientIPStrVal.(string)
 		if !ok {
 			logger.Error(ctx, "Client IP string in context is not of type string")
-			response.FailWithCode(c, response.CodeForbidden, "Access denied: Internal error")
+			err := response.NewForbiddenError("Access denied: Internal error")
+			response.Handle(c, nil, err)
 			c.Abort()
 			return
 		}
@@ -161,7 +170,8 @@ func InternalIPMiddleware() gin.HandlerFunc {
 				zap.String("ip", clientIPStr),
 				zap.String("path", c.Request.URL.Path),
 				zap.String("method", c.Request.Method))
-			response.FailWithCode(c, response.CodeForbidden, "Access denied: Internal network only")
+			err := response.NewForbiddenError("Access denied: Internal network only")
+			response.Handle(c, nil, err)
 			c.Abort()
 			return
 		}

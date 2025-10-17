@@ -76,19 +76,22 @@ func handleError(c *gin.Context, params interface{}, err error, trans ut.Transla
 	switch err := err.(type) {
 	case ValidationError:
 		// 自定义验证错误
-		response.FailWithCode(c, response.CodeValidation, err.Message)
+		validationErr := response.NewValidationError(err.Message)
+		response.Handle(c, nil, validationErr)
 	case validator.ValidationErrors:
 		// 验证器错误
 		validationErr := response.CreateError(response.ErrorTypeValidationFailed, ErrValidationFailed)
-		response.FailWithData(c, validationErr, removeTopStruct(err.Translate(trans)))
+		response.HandleWith(c, nil, validationErr, response.WithData(removeTopStruct(err.Translate(trans))))
 	case *json.UnmarshalTypeError:
 		// JSON类型错误
 		fieldName := getFieldJSONName(params, err)
 		message := buildTypeErrorMessage(fieldName, err.Type.String())
-		response.FailWithCode(c, response.CodeValidation, message)
+		validationErr := response.NewValidationError(message)
+		response.Handle(c, nil, validationErr)
 	default:
 		// 其他错误
-		response.FailWithCode(c, response.CodeValidation, err.Error())
+		validationErr := response.NewValidationError(err.Error())
+		response.Handle(c, nil, validationErr)
 	}
 }
 

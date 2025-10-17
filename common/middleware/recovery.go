@@ -32,6 +32,7 @@ func RecoveryMiddleware() gin.HandlerFunc {
 			zap.String("client_ip", clientIP))
 
 		// 返回统一的错误响应
-		response.FailWithCode(c, response.CodeInternalError, "Internal server error")
+		err := response.NewInternalServerError("Internal server error")
+		response.Handle(c, nil, err)
 	})
 }

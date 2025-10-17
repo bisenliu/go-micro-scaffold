@@ -56,7 +56,8 @@ func RateLimitMiddleware(cfg config.RateLimitConfig, baseLogger *zap.Logger) gin
 
 		if ip == "" {
 			logger.Error(ctx, "Could not determine client IP for rate limiting")
-			response.FailWithCode(c, response.CodeInternalError, "Could not determine client IP")
+			err := response.NewInternalServerError("Could not determine client IP")
+			response.Handle(c, nil, err)
 			c.Abort()
 			return
 		}
@@ -79,7 +80,9 @@ func RateLimitMiddleware(cfg config.RateLimitConfig, baseLogger *zap.Logger) gin
 		limiter.mu.Unlock()
 
 		if !canTake {
-			response.FailWithCode(c, response.CodeRateLimit, "Rate limit exceeded")
+			// 创建一个自定义错误，因为没有专门的 rate limit 错误类型
+			err := response.CreateError(response.ErrorTypeBusinessRuleViolation, "Rate limit exceeded")
+			response.Handle(c, nil, err)
 			c.Abort()
 			return
 		}

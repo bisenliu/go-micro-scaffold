@@ -125,11 +125,20 @@ func TestResponseEngine_ComponentAccess(t *testing.T) {
 	engine := NewResponseEngine()
 
 	// 测试组件访问
-	assert.NotNil(t, engine.GetErrorFactory())
 	assert.NotNil(t, engine.GetContextManager())
-	assert.NotNil(t, engine.GetCodeRegistry())
-	assert.NotNil(t, engine.GetPool())
-	assert.NotNil(t, engine.GetErrorHandler())
+
+	// 测试业务码查询功能
+	info, exists := engine.GetCodeInfo(CodeSuccess)
+	assert.True(t, exists)
+	assert.Equal(t, "操作成功", info.Message)
+
+	// 测试消息获取
+	message := engine.GetCodeMessage(CodeSuccess)
+	assert.Equal(t, "操作成功", message)
+
+	// 测试HTTP状态码获取
+	status := engine.GetHTTPStatus(CodeSuccess)
+	assert.Equal(t, http.StatusOK, status)
 }
 
 func TestResponseEngine_CodeRegistration(t *testing.T) {
@@ -141,14 +150,12 @@ func TestResponseEngine_CodeRegistration(t *testing.T) {
 		Code:       customCode,
 		Message:    "Custom error",
 		HTTPStatus: http.StatusTeapot,
-		Category:   "custom",
 	}
 
 	engine.RegisterCode(customCode, customInfo)
 
 	// 验证注册成功
-	registry := engine.GetCodeRegistry()
-	info, exists := registry.GetInfo(customCode)
+	info, exists := engine.GetCodeInfo(customCode)
 	assert.True(t, exists)
 	assert.Equal(t, "Custom error", info.Message)
 	assert.Equal(t, http.StatusTeapot, info.HTTPStatus)
@@ -225,15 +232,13 @@ func TestGlobalCodeRegistration(t *testing.T) {
 		Code:       customCode,
 		Message:    "Global custom error",
 		HTTPStatus: http.StatusBadRequest,
-		Category:   "global_custom",
 	}
 
 	RegisterGlobalCode(customCode, customInfo)
 
 	// 验证注册成功
 	engine := GetDefaultEngine()
-	registry := engine.GetCodeRegistry()
-	info, exists := registry.GetInfo(customCode)
+	info, exists := engine.GetCodeInfo(customCode)
 	assert.True(t, exists)
 	assert.Equal(t, "Global custom error", info.Message)
 }
@@ -297,7 +302,7 @@ func TestHandleSuccessWithPaging_ZeroPageSize(t *testing.T) {
 	}
 }
 
-func TestOKWithPaging_ZeroPageSize(t *testing.T) {
+func TestHandlePaging_ZeroPageSize(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	// 测试全局函数也不会panic
@@ -305,7 +310,7 @@ func TestOKWithPaging_ZeroPageSize(t *testing.T) {
 	c, _ := gin.CreateTestContext(w)
 
 	assert.NotPanics(t, func() {
-		OKWithPaging(c, []string{"item1", "item2"}, 1, 0, 100)
+		HandlePaging(c, []string{"item1", "item2"}, 1, 0, 100, nil)
 	})
 
 	assert.Equal(t, 200, w.Code)

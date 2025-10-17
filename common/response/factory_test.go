@@ -56,8 +56,8 @@ func TestErrorFactory_Create(t *testing.T) {
 			if err.Message != tt.wantMsg {
 				t.Errorf("Create() Message = %v, want %v", err.Message, tt.wantMsg)
 			}
-			if (err.BaseErr != nil) != tt.wantCause {
-				t.Errorf("Create() BaseErr presence = %v, want %v", err.BaseErr != nil, tt.wantCause)
+			if (err.Cause != nil) != tt.wantCause {
+				t.Errorf("Create() Cause presence = %v, want %v", err.Cause != nil, tt.wantCause)
 			}
 			if err.Context != nil {
 				t.Errorf("Create() Context should be nil for lazy allocation, got %v", err.Context)

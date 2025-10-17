@@ -37,7 +37,7 @@ func (f *errorFactory) Create(errorType ErrorType, message string, cause ...erro
 	return &DomainError{
 		Type:    errorType,
 		Message: message,
-		BaseErr: rootCause,
+		Cause:   rootCause,
 		Context: nil, // 延迟分配，只在需要时创建
 	}
 }
@@ -58,7 +58,7 @@ func (f *errorFactory) CreateWithContext(errorType ErrorType, message string, co
 	return &DomainError{
 		Type:    errorType,
 		Message: message,
-		BaseErr: rootCause,
+		Cause:   rootCause,
 		Context: ctx,
 	}
 }

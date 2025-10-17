@@ -58,8 +58,8 @@ func logDomainError(c *gin.Context, domainErr *response.DomainError) {
 	}
 
 	// 添加底层错误
-	if domainErr.BaseErr != nil {
-		logFields = append(logFields, zap.String("underlying_error", domainErr.BaseErr.Error()))
+	if domainErr.Cause != nil {
+		logFields = append(logFields, zap.String("underlying_error", domainErr.Cause.Error()))
 	}
 
 	logger.Error(c.Request.Context(), "domain error occurred", logFields...)
@@ -72,10 +72,11 @@ func HandleError(c *gin.Context, err error) {
 
 // HandleErrorWithCode 使用指定错误码处理错误
 func HandleErrorWithCode(c *gin.Context, code int, message string) {
-	response.FailWithCode(c, code, message)
+	err := response.CreateError(response.ErrorTypeBusinessRuleViolation, message)
+	response.HandleWith(c, nil, err, response.WithCode(code))
 }
 
 // HandleErrorWithData 处理带有额外数据的错误
 func HandleErrorWithData(c *gin.Context, err error, data any) {
-	response.FailWithData(c, err, data)
+	response.HandleWith(c, nil, err, response.WithData(data))
 }

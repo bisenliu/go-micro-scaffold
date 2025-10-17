@@ -38,7 +38,8 @@ func AuthMiddleware(jwtService *jwt.JWT, cfg config.AuthConfig) gin.HandlerFunc 
 		authHeader := c.GetHeader(AuthHeaderKey)
 		if authHeader == "" {
 			logger.Warn(ctx, "Missing authorization header")
-			response.FailWithCode(c, response.CodeUnauthorized, "Missing authorization header")
+			err := response.NewUnauthorizedError("Missing authorization header")
+			response.Handle(c, nil, err)
 			c.Abort()
 			return
 		}
@@ -47,7 +48,8 @@ func AuthMiddleware(jwtService *jwt.JWT, cfg config.AuthConfig) gin.HandlerFunc 
 		// 检查Bearer前缀
 		if !strings.HasPrefix(authHeader, TokenPrefix) {
 			logger.Warn(ctx, "Invalid authorization header format")
-			response.FailWithCode(c, response.CodeUnauthorized, "Invalid authorization header format")
+			err := response.NewUnauthorizedError("Invalid authorization header format")
+			response.Handle(c, nil, err)
 			c.Abort()
 			return
 		}
@@ -56,7 +58,8 @@ func AuthMiddleware(jwtService *jwt.JWT, cfg config.AuthConfig) gin.HandlerFunc 
 		token = strings.TrimPrefix(authHeader, TokenPrefix)
 		if token == "" {
 			logger.Warn(ctx, "Empty token")
-			response.FailWithCode(c, response.CodeUnauthorized, "Empty token")
+			err := response.NewUnauthorizedError("Empty token")
+			response.Handle(c, nil, err)
 			c.Abort()
 			return
 		}
@@ -65,7 +68,8 @@ func AuthMiddleware(jwtService *jwt.JWT, cfg config.AuthConfig) gin.HandlerFunc 
 		userID, err := validateToken(ctx, token, jwtService)
 		if err != nil {
 			logger.Error(ctx, "Token validation failed", zap.Error(err))
-			response.FailWithCode(c, response.CodeUnauthorized, "Invalid token")
+			authErr := response.NewUnauthorizedError("Invalid token")
+			response.Handle(c, nil, authErr)
 			c.Abort()
 			return
 		}
@@ -104,4 +108,3 @@ func validateToken(ctx context.Context, tokenString string, jwtService *jwt.JWT)
 	// 返回用户ID
 	return claims.UserID, nil
 }
-

@@ -38,7 +38,8 @@ func CasbinMiddleware(enforceFunc PermissionEnforceFunc) gin.HandlerFunc {
 				zap.String("resource", resource),
 				zap.String("action", action),
 				zap.Error(err))
-			response.FailWithCode(c, response.CodeInternalError, "Authorization check failed")
+			internalErr := response.NewInternalServerError("Authorization check failed")
+			response.Handle(c, nil, internalErr)
 			c.Abort()
 			return
 		}
@@ -48,7 +49,8 @@ func CasbinMiddleware(enforceFunc PermissionEnforceFunc) gin.HandlerFunc {
 				zap.String("user_id", userID),
 				zap.String("resource", resource),
 				zap.String("action", action))
-			response.FailWithCode(c, response.CodeForbidden, "Access denied")
+			forbiddenErr := response.NewForbiddenError("Access denied")
+			response.Handle(c, nil, forbiddenErr)
 			c.Abort()
 			return
 		}

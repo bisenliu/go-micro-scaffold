@@ -124,19 +124,16 @@ var CodeInfoMap = map[int]*CodeInfo{
 }
 
 // GetCodeInfo 获取业务码信息
-// 已重构为使用统一的代码注册表，消除重复的查找逻辑
 func GetCodeInfo(code int) (*CodeInfo, bool) {
-	return GetDefaultCodeRegistry().GetInfo(code)
+	return GetDefaultEngine().GetCodeInfo(code)
 }
 
 // GetCodeMessage 获取业务码对应的消息
-// 已重构为使用统一的代码注册表，提供高效的查找机制
 func GetCodeMessage(code int) string {
-	return GetDefaultCodeRegistry().GetMessage(code)
+	return GetDefaultEngine().GetCodeMessage(code)
 }
 
 // GetHTTPStatus 获取业务码对应的HTTP状态码
-// 已重构为使用统一的代码注册表，消除重复的查找逻辑
 func GetHTTPStatus(code int) int {
-	return GetDefaultCodeRegistry().GetHTTPStatus(code)
+	return GetDefaultEngine().GetHTTPStatus(code)
 }

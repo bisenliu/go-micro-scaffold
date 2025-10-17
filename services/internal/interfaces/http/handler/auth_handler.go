@@ -54,9 +54,9 @@ func (h *AuthHandler) LoginByPassword(c *gin.Context) {
 		return
 	}
 
-	response.OK(c, gin.H{
+	response.Handle(c, gin.H{
 		"token": token,
-	})
+	}, nil)
 }
 
 // LoginByWeChat 微信登录
@@ -64,7 +64,7 @@ func (h *AuthHandler) LoginByWeChat(c *gin.Context) {
 	// 1. Get code from request
 	// 2. Call authService.LoginByWeChat
 	// 3. Generate JWT and return
-	response.OK(c, gin.H{"message": "WeChat login placeholder"})
+	response.Handle(c, gin.H{"message": "WeChat login placeholder"}, nil)
 }
 
 // Logout 登出
