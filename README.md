@@ -37,150 +37,125 @@ Go Micro Scaffold 是一个基于 Go 语言的微服务脚手架项目，采用 
 ## 🛠️ 技术栈
 
 ### 核心框架
-- **Go**: 1.24+ - 编程语言
-- **Gin**: Web 框架 - 高性能HTTP Web框架
-- **Uber FX**: 依赖注入框架 - 模块化应用管理
-- **Ent**: ORM 框架 - 简单而强大的Go实体框架
-- **Viper**: 配置管理 - 完整的配置解决方案
-- **Zap**: 日志框架 - 高性能日志库
-- **Cobra**: CLI 框架 - 现代CLI应用构建器
+- **Go**: 1.24.1 - 编程语言
+- **Gin**: v1.11.0 - 高性能HTTP Web框架
+- **Uber FX**: v1.24.0 - 依赖注入框架，模块化应用管理
+- **Ent**: v0.14.5 - 简单而强大的Go实体框架
+- **Viper**: v1.21.0 - 完整的配置解决方案
+- **Zap**: v1.27.0 - 高性能日志库
+- **Cobra**: v1.10.1 - 现代CLI应用构建器
 
-### 数据库
-- **MySQL**: 5.7+ - 主数据库
-- **Redis**: 5.0+ - 缓存数据库
+### 数据库与缓存
+- **MySQL**: 8.0+ - 主数据库 (驱动: go-sql-driver/mysql v1.9.3)
+- **Redis**: 6.0+ - 缓存数据库 (客户端: go-redis/redis/v8 v8.11.5)
 - **支持**: PostgreSQL 12+, SQLite 3+ - 可选数据库
 
-### 工具库
-- **JWT**: golang-jwt/jwt - JSON Web Token 实现
-- **UUID**: google/uuid - UUID 生成库
-- **Snowflake**: 自定义实现 - 雪花算法ID生成
-- **Validator**: go-playground/validator - 数据验证库
-- **Rate Limit**: juju/ratelimit - 令牌桶限流算法
+### 安全与认证
+- **JWT**: golang-jwt/jwt/v4 v4.5.2 - JSON Web Token 实现
+- **Casbin**: v2.127.0 - 权限控制框架
+- **Validator**: go-playground/validator/v10 v10.27.0 - 数据验证库
 
-## 项目结构
+### 工具库
+- **UUID**: google/uuid v1.6.0 - UUID 生成库
+- **Snowflake**: bwmarrin/snowflake v0.3.0 - 雪花算法ID生成
+- **Rate Limit**: juju/ratelimit v1.0.2 - 令牌桶限流算法
+- **HTTP Client**: go-resty/resty/v2 v2.16.5 - HTTP客户端库
+- **File Rotation**: lestrrat-go/file-rotatelogs v2.4.0+ - 日志文件轮转
+
+## 📁 项目结构
 
 ```
 go-micro-scaffold/
-├── common/                 # 公共库
-│   ├── config/             # 配置管理
-│   ├── databases/          # 数据库相关
-│   │   ├── mysql/          # MySQL数据库
-│   │   └── redis/          # Redis缓存
-│   ├── di/                 # 依赖注入模块
-│   ├── http/               # HTTP 服务
-│   ├── logger/             # 日志系统
-│   ├── middleware/         # 中间件
-│   ├── pkg/                # 通用工具包
-│   │   ├── idgen/          # ID生成器
-│   │   ├── jwt/            # JWT认证
-│   │   ├── timezone/       # 时区管理
-│   │   └── validation/     # 验证系统
-│   ├── response/           # 响应处理
-│   └── schema/             # 数据库模式
-│       └── common/         # 通用数据库模式
-│           └── base.go     # 基础模型定义
-├── services/               # 服务模块
-│   ├── cmd/                # 命令行入口
-│   │   ├── cli/            # CLI 命令
-│   │   │   └── main.go     # CLI 入口文件
-│   │   └── server/         # 服务端
-│   │       └── main.go     # 服务端入口文件
-│   ├── configs/            # 配置文件
-│   │   ├── app.yaml        # 应用配置文件
-│   │   └── app.yaml.example # 配置文件模板
-│   ├── internal/           # 内部实现（Clean Architecture）
-│   │   ├── application/    # 应用层 - 业务用例编排
-│   │   │   ├── command/    # 命令模式
-│   │   │   │   └── user/   # 用户相关命令
-│   │   │   │       └── create_user_command.go
-│   │   │   ├── commandhandler/ # 命令处理器
-│   │   │   │   └── user_command_handler.go
-│   │   │   ├── di.go       # 应用层依赖注入
-│   │   │   ├── errors/     # 应用层错误定义
-│   │   │   │   └── errors.go
-│   │   │   ├── query/      # 查询模式
-│   │   │   │   └── user/   # 用户相关查询
-│   │   │   │       └── list_users_query.go
-│   │   │   └── queryhandler/ # 查询处理器
-│   │   │       └── user_query_handler.go
-│   │   ├── domain/         # 领域层 - 核心业务逻辑
-│   │   │   ├── di.go       # 用户领域依赖注入
-│   │   │   ├── entity/     # 实体
-│   │   │   │   └── user.go
-│   │   │   ├── errors/     # 领域错误定义
-│   │   │   │   └── errors.go
-│   │   │   ├── repository/ # 仓储接口
-│   │   │   │   └── user_repository.go
-│   │   │   ├── service/    # 领域服务
-│   │   │   │   └── user_domain_service.go
-│   │   │   ├── user/       # 用户领域
-│   │   │   │   ├── di.go   # 用户领域依赖注入
-│   │   │   │   ├── entity/ # 实体
-│   │   │   │   │   └── user.go
-│   │   │   │   ├── errors/ # 领域错误定义
-│   │   │   │   │   └── errors.go
-│   │   │   │   ├── repository/ # 仓储接口
-│   │   │   │   │   └── user_repository.go
-│   │   │   │   ├── service/ # 领域服务
-│   │   │   │   │   └── user_domain_service.go
-│   │   │   │   ├── validator/ # 领域验证器
-│   │   │   │   │   ├── name_validator.go
-│   │   │   │   │   ├── password_validator.go
-│   │   │   │   │   ├── phone_validator.go
-│   │   │   │   │   ├── user_validator.go
-│   │   │   │   │   └── validation_errors.go
-│   │   │   │   └── valueobject/ # 值对象
-│   │   │   │       └── gender.go
-│   │   │   ├── validator/  # 领域验证器
-│   │   │   │   ├── name_validator.go
-│   │   │   │   ├── password_validator.go
-│   │   │   │   ├── phone_validator.go
-│   │   │   │   ├── user_validator.go
-│   │   │   │   └── validation_errors.go
-│   │   │   └── valueobject/ # 值对象
-│   │   │       └── gender.go
-│   │   ├── infrastructure/ # 基础设施层 - 外部依赖实现
-│   │   │   ├── di.go       # 基础设施层依赖注入
-│   │   │   ├── errors/     # 基础设施错误
-│   │   │   │   └── errors.go
-│   │   │   ├── messaging/  # 消息发布
-│   │   │   │   └── event_publisher.go
-│   │   │   └── persistence/ # 数据持久化
-│   │   │       └── ent/    # Ent ORM 实现
-│   │   │           ├── generate.go # 代码生成
-│   │   │           ├── gen/    # Ent 生成的代码
-│   │   │           ├── repository/ # 仓储实现
-│   │   │           │   └── user_repository_impl.go
-│   │   │           └── schema/ # 数据库模式定义
-│   │   │               ├── common_schema.go
-│   │   │               └── user.go
-│   │   ├── interfaces/     # 接口层 - 外部接口适配
-│   │   │   ├── di.go       # 接口层依赖注入
-│   │   │   ├── dto/        # 数据传输对象
-│   │   │   │   ├── request/ # 请求 DTO
-│   │   │   │   │   └── user_request.go
-│   │   │   │   └── response/ # 响应 DTO
-│   │   │   │       └── user_response.go
-│   │   │   ├── handler/    # HTTP 处理器
-│   │   │   │   ├── handler.go # 处理器接口
-│   │   │   │   ├── health_handler.go # 健康检查
-│   │   │   │   └── user_handler.go # 用户处理器
-│   │   │   └── routes.go   # 路由配置
-│   │   └── shared/         # 共享组件
-│   │       └── errors/     # 共享错误定义
-│   │           └── errors.go
-│   └── go.mod              # Go 模块定义
-└── go.work                 # Go 工作区
+├── 📁 common/                    # 🔧 公共组件库
+│   ├── config/                   # ⚙️ 配置管理
+│   ├── databases/                # 💾 数据库连接管理
+│   │   ├── mysql/                # MySQL 连接池
+│   │   └── redis/                # Redis 客户端
+│   ├── di/                       # 🔗 依赖注入模块
+│   ├── http/                     # 🌐 HTTP 服务器
+│   ├── logger/                   # 📝 日志系统
+│   ├── middleware/               # 🛡️ 通用中间件
+│   ├── pkg/                      # 🛠️ 工具包集合
+│   │   ├── casbin/               # 权限控制
+│   │   ├── contextutil/          # 上下文工具
+│   │   ├── httpclient/           # HTTP 客户端
+│   │   ├── idgen/                # ID 生成器（雪花算法）
+│   │   ├── jwt/                  # JWT 认证
+│   │   ├── netutil/              # 网络工具
+│   │   ├── pagination/           # 分页工具
+│   │   ├── timezone/             # 时区管理
+│   │   └── validation/           # 数据验证
+│   ├── response/                 # 📤 统一响应格式
+│   └── schema/                   # 📋 共享数据模型
+├── 📁 services/                  # 🏢 业务服务模块
+│   ├── cmd/                      # 🚀 应用入口
+│   │   ├── cli/                  # CLI 工具
+│   │   └── server/               # HTTP 服务器
+│   ├── configs/                  # ⚙️ 配置文件
+│   │   ├── app.yaml              # 应用配置
+│   │   └── app.yaml.example      # 配置模板
+│   ├── internal/                 # 🏗️ Clean Architecture 实现
+│   │   ├── application/          # 🔧 应用层 - 用例编排
+│   │   │   ├── command/          # 命令对象
+│   │   │   ├── commandhandler/   # 命令处理器
+│   │   │   ├── query/            # 查询对象
+│   │   │   ├── queryhandler/     # 查询处理器
+│   │   │   ├── service/          # 应用服务
+│   │   │   └── errors/           # 应用层错误
+│   │   ├── domain/               # 🎯 领域层 - 核心业务
+│   │   │   ├── shared/           # 共享领域组件
+│   │   │   └── user/             # 用户领域
+│   │   │       ├── entity/       # 实体
+│   │   │       ├── valueobject/  # 值对象
+│   │   │       ├── repository/   # 仓储接口
+│   │   │       ├── service/      # 领域服务
+│   │   │       ├── validator/    # 业务验证器
+│   │   │       └── errors/       # 领域错误
+│   │   ├── infrastructure/       # 🏭 基础设施层 - 外部实现
+│   │   │   ├── persistence/      # 数据持久化
+│   │   │   │   └── ent/          # Ent ORM 实现
+│   │   │   │       ├── gen/      # 生成代码
+│   │   │   │       ├── repository/ # 仓储实现
+│   │   │   │       └── schema/   # 数据库模式
+│   │   │   ├── messaging/        # 消息发布
+│   │   │   └── errors/           # 基础设施错误
+│   │   └── interfaces/           # 🌐 接口层 - 外部适配
+│   │       └── http/             # HTTP 接口
+│   │           ├── dto/          # 数据传输对象
+│   │           │   ├── request/  # 请求 DTO
+│   │           │   └── response/ # 响应 DTO
+│   │           ├── handler/      # HTTP 处理器
+│   │           ├── routes/       # 路由配置
+│   │           └── middleware/   # 接口中间件
+│   └── logs/                     # 📋 应用日志
+├── 📁 assets/                    # 📊 项目资源
+│   ├── dependency-graph.dot      # 依赖关系图
+│   └── graph.png                 # 架构图片
+├── 📁 logs/                      # 📋 全局日志
+├── 📄 go.work                    # Go 工作区配置
+└── 📄 README.md                  # 项目文档
 ```
+
+### 🏗️ 架构层次说明
+
+| 层次 | 目录 | 职责 | 依赖方向 |
+|------|------|------|----------|
+| **🌐 接口层** | `interfaces/` | HTTP API、路由、DTO | → 应用层 |
+| **🔧 应用层** | `application/` | 用例编排、命令查询处理 | → 领域层 |
+| **🎯 领域层** | `domain/` | 核心业务逻辑、实体、规则 | 独立核心 |
+| **🏭 基础设施层** | `infrastructure/` | 数据库、外部服务实现 | ← 领域层接口 |
+| **🔧 公共层** | `common/` | 跨服务共享组件 | 被各层使用 |
 
 ## 快速开始
 
 ### 📋 环境要求
 
-- **Go**: 1.24+
-- **MySQL**: 5.7+ 或 **PostgreSQL**: 12+
-- **Redis**: 5.0+
+- **Go**: 1.24.1+ (推荐使用最新版本)
+- **MySQL**: 8.0+ 或 **PostgreSQL**: 12+
+- **Redis**: 6.0+ (推荐 7.0+)
 - **操作系统**: Linux, macOS, Windows
+- **内存**: 最小 512MB，推荐 2GB+
+- **磁盘**: 最小 1GB 可用空间
 
 ### 📦 安装依赖
 
@@ -211,7 +186,7 @@ cd services/configs
 cp app.yaml.example app.yaml
 ```
 
-2. 根据实际环境修改 [app.yaml](file:///Users/liubisen/Desktop/sander/Project/my/go-micro-scaffold/services/configs/app.yaml) 配置文件
+2. 根据实际环境修改 [app.yaml](./services/configs/app.yaml) 配置文件
 
 ### 数据库迁移
 
@@ -252,6 +227,7 @@ GET  /api/v1/users   # 获取用户列表
 curl -X POST http://localhost:8080/api/v1/users \
   -H "Content-Type: application/json" \
   -d '{
+    "open_id": "user_12345",
     "name": "张三",
     "phone_number": "13800138000",
     "password": "123456",
@@ -277,295 +253,131 @@ curl -X POST http://localhost:8080/api/v1/users \
 ```
 
 
-## 🏗️ Clean Architecture 详细说明
+## 🏗️ Clean Architecture 设计
 
-本项目采用微服务架构，结合 Clean Architecture 设计原则，实现了高内聚、低耦合的系统架构。项目分为**公共组件层**和**业务服务层**两大部分。
+本项目采用 Clean Architecture 设计原则，实现高内聚、低耦合的微服务架构。
 
-### 🔄 Clean Architecture 层次结构
+### 🔄 架构层次图
 
 ```mermaid
 graph TB
     subgraph "🏢 微服务架构"
         subgraph "🔧 Common Layer"
-            CM[公共组件<br/>config, logger, db, etc.]
+            CM[公共组件层<br/>配置·日志·数据库·工具]
         end
         
-        subgraph "🏗️ Service Clean Architecture"
-            subgraph "🌐 Interfaces Layer"
-                HTTP[HTTP Handlers]
-                DTO[DTOs]
-                ROUTE[Routes]
+        subgraph "🏗️ Clean Architecture Layers"
+            subgraph "🌐 Interface Layer"
+                HTTP[HTTP 处理器]
+                DTO[数据传输对象]
+                ROUTE[路由配置]
             end
             
             subgraph "🔧 Application Layer"
-                UC[Use Cases]
-                CMD[Commands]
-                QRY[Queries]
-                SVC[App Services]
+                CMD[命令处理器]
+                QRY[查询处理器]
+                SVC[应用服务]
             end
             
             subgraph "🎯 Domain Layer"
-                ENT[Entities]
-                VO[Value Objects]
-                REPO[Repository Interfaces]
-                DOM_SVC[Domain Services]
+                ENT[实体]
+                VO[值对象]
+                REPO[仓储接口]
+                DOM_SVC[领域服务]
             end
             
             subgraph "🏭 Infrastructure Layer"
-                REPO_IMPL[Repository Implementations]
-                DB[Database]
-                EXT[External Services]
-                CACHE[Cache]
+                REPO_IMPL[仓储实现]
+                DB[数据库]
+                MSG[消息队列]
             end
         end
     end
     
-    HTTP --> UC
-    UC --> DOM_SVC
-    UC --> REPO
-    REPO_IMPL --> REPO
+    HTTP --> CMD
+    HTTP --> QRY
+    CMD --> DOM_SVC
+    QRY --> REPO
+    DOM_SVC --> REPO
+    REPO_IMPL -.-> REPO
     DB --> REPO_IMPL
     CM --> HTTP
     CM --> REPO_IMPL
     
     style CM fill:#E6F3FF,stroke:#0066CC
     style HTTP fill:#D0F0C0,stroke:#333
-    style UC fill:#ADD8E6,stroke:#333
+    style CMD fill:#ADD8E6,stroke:#333
     style DOM_SVC fill:#F08080,stroke:#333
     style REPO_IMPL fill:#FFE5B4,stroke:#333
 ```
 
-### 📁 各层职责详解
+### 📋 各层职责说明
 
-#### 🔧 **Common Layer (公共组件层)**
-- **config/**: 统一配置管理，支持多环境配置
-- **databases/**: 数据库连接池管理 (MySQL, Redis)
-- **di/**: 依赖注入容器，管理组件生命周期
-- **logger/**: 结构化日志组件
-- **middleware/**: 通用中间件 (认证、限流、CORS等)
-- **response/**: 统一API响应格式
-- **schema/**: 跨服务共享的数据模型
+| 层次 | 核心职责 | 主要组件 | 依赖方向 |
+|------|----------|----------|----------|
+| **🌐 接口层** | 外部请求适配 | HTTP处理器、DTO、路由、中间件 | → 应用层 |
+| **🔧 应用层** | 业务用例编排 | 命令/查询处理器、应用服务 | → 领域层 |
+| **🎯 领域层** | 核心业务逻辑 | 实体、值对象、仓储接口、领域服务 | 独立核心 |
+| **🏭 基础设施层** | 外部技术实现 | 仓储实现、数据库、消息队列 | ← 实现领域接口 |
+| **🔧 公共层** | 跨服务基础设施 | 配置、日志、数据库连接、工具包 | 被各层使用 |
 
-#### 🌐 **Interfaces Layer (接口层)**
-- **HTTP Handlers**: 处理HTTP请求，参数验证
-- **DTOs**: 数据传输对象，API契约定义
-- **Routes**: 路由配置和中间件绑定
-- **依赖方向**: 依赖 Application Layer
+### 🔄 核心设计原则
 
-#### 🔧 **Application Layer (应用层)**
-- **Use Cases**: 业务用例编排，事务管理
-- **Commands/Queries**: CQRS模式实现
-- **Application Services**: 应用服务，协调多个领域服务
-- **依赖方向**: 依赖 Domain Layer 接口
+1. **🎯 依赖倒置**: 高层模块不依赖低层模块，都依赖抽象接口
+2. **🔒 单一职责**: 每层专注自己的职责，边界清晰
+3. **🔓 开闭原则**: 对扩展开放，对修改封闭
+4. **🧩 接口隔离**: 客户端不依赖不需要的接口
 
-#### 🎯 **Domain Layer (领域层)**
-- **Entities**: 业务实体，包含业务规则
-- **Value Objects**: 值对象，不可变数据
-- **Repository Interfaces**: 仓储接口定义
-- **Domain Services**: 领域服务，核心业务逻辑
-- **依赖方向**: 不依赖任何外层
+### 📊 请求处理流程
 
-#### 🏭 **Infrastructure Layer (基础设施层)**
-- **Repository Implementations**: 仓储接口实现
-- **Database Access**: 数据库访问层
-- **External Services**: 第三方服务集成
-- **Cache**: 缓存实现
-- **依赖方向**: 实现 Domain Layer 接口
-
-### 🔄 架构原则与数据流
-
-**核心原则**：
-1. **依赖倒置**: 高层模块不依赖低层模块，都依赖抽象
-2. **单一职责**: 每层专注自己的职责
-3. **开闭原则**: 对扩展开放，对修改封闭
-4. **接口隔离**: 客户端不应依赖它不需要的接口
-
-**请求处理流程**：
 ```
-HTTP Request → Middleware → Handler → Use Case → Domain Service → Repository
-                                                      ↓              ↓
-HTTP Response ← Response Format ← DTO ← Result ← Business Logic ← Database
+HTTP请求 → 中间件 → 处理器 → 命令/查询处理器 → 领域服务 → 仓储接口
+   ↓         ↓        ↓           ↓            ↓         ↓
+HTTP响应 ← 响应格式 ← DTO ← 处理结果 ← 业务逻辑 ← 数据库操作
 ```
 
-**微服务间通信**：
-- 通过 `common/` 组件实现跨服务的基础设施共享
-- 服务间通过HTTP API或消息队列通信
-- 共享数据模型定义在 `common/schema/` 中
+### 🎯 领域驱动设计 (DDD)
 
-### 🎯 领域层 (Domain Layer) - 核心业务逻辑
+**用户领域示例**：
+```go
+package domain
 
-**职责**：
-- 包含企业级业务规则和核心业务逻辑
-- 定义实体、值对象、聚合根
-- 定义领域服务和仓储接口
-- 不依赖任何外部框架或技术
+import "context"
 
-**主要组件**：
-- **实体 (Entity)**: 具有唯一标识的业务对象
-  ```go
-  // services/internal/domain/user/entity/user.go
-  type User struct {
-      id          string
-      openID      string
-      name        string
-      phoneNumber string
-      // ...
-  }
-  ```
+// 实体 - 具有唯一标识的业务对象
+type User struct {
+    id          string    // 唯一标识
+    name        string    // 业务属性
+    phoneNumber string
+    // ... 业务方法
+}
 
-- **值对象 (Value Object)**: 不可变的业务概念
-  ```go
-  // services/internal/domain/user/valueobject/gender.go
-  type Gender int
-  const (
-      GenderMale Gender = iota + 1
-      GenderFemale
-      GenderOther
-  )
-  ```
+// 值对象 - 不可变的业务概念
+type Gender int
+const (
+    GenderMale   Gender = 100
+    GenderFemale Gender = 200
+)
 
-- **仓储接口 (Repository Interface)**: 数据访问抽象
-  ```go
-  // services/internal/domain/user/repository/user_repository.go
-  type UserRepository interface {
-      Create(ctx context.Context, user *entity.User) error
-      FindByID(ctx context.Context, id string) (*entity.User, error)
-  }
-  ```
+// 仓储接口 - 数据访问抽象
+type UserRepository interface {
+    Create(ctx context.Context, user *User) error
+    FindByID(ctx context.Context, id string) (*User, error)
+}
 
-- **领域服务 (Domain Service)**: 跨实体的业务逻辑
-- **领域验证器 (Domain Validator)**: 业务规则验证
-
-### 🔧 应用层 (Application Layer) - 业务用例编排
-
-**职责**：
-- 编排业务用例的执行流程
-- 协调领域对象完成业务操作
-- 处理事务边界
-- 不包含业务规则，只负责流程控制
-
-**主要组件**：
-- **命令 (Command)**: 表示系统状态变更的意图
-  ```go
-  // services/internal/application/command/user/create_user_command.go
-  type CreateUserCommand struct {
-      OpenID      string
-      Name        string
-      PhoneNumber string
-      Password    string
-      Gender      int
-  }
-  ```
-
-- **查询 (Query)**: 表示数据查询的意图
-  ```go
-  // services/internal/application/query/user/list_users_query.go
-  type ListUsersQuery struct {
-      Page     int
-      PageSize int
-      Keyword  string
-  }
-  ```
-
-- **命令处理器 (Command Handler)**: 处理命令执行
-- **查询处理器 (Query Handler)**: 处理查询执行
-
-### 🏭 基础设施层 (Infrastructure Layer) - 外部依赖实现
-
-**职责**：
-- 实现领域层定义的接口
-- 处理与外部系统的交互
-- 提供技术实现细节
-
-**主要组件**：
-- **仓储实现 (Repository Implementation)**:
-  ```go
-  // services/internal/infrastructure/persistence/ent/repository/user_repository_impl.go
-  type UserRepositoryImpl struct {
-      client *gen.Client
-  }
-  
-  func (r *UserRepositoryImpl) Create(ctx context.Context, user *entity.User) error {
-      // Ent ORM 具体实现
-  }
-  ```
-
-- **数据库模式 (Database Schema)**:
-  ```go
-  // services/internal/infrastructure/persistence/ent/schema/user.go
-  func (User) Fields() []ent.Field {
-      return []ent.Field{
-          field.UUID("id", uuid.UUID{}).Default(uuid.New),
-          field.String("name").MaxLen(50),
-          // ...
-      }
-  }
-  ```
-
-- **事件发布器 (Event Publisher)**: 消息队列集成
-- **外部服务适配器**: 第三方API集成
-
-### 🌐 接口层 (Interface Layer) - 外部接口适配
-
-**职责**：
-- 处理外部请求和响应
-- 数据格式转换和验证
-- 路由和中间件配置
-
-**主要组件**：
-- **HTTP 处理器 (HTTP Handler)**:
-  ```go
-  // services/internal/interfaces/http/handler/user_handler.go
-  func (h *UserHandler) CreateUser(c *gin.Context) {
-      var req requestdto.CreateUserRequest
-      // 请求验证和处理
-      command := &command.CreateUserCommand{...}
-      user, err := h.commandHandler.HandleCreateUser(ctx, command)
-      // 响应处理
-  }
-  ```
-
-- **DTO (Data Transfer Object)**: 数据传输对象
-  ```go
-  // services/internal/interfaces/http/dto/request/user_request.go
-  type CreateUserRequest struct {
-      Name        string `json:"name" binding:"required,max=50"`
-      PhoneNumber string `json:"phone_number" binding:"required"`
-  }
-  ```
-
-- **路由配置**: API 路由定义
-- **中间件**: 认证、日志、限流等横切关注点
-
-### 🔄 依赖方向和原则
-
-**依赖规则**：
-1. **内层不依赖外层**: 领域层不依赖应用层、基础设施层或接口层
-2. **依赖倒置**: 外层依赖内层的抽象接口，而不是具体实现
-3. **单一职责**: 每层只负责自己的职责范围
-4. **开闭原则**: 对扩展开放，对修改封闭
-
-**数据流向**：
-```
-HTTP Request → Interface Layer → Application Layer → Domain Layer
-                     ↓                    ↓              ↓
-HTTP Response ← Interface Layer ← Application Layer ← Domain Layer
-                     ↑                    ↑              ↑
-              Infrastructure Layer ← Infrastructure Layer
+// 领域服务 - 核心业务逻辑
+type UserDomainService struct {
+    userRepo UserRepository
+}
 ```
 
-### 📁 目录组织原则
+### 🏗️ 架构优势
 
-- **按功能模块组织**: 每个业务领域有独立的目录结构
-- **按层次分离**: 不同架构层有明确的目录边界
-- **接口与实现分离**: 接口定义在内层，实现在外层
-- **依赖注入**: 使用 Uber FX 管理依赖关系
-
-这种架构设计的优势：
-- ✅ **可测试性**: 每层都可以独立测试
-- ✅ **可维护性**: 职责清晰，修改影响范围小
-- ✅ **可扩展性**: 易于添加新功能和替换实现
-- ✅ **技术无关性**: 核心业务逻辑不依赖具体技术栈
+- ✅ **高可测试性**: 每层独立，易于单元测试
+- ✅ **低耦合性**: 依赖抽象，易于替换实现
+- ✅ **高可维护性**: 职责清晰，修改影响范围小
+- ✅ **技术无关性**: 核心业务不依赖具体技术栈
+- ✅ **易扩展性**: 新功能遵循相同模式，快速开发
 
 ## 依赖注入
 
@@ -577,7 +389,7 @@ HTTP Response ← Interface Layer ← Application Layer ← Domain Layer
 
 ## 配置说明
 
-项目支持丰富的配置选项，详细配置说明请参考 [app.yaml.example](file:///Users/liubisen/Desktop/sander/Project/my/go-micro-scaffold/services/configs/app.yaml.example) 文件。
+项目支持丰富的配置选项，详细配置说明请参考 [app.yaml.example](./services/configs/app.yaml.example) 文件。
 
 ## 日志系统
 
@@ -604,14 +416,23 @@ HTTP Response ← Interface Layer ← Application Layer ← Domain Layer
 ### 中间件配置示例
 
 ```go
-// 在路由中使用中间件
-router.Use(middleware.CORSMiddleware())
-router.Use(middleware.RequestLogMiddleware(logger))
-router.Use(middleware.RecoveryMiddleware())
+package main
 
-// 需要认证的路由组
-authGroup := router.Group("/api/v1")
-authGroup.Use(middleware.AuthMiddleware(jwtService))
+import (
+    "github.com/gin-gonic/gin"
+    "common/middleware"
+)
+
+func setupRoutes(router *gin.Engine, cfg *Config, jwtService *JWTService) {
+    // 全局中间件
+    router.Use(middleware.CORSMiddleware(cfg.Server))
+    router.Use(middleware.RequestLogMiddleware())
+    router.Use(middleware.RecoveryMiddleware())
+
+    // 需要认证的路由组
+    authGroup := router.Group("/api/v1")
+    authGroup.Use(middleware.AuthMiddleware(jwtService))
+}
 ```
 
 
@@ -629,9 +450,17 @@ system:
 
 2. **自动初始化**：
 ```go
+package di
+
+import (
+    "go.uber.org/fx"
+    "common/pkg/timezone"
+)
+
 // 在 common/di/modules.go 中已经注册
-var TimezoneModule = fx.Module("timezone",
-    timezone.Module,
+var CommonModules = fx.Options(
+    // ... 其他模块
+    timezone.Module,  // 时区模块自动初始化
 )
 ```
 
@@ -658,13 +487,14 @@ package entity
 import (
     "time"
     "github.com/google/uuid"
+    "services/internal/domain/order/valueobject"
 )
 
 type Order struct {
     id          string
     userID      string
     totalAmount int64
-    status      OrderStatus
+    status      valueobject.OrderStatus
     createdAt   time.Time
     updatedAt   time.Time
 }
@@ -674,7 +504,7 @@ func NewOrder(userID string, totalAmount int64) *Order {
         id:          uuid.New().String(),
         userID:      userID,
         totalAmount: totalAmount,
-        status:      OrderStatusPending,
+        status:      valueobject.OrderStatusPending,
         createdAt:   time.Now(),
         updatedAt:   time.Now(),
     }
@@ -683,7 +513,8 @@ func NewOrder(userID string, totalAmount int64) *Order {
 // Getter 方法
 func (o *Order) ID() string { return o.id }
 func (o *Order) UserID() string { return o.userID }
-// ... 其他 getter 方法
+func (o *Order) TotalAmount() int64 { return o.totalAmount }
+func (o *Order) Status() valueobject.OrderStatus { return o.status }
 ```
 
 **创建值对象**
@@ -700,6 +531,23 @@ const (
     OrderStatusDelivered
     OrderStatusCancelled
 )
+
+func (s OrderStatus) String() string {
+    switch s {
+    case OrderStatusPending:
+        return "pending"
+    case OrderStatusPaid:
+        return "paid"
+    case OrderStatusShipped:
+        return "shipped"
+    case OrderStatusDelivered:
+        return "delivered"
+    case OrderStatusCancelled:
+        return "cancelled"
+    default:
+        return "unknown"
+    }
+}
 ```
 
 **定义仓储接口**

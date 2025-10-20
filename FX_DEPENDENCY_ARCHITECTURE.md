@@ -43,8 +43,8 @@ graph TD
     U --> V[NewRedisClient]
 
     M --> W[common/pkg/idgen]
-    W --> X[ulgen.Generator]
-    X --> Y[NewGenerator]
+    W --> X[idgen.Generator]
+    X --> Y[NewSnowflakeGenerator]
 
     M --> Z[common/http]
     Z --> AA[*gin.Engine]
@@ -70,7 +70,7 @@ graph TD
     AO --> AP[*handler.HealthHandler]
     AP --> AQ[NewHealthHandler]
 
-    AQ --> AR[services/internal/application/query/handler]
+    AQ --> AR[services/internal/application/queryhandler]
     AR --> AS[*queryhandler.UserQueryHandler]
     AS --> AT[NewUserQueryHandler]
 
@@ -82,7 +82,7 @@ graph TD
     AX --> AY[*service.UserDomainService]
     AY --> AZ[NewUserDomainService]
 
-    AZ --> BA[services/internal/application/command/handler]
+    AZ --> BA[services/internal/application/commandhandler]
     BA --> BB[*commandhandler.UserCommandHandler]
     BB --> BC[NewUserCommandHandler]
 
@@ -94,7 +94,7 @@ graph TD
     BG --> BH[*validation.Validator]
     BH --> BI[NewValidator]
 
-    BI --> BJ[common/pkg/json]
+    BI --> BJ[common/pkg/jwt]
     BJ --> BK[*jwt.JWT]
     BK --> BL[NewJWTService]
 
@@ -111,18 +111,23 @@ graph TD
 
 ### 核心依赖流向
 
-1. **应用启动流程**：[main](./services/cmd/server/main.go) → [go.uber.org/fx](./go.mod) → 配置加载 → 基础设施初始化
+1. **应用启动流程**：[main](./services/cmd/server/main.go) → [go.uber.org/fx](./go.work) → 配置加载 → 基础设施初始化
 2. **配置依赖**：所有模块都依赖于 [common/config](./common/config/config.go) 提供的配置信息
 3. **日志系统**：[common/logger](./common/logger/logger.go) 被多个模块使用，作为统一日志输出
 4. **数据访问层**：从 [common/databases](./common/databases/module.go) 到 [services/internal/infrastructure/persistence/ent](./services/internal/infrastructure/persistence/ent/module.go) 实现数据持久化
 5. **业务逻辑层**：[domain](./services/internal/domain/user/di.go) → [application](./services/internal/application/di.go) → [interfaces](./services/internal/interfaces/http/di.go) 的典型 Clean Architecture 依赖流向
+6. **JWT认证系统**：[common/pkg/jwt](./common/pkg/jwt) 提供JWT令牌生成和验证功能
+7. **ID生成系统**：[common/pkg/idgen](./common/pkg/idgen) 基于Snowflake算法生成唯一ID
 
 ### 关键模块依赖关系
 
-- **HTTP服务**：依赖配置、日志等基础组件
-- **数据库访问**：通过 Ent ORM 实现，依赖 MySQL 管理器
-- **用户领域服务**：依赖仓储实现和验证器
-- **接口层**：依赖应用层的命令和查询处理器
+- **HTTP服务**：依赖配置、日志等基础组件，通过Gin框架提供Web服务
+- **数据库访问**：通过 Ent ORM 实现，依赖 MySQL 管理器和Redis缓存
+- **用户领域服务**：依赖仓储实现和验证器，实现核心业务逻辑
+- **接口层**：依赖应用层的命令和查询处理器，处理HTTP请求和响应
+- **应用层**：包含命令处理器(CommandHandler)和查询处理器(QueryHandler)，实现CQRS模式
+- **基础设施层**：提供数据持久化、消息发布等技术实现
+- **公共组件**：提供配置管理、日志记录、JWT认证、ID生成等跨模块服务
 
 ## 可视化图表
 

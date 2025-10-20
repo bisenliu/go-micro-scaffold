@@ -100,33 +100,83 @@ graph LR
 
 ```mermaid
 graph TB
-    subgraph "应用层"
-        A[HTTP 模块]
-        B[CLI 模块]
+    subgraph "Common Layer (公共组件层)"
+        CM1[ConfigModule<br/>配置管理]
+        CM2[LoggerModule<br/>日志系统]
+        CM3[DatabasesModule<br/>数据库连接]
+        CM4[HTTPModule<br/>Gin引擎]
+        CM5[JWTModule<br/>JWT认证]
+        CM6[ValidationModule<br/>数据验证]
+        CM7[IDGenModule<br/>ID生成器]
+        CM8[TimezoneModule<br/>时区管理]
     end
     
-    subgraph "业务层"
-        C[用户模块]
-        D[订单模块]
+    subgraph "Service Layer (服务层)"
+        subgraph "Interface Layer"
+            IF1[InterfaceModuleFinal<br/>HTTP接口模块]
+            IF2[UserHandler<br/>用户处理器]
+            IF3[AuthHandler<br/>认证处理器]
+            IF4[HealthHandler<br/>健康检查]
+        end
+        
+        subgraph "Application Layer"
+            APP1[ApplicationModule<br/>应用模块]
+            APP2[UserCommandHandler<br/>命令处理器]
+            APP3[UserQueryHandler<br/>查询处理器]
+            APP4[AuthService<br/>认证服务]
+        end
+        
+        subgraph "Domain Layer"
+            DOM1[user.DomainModule<br/>用户领域模块]
+            DOM2[UserDomainService<br/>领域服务]
+            DOM3[UserValidator<br/>业务验证器]
+            DOM4[UserRepository<br/>仓储接口]
+        end
+        
+        subgraph "Infrastructure Layer"
+            INF1[InfrastructureModule<br/>基础设施模块]
+            INF2[UserRepositoryImpl<br/>仓储实现]
+            INF3[EntClient<br/>ORM客户端]
+            INF4[EventPublisher<br/>事件发布]
+        end
     end
     
-    subgraph "基础设施层"
-        E[数据库模块]
-        F[缓存模块]
-        G[日志模块]
-    end
+    %% 依赖关系
+    CM1 --> APP1
+    CM2 --> IF1
+    CM3 --> INF1
+    CM4 --> IF1
+    CM5 --> IF1
+    CM6 --> IF1
+    CM7 --> APP1
+    CM8 --> APP1
     
-    A --> C
-    A --> D
-    B --> C
-    C --> E
-    C --> F
-    D --> E
-    D --> F
+    IF1 --> APP1
+    IF2 --> APP2
+    IF2 --> APP3
+    IF3 --> APP4
     
-    C --> G
-    D --> G
-    E --> G
+    APP1 --> DOM1
+    APP2 --> DOM2
+    APP3 --> DOM4
+    APP4 --> DOM2
+    
+    INF1 --> DOM1
+    INF2 --> DOM4
+    INF3 --> INF2
+    
+    %% 样式
+    classDef commonModule fill:#e1f5fe,stroke:#0277bd
+    classDef interfaceModule fill:#e8f5e8,stroke:#388e3c
+    classDef appModule fill:#fff3e0,stroke:#f57c00
+    classDef domainModule fill:#fce4ec,stroke:#c2185b
+    classDef infraModule fill:#f3e5f5,stroke:#7b1fa2
+    
+    class CM1,CM2,CM3,CM4,CM5,CM6,CM7,CM8 commonModule
+    class IF1,IF2,IF3,IF4 interfaceModule
+    class APP1,APP2,APP3,APP4 appModule
+    class DOM1,DOM2,DOM3,DOM4 domainModule
+    class INF1,INF2,INF3,INF4 infraModule
 ```
 
 ---
@@ -232,35 +282,50 @@ var ModuleName = fx.Module("module-name", options...)
 
 #### 🌟 示例
 ```go
-// 数据库模块
-var DatabaseModule = fx.Module("database",
+// Common层模块 - 基础设施组件
+var DatabasesModule = fx.Module("databases",
+    databases.Module,
+)
+
+var LoggerModule = fx.Module("logger",
+    logger.Module,
+)
+
+// Domain层模块 - 业务领域
+var DomainModule = fx.Module("user_domain",
     fx.Provide(
-        NewDatabaseConfig,
-        NewDatabase,
-        NewUserRepository,
+        // 验证器
+        validator.NewUserValidator,
+        
+        // 领域服务
+        service.NewUserDomainService,
+        
+        // 仓储实现
+        fx.Annotate(
+            repository.NewUserRepositoryImpl,
+            fx.As(new(domainrepo.UserRepository)),
+        ),
     ),
 )
 
-// 用户模块
-var UserModule = fx.Module("user",
+// Application层模块 - 应用服务
+var ApplicationModule = fx.Module("application",
     fx.Provide(
-        NewUserService,
-        NewUserHandler,
+        commandhandler.NewUserCommandHandler,
+        queryhandler.NewUserQueryHandler,
+        service.NewAuthService,
+        service.NewPermissionService,
     ),
-)
-
-// HTTP 模块
-var HTTPModule = fx.Module("http",
-    fx.Provide(NewGinEngine),
-    fx.Invoke(SetupRoutes),
 )
 
 // 主应用
 func main() {
     fx.New(
-        DatabaseModule,
-        UserModule,
-        HTTPModule,
+        commonDI.GetWebModules(),
+        user.DomainModule,
+        application.ApplicationModule,
+        infrastructure.InfrastructureModule,
+        http.InterfaceModuleFinal,
     ).Run()
 }
 ```
@@ -281,33 +346,51 @@ fx.Annotate(
 
 #### 🌟 示例
 ```go
-// 接口定义
+// 接口定义 (在领域层)
+package repository
+
+import (
+    "context"
+    "services/internal/domain/user/entity"
+)
+
 type UserRepository interface {
-    GetUser(id string) (*User, error)
+    Create(ctx context.Context, user *entity.User) error
+    GetByID(ctx context.Context, id string) (*entity.User, error)
+    List(ctx context.Context, offset, limit int) ([]*entity.User, int64, error)
+    ExistsByPhoneNumber(ctx context.Context, phoneNumber string) (bool, error)
 }
 
-// 具体实现
-type MySQLUserRepository struct {
-    db *sql.DB
+// 具体实现 (在基础设施层)
+package repository
+
+import (
+    "services/internal/infrastructure/persistence/ent/gen"
+    domainrepo "services/internal/domain/user/repository"
+)
+
+type UserRepositoryImpl struct {
+    client *gen.Client
 }
 
-func NewMySQLUserRepository(db *sql.DB) *MySQLUserRepository {
-    return &MySQLUserRepository{db: db}
+func NewUserRepository(client *gen.Client) domainrepo.UserRepository {
+    return &UserRepositoryImpl{client: client}
 }
 
-// 接口绑定
-var RepositoryModule = fx.Module("repository",
+// 在基础设施模块中注册
+var InfrastructureModule = fx.Module("infrastructure",
     fx.Provide(
-        fx.Annotate(
-            NewMySQLUserRepository,
-            fx.As(new(UserRepository)), // 绑定到接口
-        ),
+        // Ent客户端
+        NewEntClient,
+        
+        // 仓储实现 (自动绑定到接口)
+        repository.NewUserRepository,
     ),
 )
 
-// 使用接口
-func NewUserService(repo UserRepository) *UserService {
-    return &UserService{repo: repo}
+// 使用接口 (在领域服务中)
+func NewUserDomainService(repo repository.UserRepository) *UserDomainService {
+    return &UserDomainService{repo: repo}
 }
 ```
 
@@ -589,42 +672,81 @@ graph TB
 ```
 
 ```go
-// 用户服务模块
-var UserServiceModule = fx.Module("user-service",
-    fx.Provide(
-        NewUserRepository,
-        NewUserService,
-        NewUserHandler,
-    ),
+// 基于实际项目的微服务应用
+package main
+
+import (
+    "flag"
+    "fmt"
+    "log"
+    "os"
+    "go.uber.org/fx"
+    
+    commonDI "common/di"
+    "services/internal/application"
+    "services/internal/domain/user"
+    "services/internal/infrastructure"
+    "services/internal/interfaces/http"
 )
 
-// 订单服务模块
-var OrderServiceModule = fx.Module("order-service",
-    fx.Provide(
-        NewOrderRepository,
-        NewOrderService,
-        NewOrderHandler,
-    ),
-)
-
-// 共享模块
-var SharedModule = fx.Module("shared",
-    fx.Provide(
-        NewConfig,
-        NewLogger,
-        NewDatabase,
-        NewMetrics,
-    ),
-)
-
-// 微服务应用
 func main() {
-    fx.New(
-        SharedModule,
-        UserServiceModule,
-        OrderServiceModule,
+    // 添加命令行参数
+    var (
+        generateGraph = flag.Bool("graph", false, "Generate dependency graph and exit")
+        graphOutput   = flag.String("graph-output", "dependency-graph.dot", "Output file for dependency graph")
+    )
+    flag.Parse()
+
+    // 创建应用容器
+    app := fx.New(
+        // 使用common库的Web模块
+        commonDI.GetWebModules(),
+
+        // 领域模块
+        user.DomainModule,
+
+        // 应用模块
+        application.ApplicationModule,
+
+        // 基础设施模块
+        infrastructure.InfrastructureModule,
+
+        // 接口模块
+        http.InterfaceModuleFinal,
+    )
+
+    if err := app.Err(); err != nil {
+        log.Fatalf("Failed to initialize application: %v", err)
+    }
+
+    // 如果请求生成依赖图
+    if *generateGraph {
+        generateDependencyGraph(app, *graphOutput)
+        return
+    }
+
+    // 启动应用容器
+    app.Run()
+}
+
+// Common库的模块组织
+func GetWebModules() fx.Option {
+    return fx.Options(
+        GetCoreModules(),
         HTTPModule,
-    ).Run()
+    )
+}
+
+func GetCoreModules() fx.Option {
+    return fx.Options(
+        ConfigModule,
+        LoggerModule,
+        DatabasesModule,
+        ValidationModule,
+        IDGenModule,
+        JWTModule,
+        TimezoneModule,
+    )
 }
 ```
 
@@ -685,21 +807,30 @@ func NewOrderService(eventBus EventBus) *OrderService {
 **方案2：提取共同依赖**
 ```go
 // ✅ 提取共同的仓储层
+package repository
+
+import (
+    "context"
+    "services/internal/domain/user/entity"
+)
+
 type UserRepository interface {
-    GetUser(id string) (*User, error)
+    GetByID(ctx context.Context, id string) (*entity.User, error)
+    ExistsByPhoneNumber(ctx context.Context, phoneNumber string) (bool, error)
 }
 
 type OrderRepository interface {
-    GetOrdersByUser(userID string) ([]*Order, error)
+    GetOrdersByUserID(ctx context.Context, userID string) ([]*entity.Order, error)
 }
 
-type UserService struct {
+// 领域服务只依赖仓储接口，不相互依赖
+type UserDomainService struct {
     userRepo UserRepository
 }
 
-type OrderService struct {
+type OrderDomainService struct {
     orderRepo OrderRepository
-    userRepo  UserRepository  // 共享仓储，而不是服务
+    userRepo  UserRepository  // 共享仓储接口，而不是服务
 }
 ```
 
@@ -845,28 +976,43 @@ func main() {
 
 ### 📊 依赖关系可视化
 
+**项目内置的依赖图生成**：
 ```go
+// 使用项目内置的依赖图生成功能
 func main() {
-    app := fx.New(
-        UserModule,
-        HTTPModule,
+    // 添加命令行参数
+    var (
+        generateGraph = flag.Bool("graph", false, "Generate dependency graph and exit")
+        graphOutput   = flag.String("graph-output", "dependency-graph.dot", "Output file for dependency graph")
     )
-    
-    // 打印依赖关系图
-    fmt.Println(app.DotGraph())
-    
-    // 或者保存到文件
-    if err := os.WriteFile("dependencies.dot", []byte(app.DotGraph()), 0644); err != nil {
-        log.Fatal(err)
+    flag.Parse()
+
+    app := fx.New(
+        commonDI.GetWebModules(),
+        user.DomainModule,
+        application.ApplicationModule,
+        infrastructure.InfrastructureModule,
+        http.InterfaceModuleFinal,
+    )
+
+    // 如果请求生成依赖图
+    if *generateGraph {
+        generateDependencyGraph(app, *graphOutput)
+        return
     }
-    
+
     app.Run()
 }
 ```
 
-然后使用 Graphviz 生成可视化图：
+**使用方法**：
 ```bash
-dot -Tpng dependencies.dot -o dependencies.png
+# 生成依赖关系图
+go run cmd/server/main.go -graph
+
+# 生成可视化图片
+dot -Tpng dependency-graph.dot -o dependency-graph.png
+dot -Tsvg dependency-graph.dot -o dependency-graph.svg
 ```
 
 ### 🐛 错误诊断流程
@@ -970,6 +1116,323 @@ func main() {
 }
 ```
 
+### 🛠️ 项目特定的调试技巧
+
+#### 1. 常见启动问题诊断
+
+**问题：循环依赖错误**
+```bash
+# 错误信息示例
+[Fx] ERROR    Failed to build dependency graph: cycle detected in dependency graph
+```
+
+**解决方案**：
+```go
+// ✅ 检查模块间的依赖关系
+// 确保Domain层不依赖Application层或Infrastructure层
+// 使用接口进行依赖倒置
+
+// 错误示例：Domain层直接依赖Infrastructure层
+// ❌ func NewUserService(repo *ent.UserRepository) *UserService
+
+// 正确示例：Domain层依赖接口
+// ✅ func NewUserService(repo repository.UserRepository) *UserService
+```
+
+#### 2. 数据库连接问题调试
+
+**问题：数据库连接失败**
+```bash
+# 使用项目内置的数据库连接测试
+go run cmd/cli/main.go migrate
+```
+
+**调试步骤**：
+```yaml
+# 1. 检查配置文件
+# services/configs/app.yaml
+databases:
+  mysql:
+    host: "localhost"
+    port: 3306
+    username: "root"
+    password: "password"
+    database: "go_micro_scaffold"
+    max_open_conns: 100
+    max_idle_conns: 10
+    conn_max_lifetime: "1h"
+```
+
+```go
+// 2. 验证数据库连接
+// 在common/databases/mysql包中已有连接验证逻辑
+func NewManager(config *config.Config, logger *zap.Logger) (*Manager, error) {
+    // 数据库连接逻辑
+    db, err := sql.Open("mysql", dsn)
+    if err != nil {
+        return nil, err
+    }
+    
+    // 测试连接
+    if err := db.Ping(); err != nil {
+        return nil, err
+    }
+    
+    return &Manager{db: db}, nil
+}
+```
+
+#### 3. HTTP路由问题调试
+
+**问题：路由未生效**
+```go
+// ✅ 检查路由注册顺序
+// 确保在services/internal/interfaces/http/routes/main.go中
+// 正确调用了SetupRoutesFinal函数
+
+package routes
+
+import (
+    "github.com/gin-gonic/gin"
+    "go.uber.org/zap"
+    "services/internal/interfaces/http/handler"
+)
+
+type RoutesParams struct {
+    Engine        *gin.Engine
+    UserHandler   *handler.UserHandler
+    AuthHandler   *handler.AuthHandler
+    HealthHandler *handler.HealthHandler
+    ZapLogger     *zap.Logger
+}
+
+func SetupRoutesFinal(p RoutesParams) {
+    // 1. 系统路由（无需认证）
+    SetupSystemRoutes(p.Engine, p.HealthHandler, p.ZapLogger)
+    
+    // 2. API v1 路由组
+    v1 := p.Engine.Group("/api/v1")
+    
+    // 3. 业务路由
+    SetupUserRoutes(v1, p.UserHandler, p.ZapLogger)
+    SetupAuthRoutes(v1, p.AuthHandler, p.ZapLogger)
+}
+```
+
+#### 4. JWT认证问题调试
+
+**问题：JWT验证失败**
+```go
+// ✅ 检查JWT配置
+package jwt
+
+import (
+    "time"
+    "github.com/golang-jwt/jwt/v4"
+    "common/config"
+)
+
+type JWT struct {
+    secretKey     []byte
+    expiredTime   time.Duration
+    issuer        string
+}
+
+func NewJWTService(config *config.Config) *JWT {
+    return &JWT{
+        secretKey:   []byte(config.System.SecretKey),
+        expiredTime: time.Duration(config.Token.ExpiredTime) * time.Minute,
+        issuer:      config.System.Name,
+    }
+}
+
+// 调试JWT问题的步骤：
+// 1. 检查配置文件中的secret_key
+// 2. 验证token格式 (Bearer <token>)
+// 3. 确认token未过期
+// 4. 检查中间件是否正确应用
+```
+
+#### 5. 使用项目日志进行调试
+
+**启用详细日志**：
+```yaml
+# services/configs/app.yaml
+logger:
+  level: "debug"  # 设置为debug级别
+  format: "json"  # 使用json格式便于分析
+  output: "both"  # 同时输出到控制台和文件
+  file:
+    enabled: true
+    path: "./logs"
+    max_size: 100    # MB
+    max_backups: 10
+    max_age: 30      # 天
+```
+
+**查看日志文件**：
+```bash
+# 项目日志文件位置
+tail -f services/logs/app.$(date +%Y-%m-%d).log
+tail -f services/logs/error.$(date +%Y-%m-%d).log
+tail -f services/logs/info.$(date +%Y-%m-%d).log
+
+# 使用jq解析JSON日志
+tail -f services/logs/app.$(date +%Y-%m-%d).log | jq '.'
+
+# 过滤特定级别的日志
+tail -f services/logs/app.$(date +%Y-%m-%d).log | jq 'select(.level=="ERROR")'
+```
+
+#### 6. 使用CLI工具进行调试
+
+**数据库迁移和验证**：
+```bash
+# 执行数据库迁移
+go run cmd/cli/main.go migrate
+
+# 验证数据库连接
+go run cmd/cli/main.go db:ping
+
+# 查看数据库状态
+go run cmd/cli/main.go db:status
+```
+
+**生成依赖关系图**：
+```bash
+# 生成依赖关系图
+go run cmd/server/main.go -graph -graph-output=debug-graph.dot
+
+# 转换为可视化图片
+dot -Tpng debug-graph.dot -o debug-graph.png
+dot -Tsvg debug-graph.dot -o debug-graph.svg
+
+# 在线查看（如果没有安装Graphviz）
+# 上传debug-graph.dot到 http://magjac.com/graphviz-visual-editor/
+```
+
+#### 7. 常见启动问题快速诊断
+
+**问题1：端口被占用**
+```bash
+# 检查端口占用
+lsof -i :8080
+netstat -tulpn | grep :8080
+
+# 解决方案：修改配置文件端口或杀死占用进程
+kill -9 <PID>
+```
+
+**问题2：数据库连接失败**
+```bash
+# 检查数据库服务状态
+systemctl status mysql
+brew services list | grep mysql
+
+# 测试数据库连接
+mysql -h localhost -u root -p -e "SELECT 1"
+
+# 检查配置文件
+cat services/configs/app.yaml | grep -A 10 mysql
+```
+
+**问题3：Redis连接失败**
+```bash
+# 检查Redis服务状态
+systemctl status redis
+brew services list | grep redis
+
+# 测试Redis连接
+redis-cli ping
+
+# 检查Redis配置
+cat services/configs/app.yaml | grep -A 10 redis
+```
+
+#### 8. 性能调试工具
+
+**使用pprof进行性能分析**：
+```go
+// 在main.go中添加pprof支持
+import (
+    _ "net/http/pprof"
+    "net/http"
+)
+
+func main() {
+    // 启动pprof服务器
+    go func() {
+        log.Println(http.ListenAndServe("localhost:6060", nil))
+    }()
+    
+    // 正常的FX应用启动
+    fx.New(
+        commonDI.GetWebModules(),
+        // ... 其他模块
+    ).Run()
+}
+```
+
+**性能分析命令**：
+```bash
+# CPU性能分析
+go tool pprof http://localhost:6060/debug/pprof/profile?seconds=30
+
+# 内存分析
+go tool pprof http://localhost:6060/debug/pprof/heap
+
+# Goroutine分析
+go tool pprof http://localhost:6060/debug/pprof/goroutine
+
+# 生成火焰图
+go tool pprof -http=:8081 http://localhost:6060/debug/pprof/profile?seconds=30
+```
+
+#### 9. 集成测试调试
+
+**使用测试数据库**：
+```go
+// 测试配置
+func NewTestConfig() *config.Config {
+    return &config.Config{
+        Database: config.Database{
+            MySQL: config.MySQL{
+                Host:     "localhost",
+                Port:     3306,
+                Username: "test",
+                Password: "test",
+                Database: "go_micro_scaffold_test",
+            },
+        },
+    }
+}
+
+// 集成测试示例
+func TestUserAPI(t *testing.T) {
+    var server *gin.Engine
+    
+    app := fx.New(
+        fx.Provide(NewTestConfig),
+        commonDI.GetCoreModules(),
+        user.DomainModule,
+        application.ApplicationModule,
+        infrastructure.InfrastructureModule,
+        http.InterfaceModuleFinal,
+        fx.Populate(&server),
+    )
+    
+    require.NoError(t, app.Start(context.Background()))
+    defer app.Stop(context.Background())
+    
+    // 执行API测试
+    w := httptest.NewRecorder()
+    req, _ := http.NewRequest("GET", "/api/v1/users", nil)
+    server.ServeHTTP(w, req)
+    
+    assert.Equal(t, 200, w.Code)
+}
+```
+
 ---
 
 ## 7. 最佳实践
@@ -977,53 +1440,59 @@ func main() {
 ### 📁 项目结构建议
 
 ```
-project/
-├── cmd/
-│   └── server/
-│       └── main.go          # 应用入口
-├── internal/
-│   ├── config/
-│   │   └── config.go        # 配置模块
-│   ├── domain/
-│   │   ├── user/
-│   │   │   ├── service.go   # 业务逻辑
-│   │   │   └── repository.go # 仓储接口
-│   │   └── order/
-│   ├── infrastructure/
-│   │   ├── database/
-│   │   │   └── mysql.go     # 数据库实现
-│   │   └── cache/
-│   │       └── redis.go     # 缓存实现
-│   ├── interfaces/
-│   │   └── http/
-│   │       ├── handler/     # HTTP 处理器
-│   │       └── middleware/  # 中间件
-│   └── modules/
-│       ├── config.go        # 配置模块
-│       ├── database.go      # 数据库模块
-│       ├── user.go          # 用户模块
-│       └── http.go          # HTTP 模块
-└── go.mod
+go-micro-scaffold/
+├── common/                  # 公共库
+│   ├── config/             # 配置管理
+│   ├── databases/          # 数据库相关
+│   ├── di/                 # 依赖注入模块
+│   ├── http/               # HTTP 服务
+│   ├── logger/             # 日志系统
+│   ├── middleware/         # 中间件
+│   ├── pkg/                # 通用工具包
+│   ├── response/           # 响应处理
+│   └── go.mod
+├── services/               # 服务模块
+│   ├── cmd/
+│   │   └── server/
+│   │       └── main.go     # 应用入口
+│   ├── internal/           # Clean Architecture实现
+│   │   ├── application/    # 应用层
+│   │   ├── domain/         # 领域层
+│   │   ├── infrastructure/ # 基础设施层
+│   │   └── interfaces/     # 接口层
+│   └── go.mod
+└── go.work                 # Go 工作区
 ```
 
 ### 🎯 模块设计原则
 
 #### 1. 单一职责原则
 ```go
-// ✅ 每个模块只负责一个领域
-var UserModule = fx.Module("user",
+// ✅ 每个模块只负责一个领域或层次
+var UserDomainModule = fx.Module("user_domain",
     fx.Provide(
-        NewUserRepository,
-        NewUserService,
-        NewUserHandler,
+        // 只包含用户领域的组件
+        validator.NewUserValidator,
+        service.NewUserDomainService,
     ),
 )
 
-var OrderModule = fx.Module("order",
+var ApplicationModule = fx.Module("application",
     fx.Provide(
-        NewOrderRepository,
-        NewOrderService,
-        NewOrderHandler,
+        // 只包含应用层组件
+        commandhandler.NewUserCommandHandler,
+        queryhandler.NewUserQueryHandler,
+        service.NewAuthService,
+        service.NewPermissionService,
+    ),
+)
+
+var InfrastructureModule = fx.Module("infrastructure",
+    fx.Provide(
+        // 只包含基础设施组件
+        NewEntClient,
+        repository.NewUserRepository,
+        messaging.NewEventPublisher,
     ),
 )
 ```
@@ -1031,19 +1500,33 @@ var OrderModule = fx.Module("order",
 #### 2. 依赖倒置原则
 ```go
 // ✅ 依赖接口而不是具体实现
-type UserService struct {
-    repo   UserRepository    // 接口
-    logger Logger           // 接口
+package service
+
+import (
+    "services/internal/domain/user/repository"
+    "go.uber.org/zap"
+)
+
+type UserDomainService struct {
+    repo   repository.UserRepository    // 领域接口
+    logger *zap.Logger                  // 具体实现（基础设施）
 }
 
-// 在模块中绑定具体实现
-var UserModule = fx.Module("user",
+func NewUserDomainService(
+    repo repository.UserRepository,
+    logger *zap.Logger,
+) *UserDomainService {
+    return &UserDomainService{
+        repo:   repo,
+        logger: logger,
+    }
+}
+
+// 在基础设施模块中提供具体实现
+var InfrastructureModule = fx.Module("infrastructure",
     fx.Provide(
-        fx.Annotate(
-            NewMySQLUserRepository,
-            fx.As(new(UserRepository)),
-        ),
-        NewUserService,
+        // 仓储实现自动绑定到接口
+        repository.NewUserRepository,  // 返回 repository.UserRepository 接口
     ),
 )
 ```
@@ -1144,19 +1627,210 @@ fx.Provide(func() func() *ExpensiveResource {
 
 #### 2. 监控依赖创建时间
 ```go
+// ✅ 监控数据库连接创建时间
 fx.Provide(
     fx.Annotate(
-        func(logger *zap.Logger) *ExpensiveService {
+        func(config *config.Config, logger *zap.Logger) (*mysql.Manager, error) {
             start := time.Now()
             defer func() {
-                logger.Info("ExpensiveService created",
+                logger.Info("MySQL Manager created",
                     zap.Duration("duration", time.Since(start)))
             }()
             
-            return NewExpensiveService()
+            return mysql.NewManager(config, logger)
         },
     ),
 )
+
+// ✅ 监控Ent客户端创建时间
+fx.Provide(
+    fx.Annotate(
+        func(manager *mysql.Manager, logger *zap.Logger) (*gen.Client, error) {
+            start := time.Now()
+            defer func() {
+                logger.Info("Ent Client created",
+                    zap.Duration("duration", time.Since(start)))
+            }()
+            
+            return gen.NewClient(gen.Driver(manager.GetDB())), nil
+        },
+    ),
+)
+```
+
+#### 3. 连接池优化
+```go
+// ✅ 数据库连接池配置优化
+func NewManager(config *config.Config, logger *zap.Logger) (*Manager, error) {
+    db, err := sql.Open("mysql", dsn)
+    if err != nil {
+        return nil, err
+    }
+    
+    // 连接池配置
+    db.SetMaxOpenConns(config.Database.MySQL.MaxOpenConns)    // 最大连接数
+    db.SetMaxIdleConns(config.Database.MySQL.MaxIdleConns)    // 最大空闲连接数
+    db.SetConnMaxLifetime(config.Database.MySQL.ConnMaxLifetime) // 连接最大生存时间
+    
+    return &Manager{db: db}, nil
+}
+
+// ✅ Redis连接池配置优化
+func NewRedisClient(config *config.Config) *redis.Client {
+    return redis.NewClient(&redis.Options{
+        Addr:         config.Database.Redis.Addr,
+        Password:     config.Database.Redis.Password,
+        DB:           config.Database.Redis.DB,
+        PoolSize:     config.Database.Redis.PoolSize,     // 连接池大小
+        MinIdleConns: config.Database.Redis.MinIdleConns, // 最小空闲连接数
+        MaxRetries:   config.Database.Redis.MaxRetries,   // 最大重试次数
+    })
+}
+```
+
+#### 3. 基于实际项目的优化建议
+
+**模块组织优化**：
+```go
+// ✅ 使用GetWebModules()统一管理公共组件
+func GetWebModules() fx.Option {
+    return fx.Options(
+        GetCoreModules(),  // 核心模块
+        HTTPModule,        // HTTP模块
+    )
+}
+
+func GetCoreModules() fx.Option {
+    return fx.Options(
+        ConfigModule,      // 配置管理
+        LoggerModule,      // 日志系统
+        DatabasesModule,   // 数据库连接
+        ValidationModule,  // 数据验证
+        IDGenModule,       // ID生成器
+        JWTModule,         // JWT认证
+        TimezoneModule,    // 时区管理
+    )
+}
+
+// ✅ 分层模块化，清晰的依赖关系
+func main() {
+    fx.New(
+        commonDI.GetWebModules(),              // 公共组件
+        user.DomainModule,                     // 领域层
+        application.ApplicationModule,         // 应用层
+        infrastructure.InfrastructureModule,  // 基础设施层
+        http.InterfaceModuleFinal,            // 接口层
+    ).Run()
+}
+```
+
+**生命周期管理优化**：
+```go
+// ✅ HTTP服务器生命周期管理
+func RegisterServerLifecycle(
+    server *gin.Engine,
+    config *config.Config,
+    lc fx.Lifecycle,
+    logger *zap.Logger,
+) {
+    httpServer := &http.Server{
+        Addr:    fmt.Sprintf(":%d", config.Server.Port),
+        Handler: server,
+    }
+
+    lc.Append(fx.Hook{
+        OnStart: func(ctx context.Context) error {
+            logger.Info("Starting HTTP server",
+                zap.String("addr", httpServer.Addr))
+            go func() {
+                if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+                    logger.Error("HTTP server failed", zap.Error(err))
+                }
+            }()
+            return nil
+        },
+        OnStop: func(ctx context.Context) error {
+            logger.Info("Stopping HTTP server")
+            ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+            defer cancel()
+            return httpServer.Shutdown(ctx)
+        },
+    })
+}
+
+// ✅ 数据库连接生命周期管理
+func RegisterDatabaseLifecycle(
+    manager *mysql.Manager,
+    lc fx.Lifecycle,
+    logger *zap.Logger,
+) {
+    lc.Append(fx.Hook{
+        OnStart: func(ctx context.Context) error {
+            logger.Info("Testing database connection")
+            return manager.Ping(ctx)
+        },
+        OnStop: func(ctx context.Context) error {
+            logger.Info("Closing database connections")
+            return manager.Close()
+        },
+    })
+}
+```
+
+**错误处理优化**：
+```go
+// ✅ 统一错误处理和依赖图生成
+func main() {
+    app := fx.New(
+        commonDI.GetWebModules(),
+        user.DomainModule,
+        application.ApplicationModule,
+        infrastructure.InfrastructureModule,
+        http.InterfaceModuleFinal,
+    )
+
+    // 检查依赖注入错误
+    if err := app.Err(); err != nil {
+        // 生成依赖图帮助调试
+        if visualization, verr := fx.VisualizeError(err); verr == nil {
+            fmt.Println("Dependency graph visualization:")
+            fmt.Println(visualization)
+        }
+        log.Fatalf("Failed to initialize application: %v", err)
+    }
+
+    app.Run()
+}
+```
+
+**配置管理优化**：
+```go
+// ✅ 环境特定的配置加载
+func NewConfig() (*Config, error) {
+    v := viper.New()
+    
+    // 设置配置文件路径
+    v.SetConfigName("app")
+    v.SetConfigType("yaml")
+    v.AddConfigPath("./configs")
+    v.AddConfigPath("../configs")
+    
+    // 环境变量支持
+    v.AutomaticEnv()
+    v.SetEnvPrefix("APP")
+    v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+    
+    if err := v.ReadInConfig(); err != nil {
+        return nil, fmt.Errorf("failed to read config: %w", err)
+    }
+    
+    var config Config
+    if err := v.Unmarshal(&config); err != nil {
+        return nil, fmt.Errorf("failed to unmarshal config: %w", err)
+    }
+    
+    return &config, nil
+}
 ```
 
 ---
