@@ -54,65 +54,7 @@ func NewResponseEngineWithFactory(factory ErrorFactory) *ResponseEngine {
 
 // initDefaultCodes 初始化默认业务码
 func (re *ResponseEngine) initDefaultCodes() {
-	defaultCodes := map[int]*CodeInfo{
-		CodeSuccess: {
-			Code:       CodeSuccess,
-			Message:    "操作成功",
-			HTTPStatus: http.StatusOK,
-		},
-		CodeNotFound: {
-			Code:       CodeNotFound,
-			Message:    "资源不存在",
-			HTTPStatus: http.StatusNotFound,
-		},
-		CodeValidation: {
-			Code:       CodeValidation,
-			Message:    "验证失败",
-			HTTPStatus: http.StatusBadRequest,
-		},
-		CodeUnauthorized: {
-			Code:       CodeUnauthorized,
-			Message:    "未授权访问",
-			HTTPStatus: http.StatusUnauthorized,
-		},
-		CodeForbidden: {
-			Code:       CodeForbidden,
-			Message:    "禁止访问",
-			HTTPStatus: http.StatusForbidden,
-		},
-		CodeBusinessError: {
-			Code:       CodeBusinessError,
-			Message:    "业务处理失败",
-			HTTPStatus: http.StatusBadRequest,
-		},
-		CodeAlreadyExists: {
-			Code:       CodeAlreadyExists,
-			Message:    "资源已存在",
-			HTTPStatus: http.StatusConflict,
-		},
-		CodeConflict: {
-			Code:       CodeConflict,
-			Message:    "资源冲突",
-			HTTPStatus: http.StatusConflict,
-		},
-		CodeInternalError: {
-			Code:       CodeInternalError,
-			Message:    "内部服务器错误",
-			HTTPStatus: http.StatusInternalServerError,
-		},
-		CodeTimeout: {
-			Code:       CodeTimeout,
-			Message:    "请求超时",
-			HTTPStatus: http.StatusRequestTimeout,
-		},
-		CodeThirdParty: {
-			Code:       CodeThirdParty,
-			Message:    "第三方服务错误",
-			HTTPStatus: http.StatusBadGateway,
-		},
-	}
-
-	for code, info := range defaultCodes {
+	for code, info := range CodeInfoMap {
 		re.codeRegistry[code] = info
 	}
 }
