@@ -14,6 +14,10 @@ const (
 	ClientParsedIPContextKey = "clientParsedIP"
 	// TraceIDKey 是在context中存储追踪ID的键
 	TraceIDKey = "traceID"
+	// AuthHeaderKey 认证头键名
+	AuthHeaderKey = "Authorization"
+	// TokenPrefix Token前缀
+	TokenPrefix = "Bearer "
 )
 
 // GetUserIDFromContext 从context中获取用户ID

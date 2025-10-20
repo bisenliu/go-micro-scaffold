@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"sync"
 
-	entsql "entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect"
+	entsql "entgo.io/ent/dialect/sql"
 	_ "github.com/go-sql-driver/mysql"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
@@ -158,7 +158,7 @@ func (m *Manager) buildDSN(cfg config.DatabaseConfig) (string, string, error) {
 		dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 			cfg.Host, cfg.Port, cfg.Username, cfg.Password, cfg.Database)
 		return dsn, dialect.Postgres, nil
-	case "sqlite":
+	case "sqlite", "sqlite3":
 		return cfg.Database, dialect.SQLite, nil
 	default:
 		return "", "", fmt.Errorf("unsupported database type: %s", cfg.Type)

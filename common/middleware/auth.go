@@ -14,13 +14,6 @@ import (
 	"common/response"
 )
 
-const (
-	// AuthHeaderKey 认证头键名
-	AuthHeaderKey = "Authorization"
-	// TokenPrefix Token前缀
-	TokenPrefix = "Bearer "
-)
-
 // AuthMiddleware 认证中间件
 func AuthMiddleware(jwtService *jwt.JWT, cfg config.AuthConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -35,7 +28,7 @@ func AuthMiddleware(jwtService *jwt.JWT, cfg config.AuthConfig) gin.HandlerFunc 
 		}
 
 		// 获取Authorization头
-		authHeader := c.GetHeader(AuthHeaderKey)
+		authHeader := c.GetHeader(contextutil.AuthHeaderKey)
 		if authHeader == "" {
 			logger.Warn(ctx, "Missing authorization header")
 			err := response.NewUnauthorizedError("Missing authorization header")
@@ -46,7 +39,7 @@ func AuthMiddleware(jwtService *jwt.JWT, cfg config.AuthConfig) gin.HandlerFunc 
 
 		var token string
 		// 检查Bearer前缀
-		if !strings.HasPrefix(authHeader, TokenPrefix) {
+		if !strings.HasPrefix(authHeader, contextutil.TokenPrefix) {
 			logger.Warn(ctx, "Invalid authorization header format")
 			err := response.NewUnauthorizedError("Invalid authorization header format")
 			response.Handle(c, nil, err)
@@ -55,7 +48,7 @@ func AuthMiddleware(jwtService *jwt.JWT, cfg config.AuthConfig) gin.HandlerFunc 
 		}
 
 		// 提取token
-		token = strings.TrimPrefix(authHeader, TokenPrefix)
+		token = strings.TrimPrefix(authHeader, contextutil.TokenPrefix)
 		if token == "" {
 			logger.Warn(ctx, "Empty token")
 			err := response.NewUnauthorizedError("Empty token")
