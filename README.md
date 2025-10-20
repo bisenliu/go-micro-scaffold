@@ -797,11 +797,11 @@ func (h *OrderHandler) CreateOrder(c *gin.Context) {
     
     order, err := h.commandHandler.HandleCreateOrder(c.Request.Context(), command)
     if err != nil {
-        response.BusinessError(c, 500, err.Error())
+        response.Handle(c, nil, err)
         return
     }
     
-    response.Success(c, toOrderResponse(order))
+    response.Handle(c, toOrderResponse(order), nil)
 }
 ```
 
