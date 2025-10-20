@@ -95,32 +95,6 @@ func TestResponseEngine_HandlePaging(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
-func TestResponseEngine_CreateError(t *testing.T) {
-	engine := NewResponseEngine()
-
-	err := engine.CreateError(ErrorTypeNotFound, "test error")
-
-	assert.NotNil(t, err)
-	assert.Equal(t, ErrorTypeNotFound, err.Type)
-	assert.Equal(t, "test error", err.Message)
-}
-
-func TestResponseEngine_CreateErrorWithContext(t *testing.T) {
-	engine := NewResponseEngine()
-
-	context := map[string]any{"user_id": 123}
-	err := engine.CreateErrorWithContext(ErrorTypeValidationFailed, "validation error", context)
-
-	assert.NotNil(t, err)
-	assert.Equal(t, ErrorTypeValidationFailed, err.Type)
-	assert.Equal(t, "validation error", err.Message)
-	assert.True(t, err.HasContext())
-
-	value, exists := err.GetContextValue("user_id")
-	assert.True(t, exists)
-	assert.Equal(t, 123, value)
-}
-
 func TestResponseEngine_ComponentAccess(t *testing.T) {
 	engine := NewResponseEngine()
 
@@ -314,4 +288,49 @@ func TestHandlePaging_ZeroPageSize(t *testing.T) {
 	})
 
 	assert.Equal(t, 200, w.Code)
+}
+
+// TestResponseEngine_ErrorFactoryIntegration tests the integration between ResponseEngine and ErrorFactory
+func TestResponseEngine_ErrorFactoryIntegration(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	// Test default constructor creates engine with ErrorFactory
+	engine1 := NewResponseEngine()
+	assert.NotNil(t, engine1, "Engine should be created")
+
+	// Test custom ErrorFactory constructor
+	customFactory := NewErrorFactory()
+	engine2 := NewResponseEngineWithFactory(customFactory)
+	assert.NotNil(t, engine2, "Engine should be created with custom factory")
+
+	// Test that ResponseEngine properly handles errors created by ErrorFactory
+	router := gin.New()
+	router.GET("/test", func(c *gin.Context) {
+		// Create error using global ErrorFactory function
+		err := CreateError(ErrorTypeNotFound, "resource not found")
+		engine2.Handle(c, nil, err)
+	})
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/test", nil)
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusNotFound, w.Code)
+
+	// Test multiple engines work independently
+	engine3 := NewResponseEngineWithFactory(NewErrorFactory())
+	assert.NotNil(t, engine3, "Third engine should be created")
+
+	// Test that all engines can handle the same error types correctly
+	router2 := gin.New()
+	router2.GET("/test", func(c *gin.Context) {
+		err := CreateError(ErrorTypeValidationFailed, "validation error")
+		engine3.Handle(c, nil, err)
+	})
+
+	w2 := httptest.NewRecorder()
+	req2, _ := http.NewRequest("GET", "/test", nil)
+	router2.ServeHTTP(w2, req2)
+
+	assert.Equal(t, http.StatusBadRequest, w2.Code)
 }

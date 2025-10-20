@@ -15,15 +15,22 @@ type ResponseEngine struct {
 	responsePool   *sync.Pool
 	pageDataPool   *sync.Pool
 	contextManager *ContextManager
+	errorFactory   ErrorFactory // 错误工厂依赖
 	errorMappings  map[ErrorType]*ErrorMapping
 	mu             sync.RWMutex
 }
 
 // NewResponseEngine 创建新的响应引擎
 func NewResponseEngine() *ResponseEngine {
+	return NewResponseEngineWithFactory(NewErrorFactory())
+}
+
+// NewResponseEngineWithFactory 使用指定的ErrorFactory创建响应引擎
+func NewResponseEngineWithFactory(factory ErrorFactory) *ResponseEngine {
 	engine := &ResponseEngine{
 		codeRegistry:   make(map[int]*CodeInfo),
 		contextManager: NewContextManager(),
+		errorFactory:   factory,
 		errorMappings:  make(map[ErrorType]*ErrorMapping),
 		responsePool: &sync.Pool{
 			New: func() any {
@@ -547,125 +554,6 @@ func (re *ResponseEngine) HandlePaging(c *gin.Context, data any, page, pageSize 
 		return
 	}
 	re.HandleSuccessWithPaging(c, data, page, pageSize, total)
-}
-
-// === 内置错误创建方法 ===
-
-// CreateError 创建领域错误
-func (re *ResponseEngine) CreateError(errorType ErrorType, message string, cause ...error) *DomainError {
-	var rootCause error
-	if len(cause) > 0 {
-		rootCause = cause[0]
-	}
-
-	return &DomainError{
-		Type:    errorType,
-		Message: message,
-		Cause:   rootCause,
-		Context: nil, // 延迟分配，只在需要时创建
-	}
-}
-
-// CreateErrorWithContext 创建带有上下文的领域错误
-func (re *ResponseEngine) CreateErrorWithContext(errorType ErrorType, message string, context map[string]any, cause ...error) *DomainError {
-	var rootCause error
-	if len(cause) > 0 {
-		rootCause = cause[0]
-	}
-
-	// 使用上下文管理器复制上下文，避免不必要的分配
-	var ctx map[string]any
-	if len(context) > 0 {
-		ctx = re.contextManager.Copy(context)
-	}
-
-	return &DomainError{
-		Type:    errorType,
-		Message: message,
-		Cause:   rootCause,
-		Context: ctx,
-	}
-}
-
-// 标准错误创建方法
-func (re *ResponseEngine) NewNotFoundError(message string, cause ...error) *DomainError {
-	return re.CreateError(ErrorTypeNotFound, message, cause...)
-}
-
-func (re *ResponseEngine) NewValidationError(message string, cause ...error) *DomainError {
-	return re.CreateError(ErrorTypeValidationFailed, message, cause...)
-}
-
-func (re *ResponseEngine) NewAlreadyExistsError(message string, cause ...error) *DomainError {
-	return re.CreateError(ErrorTypeAlreadyExists, message, cause...)
-}
-
-func (re *ResponseEngine) NewUnauthorizedError(message string, cause ...error) *DomainError {
-	return re.CreateError(ErrorTypeUnauthorized, message, cause...)
-}
-
-func (re *ResponseEngine) NewForbiddenError(message string, cause ...error) *DomainError {
-	return re.CreateError(ErrorTypeForbidden, message, cause...)
-}
-
-func (re *ResponseEngine) NewBusinessError(message string, cause ...error) *DomainError {
-	return re.CreateError(ErrorTypeBusinessRuleViolation, message, cause...)
-}
-
-func (re *ResponseEngine) NewInternalError(message string, cause ...error) *DomainError {
-	return re.CreateError(ErrorTypeInternalServer, message, cause...)
-}
-
-func (re *ResponseEngine) NewTimeoutError(message string, cause ...error) *DomainError {
-	return re.CreateError(ErrorTypeTimeout, message, cause...)
-}
-
-func (re *ResponseEngine) NewNetworkError(message string, cause ...error) *DomainError {
-	return re.CreateError(ErrorTypeNetworkError, message, cause...)
-}
-
-func (re *ResponseEngine) NewDatabaseConnectionError(message string, cause ...error) *DomainError {
-	return re.CreateError(ErrorTypeDatabaseConnection, message, cause...)
-}
-
-func (re *ResponseEngine) NewRecordNotFoundError(message string, cause ...error) *DomainError {
-	return re.CreateError(ErrorTypeRecordNotFound, message, cause...)
-}
-
-func (re *ResponseEngine) NewDuplicateKeyError(message string, cause ...error) *DomainError {
-	return re.CreateError(ErrorTypeDuplicateKey, message, cause...)
-}
-
-func (re *ResponseEngine) NewInvalidDataError(message string, cause ...error) *DomainError {
-	return re.CreateError(ErrorTypeInvalidData, message, cause...)
-}
-
-func (re *ResponseEngine) NewCommandValidationError(message string, cause ...error) *DomainError {
-	return re.CreateError(ErrorTypeCommandValidation, message, cause...)
-}
-
-func (re *ResponseEngine) NewCommandExecutionError(message string, cause ...error) *DomainError {
-	return re.CreateError(ErrorTypeCommandExecution, message, cause...)
-}
-
-func (re *ResponseEngine) NewQueryExecutionError(message string, cause ...error) *DomainError {
-	return re.CreateError(ErrorTypeQueryExecution, message, cause...)
-}
-
-func (re *ResponseEngine) NewInvalidRequestError(message string, cause ...error) *DomainError {
-	return re.CreateError(ErrorTypeInvalidRequest, message, cause...)
-}
-
-func (re *ResponseEngine) NewConcurrencyConflictError(message string, cause ...error) *DomainError {
-	return re.CreateError(ErrorTypeConcurrencyConflict, message, cause...)
-}
-
-func (re *ResponseEngine) NewResourceLockedError(message string, cause ...error) *DomainError {
-	return re.CreateError(ErrorTypeResourceLocked, message, cause...)
-}
-
-func (re *ResponseEngine) NewExternalServiceUnavailableError(message string, cause ...error) *DomainError {
-	return re.CreateError(ErrorTypeExternalServiceUnavailable, message, cause...)
 }
 
 // sendErrorResponse 发送错误响应

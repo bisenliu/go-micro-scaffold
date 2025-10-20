@@ -2,7 +2,10 @@ package response
 
 import (
 	"errors"
+	"fmt"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestErrorFactory_Create(t *testing.T) {
@@ -271,11 +274,11 @@ func TestDomainError_WithContext_Optimizations(t *testing.T) {
 
 			// Check context presence
 			if tt.expectContext {
-				if newErr.Context == nil || len(newErr.Context) == 0 {
-					t.Errorf("Expected context to be present, got nil or empty")
+				if len(newErr.Context) == 0 {
+					t.Errorf("Expected context to be present, got empty")
 				}
 			} else {
-				if newErr.Context != nil && len(newErr.Context) > 0 {
+				if len(newErr.Context) > 0 {
 					t.Errorf("Expected no context, got %v", newErr.Context)
 				}
 			}
@@ -359,11 +362,11 @@ func TestDomainError_WithContextMap_Optimizations(t *testing.T) {
 
 			// Check context presence
 			if tt.expectContext {
-				if newErr.Context == nil || len(newErr.Context) == 0 {
-					t.Errorf("Expected context to be present, got nil or empty")
+				if len(newErr.Context) == 0 {
+					t.Errorf("Expected context to be present, got empty")
 				}
 			} else {
-				if newErr.Context != nil && len(newErr.Context) > 0 {
+				if len(newErr.Context) > 0 {
 					t.Errorf("Expected no context, got %v", newErr.Context)
 				}
 			}
@@ -487,4 +490,119 @@ func TestDomainError_ContextHelperMethods(t *testing.T) {
 			t.Error("Expected HasContext to return false for empty context")
 		}
 	})
+}
+
+// TestAllErrorTypes ensures ErrorFactory can create all supported error types
+func TestAllErrorTypes(t *testing.T) {
+	factory := NewErrorFactory()
+
+	errorTypes := []ErrorType{
+		ErrorTypeNotFound,
+		ErrorTypeValidationFailed,
+		ErrorTypeAlreadyExists,
+		ErrorTypeUnauthorized,
+		ErrorTypeForbidden,
+		ErrorTypeBusinessRuleViolation,
+		ErrorTypeInvalidData,
+		ErrorTypeInternalServer,
+		ErrorTypeDatabaseConnection,
+		ErrorTypeTimeout,
+		ErrorTypeNetworkError,
+		ErrorTypeRecordNotFound,
+		ErrorTypeDuplicateKey,
+		ErrorTypeCommandValidation,
+		ErrorTypeCommandExecution,
+		ErrorTypeQueryExecution,
+		ErrorTypeInvalidRequest,
+		ErrorTypeConcurrencyConflict,
+		ErrorTypeResourceLocked,
+		ErrorTypeExternalServiceUnavailable,
+	}
+
+	for i, errorType := range errorTypes {
+		t.Run(fmt.Sprintf("ErrorType_%d", i), func(t *testing.T) {
+			err := factory.Create(errorType, "test message")
+			assert.Equal(t, errorType, err.Type)
+			assert.Equal(t, "test message", err.Message)
+			assert.Nil(t, err.Context)
+			assert.Nil(t, err.Cause)
+		})
+	}
+}
+
+// TestAllConvenienceFunctions ensures all convenience functions work correctly
+func TestAllConvenienceFunctions(t *testing.T) {
+	convenienceFunctions := []struct {
+		name     string
+		fn       func(string, ...error) *DomainError
+		wantType ErrorType
+	}{
+		{"NewNotFoundError", NewNotFoundError, ErrorTypeNotFound},
+		{"NewValidationError", NewValidationError, ErrorTypeValidationFailed},
+		{"NewAlreadyExistsError", NewAlreadyExistsError, ErrorTypeAlreadyExists},
+		{"NewUnauthorizedError", NewUnauthorizedError, ErrorTypeUnauthorized},
+		{"NewForbiddenError", NewForbiddenError, ErrorTypeForbidden},
+		{"NewBusinessRuleViolationError", NewBusinessRuleViolationError, ErrorTypeBusinessRuleViolation},
+		{"NewInvalidDataError", NewInvalidDataError, ErrorTypeInvalidData},
+		{"NewInternalServerError", NewInternalServerError, ErrorTypeInternalServer},
+		{"NewDatabaseConnectionError", NewDatabaseConnectionError, ErrorTypeDatabaseConnection},
+		{"NewTimeoutError", NewTimeoutError, ErrorTypeTimeout},
+		{"NewNetworkError", NewNetworkError, ErrorTypeNetworkError},
+		{"NewRecordNotFoundError", NewRecordNotFoundError, ErrorTypeRecordNotFound},
+		{"NewDuplicateKeyError", NewDuplicateKeyError, ErrorTypeDuplicateKey},
+		{"NewCommandValidationError", NewCommandValidationError, ErrorTypeCommandValidation},
+		{"NewCommandExecutionError", NewCommandExecutionError, ErrorTypeCommandExecution},
+		{"NewQueryExecutionError", NewQueryExecutionError, ErrorTypeQueryExecution},
+		{"NewInvalidRequestError", NewInvalidRequestError, ErrorTypeInvalidRequest},
+		{"NewConcurrencyConflictError", NewConcurrencyConflictError, ErrorTypeConcurrencyConflict},
+		{"NewResourceLockedError", NewResourceLockedError, ErrorTypeResourceLocked},
+		{"NewExternalServiceUnavailableError", NewExternalServiceUnavailableError, ErrorTypeExternalServiceUnavailable},
+	}
+
+	for _, tt := range convenienceFunctions {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.fn("test message")
+			assert.Equal(t, tt.wantType, err.Type)
+			assert.Equal(t, "test message", err.Message)
+			assert.Nil(t, err.Context)
+			assert.Nil(t, err.Cause)
+		})
+	}
+}
+
+// TestErrorFactoryWithCustomContextManager tests ErrorFactory with custom context manager
+func TestErrorFactoryWithCustomContextManager(t *testing.T) {
+	customContextManager := NewContextManager()
+	factory := NewErrorFactoryWithContextManager(customContextManager)
+
+	context := map[string]any{"key": "value"}
+	err := factory.CreateWithContext(ErrorTypeNotFound, "test", context)
+
+	assert.Equal(t, ErrorTypeNotFound, err.Type)
+	assert.Equal(t, "test", err.Message)
+	assert.NotNil(t, err.Context)
+	assert.Equal(t, "value", err.Context["key"])
+}
+
+// TestGlobalErrorFactoryFunctions tests global error factory functions
+func TestGlobalErrorFactoryFunctions(t *testing.T) {
+	// Test CreateError
+	err1 := CreateError(ErrorTypeNotFound, "global error")
+	assert.Equal(t, ErrorTypeNotFound, err1.Type)
+	assert.Equal(t, "global error", err1.Message)
+
+	// Test CreateErrorWithContext
+	context := map[string]any{"field": "username"}
+	err2 := CreateErrorWithContext(ErrorTypeValidationFailed, "validation error", context)
+	assert.Equal(t, ErrorTypeValidationFailed, err2.Type)
+	assert.Equal(t, "validation error", err2.Message)
+	assert.Equal(t, "username", err2.Context["field"])
+
+	// Test GetDefaultErrorFactory
+	factory := GetDefaultErrorFactory()
+	assert.NotNil(t, factory)
+
+	err3 := factory.Create(ErrorTypeUnauthorized, "factory error")
+	assert.Equal(t, ErrorTypeUnauthorized, err3.Type)
+	assert.Equal(t, "factory error", err3.Message)
 }

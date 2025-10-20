@@ -2,6 +2,7 @@ package response
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -336,66 +337,6 @@ func TestDomainError_Unwrap(t *testing.T) {
 	assert.Nil(t, unwrappedNil)
 }
 
-func TestResponseEngine_ErrorCreation(t *testing.T) {
-	engine := NewResponseEngine()
-
-	tests := []struct {
-		name      string
-		errorType ErrorType
-		message   string
-		expected  ErrorType
-	}{
-		{"NotFound", ErrorTypeNotFound, "not found", ErrorTypeNotFound},
-		{"Validation", ErrorTypeValidationFailed, "validation failed", ErrorTypeValidationFailed},
-		{"Unauthorized", ErrorTypeUnauthorized, "unauthorized", ErrorTypeUnauthorized},
-		{"Forbidden", ErrorTypeForbidden, "forbidden", ErrorTypeForbidden},
-		{"Internal", ErrorTypeInternalServer, "internal error", ErrorTypeInternalServer},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := engine.CreateError(tt.errorType, tt.message)
-			assert.Equal(t, tt.expected, err.Type)
-			assert.Equal(t, tt.message, err.Message)
-			assert.Nil(t, err.Context) // Should be nil for lazy allocation
-		})
-	}
-}
-
-func TestResponseEngine_ErrorCreationWithContext(t *testing.T) {
-	engine := NewResponseEngine()
-
-	context := map[string]any{
-		"user_id": 123,
-		"action":  "create",
-	}
-
-	err := engine.CreateErrorWithContext(ErrorTypeValidationFailed, "validation failed", context)
-
-	assert.Equal(t, ErrorTypeValidationFailed, err.Type)
-	assert.Equal(t, "validation failed", err.Message)
-	assert.NotNil(t, err.Context)
-	assert.Equal(t, 123, err.Context["user_id"])
-	assert.Equal(t, "create", err.Context["action"])
-}
-
-func TestResponseEngine_StandardErrorCreators(t *testing.T) {
-	engine := NewResponseEngine()
-
-	// Test a few standard error creators
-	notFoundErr := engine.NewNotFoundError("resource not found")
-	assert.Equal(t, ErrorTypeNotFound, notFoundErr.Type)
-	assert.Equal(t, "resource not found", notFoundErr.Message)
-
-	validationErr := engine.NewValidationError("validation failed")
-	assert.Equal(t, ErrorTypeValidationFailed, validationErr.Type)
-	assert.Equal(t, "validation failed", validationErr.Message)
-
-	unauthorizedErr := engine.NewUnauthorizedError("unauthorized")
-	assert.Equal(t, ErrorTypeUnauthorized, unauthorizedErr.Type)
-	assert.Equal(t, "unauthorized", unauthorizedErr.Message)
-}
-
 func TestGlobalErrorCreators(t *testing.T) {
 	// Test global error creation functions
 	notFoundErr := NewNotFoundError("global not found")
@@ -416,7 +357,7 @@ func TestCodeRegistryIntegration(t *testing.T) {
 	engine := NewResponseEngine()
 
 	// Create a domain error
-	err := engine.NewNotFoundError("test not found")
+	err := NewNotFoundError("test not found")
 
 	// Test error handling
 	gin.SetMode(gin.TestMode)
@@ -439,4 +380,129 @@ func TestCodeRegistryIntegration(t *testing.T) {
 	// Verify the message comes from the domain error (not overridden by code registry)
 	// The domain error message should be preserved
 	assert.Equal(t, "test not found", response.Message)
+}
+
+// TestNewArchitectureIntegration tests the integration of the new architecture
+func TestNewArchitectureIntegration(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	t.Run("ErrorFactory and ResponseEngine integration", func(t *testing.T) {
+		// Create custom ErrorFactory
+		customFactory := NewErrorFactory()
+		engine := NewResponseEngineWithFactory(customFactory)
+
+		// Test that errors created by ErrorFactory work with ResponseEngine
+		router := gin.New()
+		router.GET("/test", func(c *gin.Context) {
+			err := CreateError(ErrorTypeValidationFailed, "custom validation error")
+			engine.Handle(c, nil, err)
+		})
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("GET", "/test", nil)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+
+		var response Response
+		jsonErr := json.Unmarshal(w.Body.Bytes(), &response)
+		assert.NoError(t, jsonErr)
+		assert.Equal(t, CodeValidation, response.Code)
+		assert.Equal(t, "custom validation error", response.Message)
+	})
+
+	t.Run("Global API functions delegate to default engine", func(t *testing.T) {
+		// Test that global functions work correctly
+		router := gin.New()
+		router.GET("/test", func(c *gin.Context) {
+			err := CreateErrorWithContext(ErrorTypeUnauthorized, "unauthorized access", map[string]any{"user": "test"})
+			Handle(c, nil, err)
+		})
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("GET", "/test", nil)
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusUnauthorized, w.Code)
+
+		var response Response
+		jsonErr := json.Unmarshal(w.Body.Bytes(), &response)
+		assert.NoError(t, jsonErr)
+		assert.Equal(t, CodeUnauthorized, response.Code)
+		assert.Equal(t, "unauthorized access", response.Message)
+	})
+
+	t.Run("Multiple engines work independently", func(t *testing.T) {
+		engine1 := NewResponseEngine()
+		engine2 := NewResponseEngine()
+
+		// Register different codes in each engine
+		engine1.RegisterCode(9001, &CodeInfo{Code: 9001, Message: "Engine 1 Error", HTTPStatus: http.StatusBadRequest})
+		engine2.RegisterCode(9002, &CodeInfo{Code: 9002, Message: "Engine 2 Error", HTTPStatus: http.StatusConflict})
+
+		// Test engine1
+		router1 := gin.New()
+		router1.GET("/test", func(c *gin.Context) {
+			engine1.HandleErrorWithCode(c, 9001, "")
+		})
+
+		w1 := httptest.NewRecorder()
+		req1, _ := http.NewRequest("GET", "/test", nil)
+		router1.ServeHTTP(w1, req1)
+
+		assert.Equal(t, http.StatusBadRequest, w1.Code)
+
+		// Test engine2
+		router2 := gin.New()
+		router2.GET("/test", func(c *gin.Context) {
+			engine2.HandleErrorWithCode(c, 9002, "")
+		})
+
+		w2 := httptest.NewRecorder()
+		req2, _ := http.NewRequest("GET", "/test", nil)
+		router2.ServeHTTP(w2, req2)
+
+		assert.Equal(t, http.StatusConflict, w2.Code)
+
+		// Verify engines are independent - engine1 shouldn't have code 9002
+		_, exists := engine1.GetCodeInfo(9002)
+		assert.False(t, exists)
+	})
+
+	t.Run("All error types are properly mapped", func(t *testing.T) {
+		errorTypesToTest := []struct {
+			errorType      ErrorType
+			expectedCode   int
+			expectedStatus int
+		}{
+			{ErrorTypeNotFound, CodeNotFound, http.StatusNotFound},
+			{ErrorTypeValidationFailed, CodeValidation, http.StatusBadRequest},
+			{ErrorTypeAlreadyExists, CodeAlreadyExists, http.StatusConflict},
+			{ErrorTypeUnauthorized, CodeUnauthorized, http.StatusUnauthorized},
+			{ErrorTypeForbidden, CodeForbidden, http.StatusForbidden},
+			{ErrorTypeInternalServer, CodeInternalError, http.StatusInternalServerError},
+			{ErrorTypeTimeout, CodeTimeout, http.StatusRequestTimeout},
+		}
+
+		for i, tt := range errorTypesToTest {
+			t.Run(fmt.Sprintf("ErrorType_%d", i), func(t *testing.T) {
+				router := gin.New()
+				router.GET("/test", func(c *gin.Context) {
+					err := CreateError(tt.errorType, "test error")
+					Handle(c, nil, err)
+				})
+
+				w := httptest.NewRecorder()
+				req, _ := http.NewRequest("GET", "/test", nil)
+				router.ServeHTTP(w, req)
+
+				assert.Equal(t, tt.expectedStatus, w.Code)
+
+				var response Response
+				jsonErr := json.Unmarshal(w.Body.Bytes(), &response)
+				assert.NoError(t, jsonErr)
+				assert.Equal(t, tt.expectedCode, response.Code)
+			})
+		}
+	})
 }
