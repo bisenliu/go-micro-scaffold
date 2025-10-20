@@ -1165,7 +1165,7 @@ databases:
 
 ```go
 // 2. 验证数据库连接
-// 在common/databases/mysql包中已有连接验证逻辑
+// 在common/databases/dbms包中已有连接验证逻辑
 func NewManager(config *config.Config, logger *zap.Logger) (*Manager, error) {
     // 数据库连接逻辑
     db, err := sql.Open("mysql", dsn)

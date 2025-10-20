@@ -3,13 +3,13 @@ package databases
 import (
 	"go.uber.org/fx"
 
-	"common/databases/mysql"
+	"common/databases/rdbms"
 	"common/databases/redis"
 )
 
-// MySQLModule provides MySQL related functionalities
-var MySQLModule = fx.Module("mysql",
-	mysql.Module,
+// RDBMSModule provides relational database management system functionalities
+var RDBMSModule = fx.Module("rdbms",
+	rdbms.Module,
 )
 
 // RedisModule provides Redis related functionalities
@@ -19,6 +19,6 @@ var RedisModule = fx.Module("redis",
 
 // Module provides all database related functionalities
 var Module = fx.Module("database",
-	MySQLModule,
+	RDBMSModule,
 	RedisModule,
 )

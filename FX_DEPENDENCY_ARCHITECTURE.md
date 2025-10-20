@@ -34,7 +34,7 @@ graph TD
     N --> O[*zap.Logger]
     O --> P[NewLogger]
 
-    M --> Q[common/databases/mysql]
+    M --> Q[common/databases/dbms]
     Q --> R[*mysql.Manager]
     R --> S[NewManager]
 
@@ -54,7 +54,7 @@ graph TD
     AC --> AD[*http.Server]
     AD --> AE[init.func1]
 
-    AE --> AF[common/databases/mysql]
+    AE --> AF[common/databases/dbms]
     AF --> AG[mysql.ManagerInterface]
     AG --> AH[init.func1]
 

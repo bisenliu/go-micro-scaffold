@@ -1,4 +1,4 @@
-package mysql
+package rdbms
 
 import (
 	"database/sql"

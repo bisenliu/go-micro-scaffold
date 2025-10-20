@@ -3,18 +3,18 @@ package persistence
 import (
 	"go.uber.org/zap"
 
-	"common/databases/mysql"
+	"common/databases/rdbms"
 	"services/internal/infrastructure/persistence/ent/gen"
 )
 
 // DatabaseProvider 数据库提供者，统一管理数据库访问
 type DatabaseProvider struct {
-	manager mysql.ManagerInterface
+	manager rdbms.ManagerInterface
 	logger  *zap.Logger
 }
 
 // NewDatabaseProvider 创建数据库提供者
-func NewDatabaseProvider(manager mysql.ManagerInterface, logger *zap.Logger) *DatabaseProvider {
+func NewDatabaseProvider(manager rdbms.ManagerInterface, logger *zap.Logger) *DatabaseProvider {
 	return &DatabaseProvider{
 		manager: manager,
 		logger:  logger,
@@ -22,7 +22,7 @@ func NewDatabaseProvider(manager mysql.ManagerInterface, logger *zap.Logger) *Da
 }
 
 // GetEntClient 获取Ent客户端使用的数据库
-func (p *DatabaseProvider) GetEntClient() (*mysql.Client, error) {
+func (p *DatabaseProvider) GetEntClient() (*rdbms.Client, error) {
 	// 可以通过别名配置指定Ent使用的数据库
 	if client, err := p.manager.GetByAlias("ent"); err == nil {
 		return client, nil
@@ -32,7 +32,7 @@ func (p *DatabaseProvider) GetEntClient() (*mysql.Client, error) {
 }
 
 // GetCasbinClient 获取Casbin使用的数据库
-func (p *DatabaseProvider) GetCasbinClient() (*mysql.Client, error) {
+func (p *DatabaseProvider) GetCasbinClient() (*rdbms.Client, error) {
 	// 可以通过别名配置指定Casbin使用的数据库
 	if client, err := p.manager.GetByAlias("casbin"); err == nil {
 		return client, nil
@@ -42,7 +42,7 @@ func (p *DatabaseProvider) GetCasbinClient() (*mysql.Client, error) {
 }
 
 // GetHealthCheckClient 获取健康检查使用的数据库
-func (p *DatabaseProvider) GetHealthCheckClient() (*mysql.Client, error) {
+func (p *DatabaseProvider) GetHealthCheckClient() (*rdbms.Client, error) {
 	// 可以通过别名配置指定健康检查使用的数据库
 	if client, err := p.manager.GetByAlias("health_check"); err == nil {
 		return client, nil
@@ -63,7 +63,7 @@ func (p *DatabaseProvider) CreateEntClient() (*gen.Client, error) {
 		gen.Driver(dbClient.Driver()),
 	}
 
-	p.logger.Info("Creating Ent client", 
+	p.logger.Info("Creating Ent client",
 		zap.String("database", dbClient.Name()))
 
 	// 创建 Ent 客户端

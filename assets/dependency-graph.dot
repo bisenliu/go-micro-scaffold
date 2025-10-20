@@ -34,14 +34,14 @@ digraph {
 	}
 	constructor_5 -> "*config.Config" [ltail=cluster_5];
 	subgraph cluster_6 {
-		label = "common/databases/mysql";
+		label = "common/databases/dbms";
 		constructor_6 [shape=plaintext label="NewManager"];
 		"*mysql.Manager" [label=<*mysql.Manager>];
 	}
 	constructor_6 -> "*config.Config" [ltail=cluster_6];
 	constructor_6 -> "*zap.Logger" [ltail=cluster_6];
 	subgraph cluster_7 {
-		label = "common/databases/mysql";
+		label = "common/databases/dbms";
 		constructor_7 [shape=plaintext label="init.func1"];
 		"mysql.ManagerInterface" [label=<mysql.ManagerInterface>];
 	}

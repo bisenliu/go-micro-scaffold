@@ -8,17 +8,17 @@ import (
 	entadapter "github.com/casbin/ent-adapter"
 	"go.uber.org/zap"
 
-	"common/databases/mysql"
+	"common/databases/rdbms"
 )
 
 // EnforcerParams 定义了创建Casbin Enforcer所需的依赖
 type EnforcerParams struct {
-	Client *mysql.Client
+	Client *rdbms.Client
 	Logger *zap.Logger
 }
 
 // NewEnforcer 创建一个 Casbin SyncedCachedEnforcer 实例
-func NewEnforcer(client *mysql.Client, logger *zap.Logger) (*casbin.SyncedCachedEnforcer, error) {
+func NewEnforcer(client *rdbms.Client, logger *zap.Logger) (*casbin.SyncedCachedEnforcer, error) {
 	// 使用数据源名称创建适配器，复用现有的数据库配置
 	// 获取数据库配置信息
 	config := client.Config()
