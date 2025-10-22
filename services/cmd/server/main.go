@@ -1,3 +1,42 @@
+// Package main Go Micro Scaffold API
+//
+// 微服务脚手架 API 文档
+//
+// 这是一个基于 Go 和 Gin 框架构建的微服务脚手架项目的 API 文档。
+// 提供用户管理、认证授权等核心功能的 RESTful API 接口。
+//
+//	@title						Go Micro Scaffold API
+//	@version					1.0.0
+//	@description				微服务脚手架 API 文档
+//	@termsOfService				http://swagger.io/terms/
+//
+//	@contact.name				API Support
+//	@contact.email				support@example.com
+//	@contact.url				http://www.example.com/support
+//
+//	@license.name				MIT
+//	@license.url				https://opensource.org/licenses/MIT
+//
+//	@host						localhost:8080
+//	@BasePath					/api/v1
+//
+//	@securityDefinitions.apikey	BearerAuth
+//	@in							header
+//	@name						Authorization
+//	@description				JWT Token，格式：Bearer {token}
+//
+//	@tag.name					用户管理
+//	@tag.description			用户相关的 API 接口
+//
+//	@tag.name					认证授权
+//	@tag.description			认证和授权相关的 API 接口
+//
+//	@tag.name					健康检查
+//	@tag.description			系统健康检查相关的 API 接口
+//
+//	@schemes					http https
+//	@produce					json
+//	@consumes					json
 package main
 
 import (

@@ -38,6 +38,18 @@ func NewUserHandler(
 }
 
 // CreateUser 创建用户
+// @Summary 创建新用户
+// @Description 创建一个新的用户账户，需要提供用户的基本信息
+// @Tags 用户管理
+// @Accept json
+// @Produce json
+// @Param request body requestdto.CreateUserRequest true "创建用户请求"
+// @Success 200 {object} responsedto.UserInfoResponse "创建成功"
+// @Failure 400 {object} services_internal_interfaces_http_swagger.ValidationErrorResponse "请求参数验证失败"
+// @Failure 409 {object} services_internal_interfaces_http_swagger.ConflictErrorResponse "用户已存在"
+// @Failure 500 {object} services_internal_interfaces_http_swagger.InternalServerErrorResponse "服务器内部错误"
+// @Security BearerAuth
+// @Router /users [post]
 func (h *UserHandler) CreateUser(c *gin.Context) {
 	ctx := c.Request.Context()
 	logger.Info(ctx, "Creating user", zap.String("request_id", "create_user"))
@@ -66,6 +78,23 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 }
 
 // ListUsers 获取用户列表
+// @Summary 获取用户列表
+// @Description 分页获取用户列表，支持按姓名、性别、时间范围等条件过滤
+// @Tags 用户管理
+// @Accept json
+// @Produce json
+// @Param page query int false "页码" default(1) minimum(1)
+// @Param page_size query int false "每页数量" default(10) minimum(1) maximum(100)
+// @Param name query string false "用户姓名（模糊搜索）" maxlength(50)
+// @Param gender query int false "性别" Enums(100,200,300) example(100)
+// @Param start_time query string false "开始时间" format(date) example("2023-01-01")
+// @Param end_time query string false "结束时间" format(date) example("2023-12-31")
+// @Success 200 {object} responsedto.UserListResponse "获取成功"
+// @Failure 400 {object} services_internal_interfaces_http_swagger.ValidationErrorResponse "请求参数验证失败"
+// @Failure 401 {object} services_internal_interfaces_http_swagger.UnauthorizedErrorResponse "未授权访问"
+// @Failure 500 {object} services_internal_interfaces_http_swagger.InternalServerErrorResponse "服务器内部错误"
+// @Security BearerAuth
+// @Router /users [get]
 func (h *UserHandler) ListUsers(c *gin.Context) {
 	ctx := c.Request.Context()
 	logger.Info(ctx, "Listing users", zap.String("request_id", "list_users"))
@@ -114,6 +143,19 @@ func (h *UserHandler) ListUsers(c *gin.Context) {
 }
 
 // GetUser 获取用户信息
+// @Summary 获取用户详细信息
+// @Description 根据用户ID获取用户的详细信息
+// @Tags 用户管理
+// @Accept json
+// @Produce json
+// @Param id path string true "用户ID" example("user_123456789")
+// @Success 200 {object} responsedto.UserInfoResponse "获取成功"
+// @Failure 400 {object} services_internal_interfaces_http_swagger.ErrorResponse "请求参数错误"
+// @Failure 401 {object} services_internal_interfaces_http_swagger.UnauthorizedErrorResponse "未授权访问"
+// @Failure 404 {object} services_internal_interfaces_http_swagger.NotFoundErrorResponse "用户不存在"
+// @Failure 500 {object} services_internal_interfaces_http_swagger.InternalServerErrorResponse "服务器内部错误"
+// @Security BearerAuth
+// @Router /users/{id} [get]
 func (h *UserHandler) GetUser(c *gin.Context) {
 	ctx := c.Request.Context()
 	// 获取用户ID

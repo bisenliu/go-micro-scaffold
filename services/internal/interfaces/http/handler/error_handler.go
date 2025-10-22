@@ -4,6 +4,7 @@ import (
 	"common/logger"
 	"common/response"
 	"fmt"
+	"services/internal/interfaces/http/swagger"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -79,4 +80,20 @@ func HandleErrorWithCode(c *gin.Context, code int, message string) {
 // HandleErrorWithData 处理带有额外数据的错误
 func HandleErrorWithData(c *gin.Context, err error, data any) {
 	response.HandleWith(c, nil, err, response.WithData(data))
+}
+
+// HandleWithSwaggerFormat 使用Swagger格式处理响应
+// 这个函数确保响应格式符合Swagger文档定义
+func HandleWithSwaggerFormat(c *gin.Context, data any, err error) {
+	swagger.HandleWithSwaggerFormat(c, data, err)
+}
+
+// HandlePagingWithSwaggerFormat 使用Swagger格式处理分页响应
+func HandlePagingWithSwaggerFormat(c *gin.Context, data any, page, pageSize int, total int64, err error) {
+	swagger.HandlePagingWithSwaggerFormat(c, data, page, pageSize, total, err)
+}
+
+// CreateSwaggerValidationError 创建符合Swagger格式的验证错误
+func CreateSwaggerValidationError(message string, fieldErrors []swagger.FieldError) error {
+	return swagger.CreateValidationErrorWithFields(message, fieldErrors)
 }

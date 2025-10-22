@@ -206,6 +206,17 @@ go run cmd/server/main.go
 
 ## 📡 API 接口
 
+### 📖 API 文档
+
+项目集成了 Swagger API 文档，提供完整的接口说明和在线测试功能：
+
+- **Swagger UI**: `http://localhost:8080/swagger/index.html`
+- **API 文档**: 自动生成，包含所有接口的详细说明
+- **在线测试**: 支持直接在浏览器中测试 API
+- **认证支持**: 集成 JWT 认证，支持安全接口测试
+
+详细使用说明请参考：[Swagger 使用指南](services/docs/SWAGGER_USAGE_GUIDE.md)
+
 ### 🏥 健康检查
 
 ```bash
@@ -218,6 +229,14 @@ GET /ping           # 简单ping检查
 ```bash
 POST /api/v1/users   # 创建用户
 GET  /api/v1/users   # 获取用户列表
+GET  /api/v1/users/{id}  # 获取用户详情
+```
+
+### 🔐 认证相关
+
+```bash
+POST /api/v1/auth/login     # 用户登录
+POST /api/v1/auth/refresh   # 刷新令牌
 ```
 
 ### 📝 请求示例

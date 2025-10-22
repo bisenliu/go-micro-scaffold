@@ -29,7 +29,10 @@ type Config struct {
 	DatabaseAliases map[string]string         `mapstructure:"database_aliases"`
 	Redis           RedisConfig               `mapstructure:"redis"`
 
-	// 5. 日志配置
+	// 5. Swagger API 文档配置
+	Swagger SwaggerConfig `mapstructure:"swagger"`
+
+	// 6. 日志配置
 	Zap ZapConfig `mapstructure:"zap"`
 }
 
@@ -110,7 +113,34 @@ type RedisConfig struct {
 	PoolSize  int    `mapstructure:"pool_size"`
 }
 
-// --- 5. 日志配置 ---
+// --- 5. Swagger API 文档配置 ---
+
+// SwaggerConfig Swagger配置结构
+type SwaggerConfig struct {
+	Enabled     bool          `mapstructure:"enabled"`     // 是否启用Swagger
+	Title       string        `mapstructure:"title"`       // API文档标题
+	Description string        `mapstructure:"description"` // API描述
+	Version     string        `mapstructure:"version"`     // API版本
+	Host        string        `mapstructure:"host"`        // API主机地址
+	BasePath    string        `mapstructure:"base_path"`   // API基础路径
+	Contact     ContactConfig `mapstructure:"contact"`     // 联系信息
+	License     LicenseConfig `mapstructure:"license"`     // 许可证信息
+}
+
+// ContactConfig 联系信息配置
+type ContactConfig struct {
+	Name  string `mapstructure:"name"`  // 联系人姓名
+	Email string `mapstructure:"email"` // 联系人邮箱
+	URL   string `mapstructure:"url"`   // 联系人URL
+}
+
+// LicenseConfig 许可证配置
+type LicenseConfig struct {
+	Name string `mapstructure:"name"` // 许可证名称
+	URL  string `mapstructure:"url"`  // 许可证URL
+}
+
+// --- 6. 日志配置 ---
 
 type ZapConfig struct {
 	Level      string `mapstructure:"level"`
@@ -164,4 +194,3 @@ func validateDatabaseAliases(config *Config) error {
 
 // Module FX模块
 var Module = fx.Provide(NewConfig)
-

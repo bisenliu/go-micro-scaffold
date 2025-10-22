@@ -39,13 +39,21 @@ func NewHealthHandler(
 
 // HealthResponse 健康检查响应
 type HealthResponse struct {
-	Status    string            `json:"status"`
-	Timestamp time.Time         `json:"timestamp"`
-	Version   string            `json:"version"`
-	Services  map[string]string `json:"services"`
+	Status    string            `json:"status" example:"healthy" description:"系统整体健康状态：healthy-健康，unhealthy-不健康"`
+	Timestamp time.Time         `json:"timestamp" example:"2023-01-01T12:00:00Z" description:"检查时间戳"`
+	Version   string            `json:"version" example:"1.0.0" description:"应用版本号"`
+	Services  map[string]string `json:"services" description:"各个服务组件的健康状态"`
 }
 
 // Health 健康检查
+// @Summary 系统健康检查
+// @Description 检查系统各个组件的健康状态，包括数据库、Redis等服务的连接状态
+// @Tags 健康检查
+// @Accept json
+// @Produce json
+// @Success 200 {object} HealthResponse "系统健康"
+// @Failure 503 {object} services_internal_interfaces_http_swagger.ServiceUnavailableErrorResponse "系统不健康"
+// @Router /health [get]
 func (h *HealthHandler) Health(c *gin.Context) {
 	ctx := c.Request.Context()
 
