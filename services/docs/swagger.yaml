@@ -16,6 +16,30 @@ definitions:
         example: 1.0.0
         type: string
     type: object
+  response.PageData:
+    properties:
+      items: {}
+      page:
+        description: 当前页
+        type: integer
+      page_size:
+        description: 每页大小
+        type: integer
+      total:
+        description: 总数量
+        type: integer
+      total_pages:
+        description: 总页数
+        type: integer
+    type: object
+  response.Response:
+    properties:
+      code:
+        type: integer
+      data: {}
+      message:
+        type: string
+    type: object
   services_internal_domain_user_valueobject.Gender:
     enum:
     - 100
@@ -105,38 +129,6 @@ definitions:
         example: 1640995200
         type: integer
     type: object
-  services_internal_interfaces_http_dto_response.UserListResponse:
-    properties:
-      page:
-        example: 1
-        type: integer
-      page_size:
-        example: 10
-        type: integer
-      total:
-        example: 100
-        type: integer
-      total_pages:
-        example: 10
-        type: integer
-      users:
-        items:
-          $ref: '#/definitions/services_internal_interfaces_http_dto_response.UserInfoResponse'
-        type: array
-    type: object
-  services_internal_interfaces_http_swagger.SwaggerError:
-    properties:
-      code:
-        example: 400
-        type: integer
-      details: {}
-      error:
-        example: Bad Request
-        type: string
-      message:
-        example: Invalid input parameters
-        type: string
-    type: object
 host: localhost:8080
 info:
   contact:
@@ -169,21 +161,26 @@ paths:
         "200":
           description: 登录成功，返回token
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  additionalProperties:
+                    type: string
+                  type: object
+              type: object
         "400":
           description: 请求参数验证失败
           schema:
-            $ref: '#/definitions/services_internal_interfaces_http_swagger.SwaggerError'
+            $ref: '#/definitions/response.Response'
         "401":
           description: 用户名或密码错误
           schema:
-            $ref: '#/definitions/services_internal_interfaces_http_swagger.SwaggerError'
+            $ref: '#/definitions/response.Response'
         "500":
           description: 服务器内部错误
           schema:
-            $ref: '#/definitions/services_internal_interfaces_http_swagger.SwaggerError'
+            $ref: '#/definitions/response.Response'
       summary: 用户密码登录
       tags:
       - 认证授权
@@ -198,17 +195,20 @@ paths:
         "200":
           description: 登出成功
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
         "401":
           description: 未授权或Token无效
           schema:
-            $ref: '#/definitions/services_internal_interfaces_http_swagger.SwaggerError'
+            $ref: '#/definitions/response.Response'
         "500":
           description: 服务器内部错误
           schema:
-            $ref: '#/definitions/services_internal_interfaces_http_swagger.SwaggerError'
+            $ref: '#/definitions/response.Response'
       security:
       - BearerAuth: []
       summary: 用户登出
@@ -232,21 +232,26 @@ paths:
         "200":
           description: 登录成功，返回token
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  additionalProperties:
+                    type: string
+                  type: object
+              type: object
         "400":
           description: 请求参数验证失败
           schema:
-            $ref: '#/definitions/services_internal_interfaces_http_swagger.SwaggerError'
+            $ref: '#/definitions/response.Response'
         "401":
           description: 微信授权失败
           schema:
-            $ref: '#/definitions/services_internal_interfaces_http_swagger.SwaggerError'
+            $ref: '#/definitions/response.Response'
         "500":
           description: 服务器内部错误
           schema:
-            $ref: '#/definitions/services_internal_interfaces_http_swagger.SwaggerError'
+            $ref: '#/definitions/response.Response'
       summary: 微信登录
       tags:
       - 认证授权
@@ -261,11 +266,16 @@ paths:
         "200":
           description: 系统健康
           schema:
-            $ref: '#/definitions/internal_interfaces_http_handler.HealthResponse'
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_interfaces_http_handler.HealthResponse'
+              type: object
         "503":
           description: 系统不健康
           schema:
-            $ref: '#/definitions/services_internal_interfaces_http_swagger.SwaggerError'
+            $ref: '#/definitions/response.Response'
       summary: 系统健康检查
       tags:
       - 健康检查
@@ -320,19 +330,31 @@ paths:
         "200":
           description: 获取成功
           schema:
-            $ref: '#/definitions/services_internal_interfaces_http_dto_response.UserListResponse'
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageData'
+                  - properties:
+                      items:
+                        items:
+                          $ref: '#/definitions/services_internal_interfaces_http_dto_response.UserInfoResponse'
+                        type: array
+                    type: object
+              type: object
         "400":
           description: 请求参数验证失败
           schema:
-            $ref: '#/definitions/services_internal_interfaces_http_swagger.SwaggerError'
+            $ref: '#/definitions/response.Response'
         "401":
           description: 未授权访问
           schema:
-            $ref: '#/definitions/services_internal_interfaces_http_swagger.SwaggerError'
+            $ref: '#/definitions/response.Response'
         "500":
           description: 服务器内部错误
           schema:
-            $ref: '#/definitions/services_internal_interfaces_http_swagger.SwaggerError'
+            $ref: '#/definitions/response.Response'
       security:
       - BearerAuth: []
       summary: 获取用户列表
@@ -355,19 +377,24 @@ paths:
         "200":
           description: 创建成功
           schema:
-            $ref: '#/definitions/services_internal_interfaces_http_dto_response.UserInfoResponse'
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/services_internal_interfaces_http_dto_response.UserInfoResponse'
+              type: object
         "400":
           description: 请求参数验证失败
           schema:
-            $ref: '#/definitions/services_internal_interfaces_http_swagger.SwaggerError'
+            $ref: '#/definitions/response.Response'
         "409":
           description: 用户已存在
           schema:
-            $ref: '#/definitions/services_internal_interfaces_http_swagger.SwaggerError'
+            $ref: '#/definitions/response.Response'
         "500":
           description: 服务器内部错误
           schema:
-            $ref: '#/definitions/services_internal_interfaces_http_swagger.SwaggerError'
+            $ref: '#/definitions/response.Response'
       security:
       - BearerAuth: []
       summary: 创建新用户
@@ -391,23 +418,28 @@ paths:
         "200":
           description: 获取成功
           schema:
-            $ref: '#/definitions/services_internal_interfaces_http_dto_response.UserInfoResponse'
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/services_internal_interfaces_http_dto_response.UserInfoResponse'
+              type: object
         "400":
           description: 请求参数错误
           schema:
-            $ref: '#/definitions/services_internal_interfaces_http_swagger.SwaggerError'
+            $ref: '#/definitions/response.Response'
         "401":
           description: 未授权访问
           schema:
-            $ref: '#/definitions/services_internal_interfaces_http_swagger.SwaggerError'
+            $ref: '#/definitions/response.Response'
         "404":
           description: 用户不存在
           schema:
-            $ref: '#/definitions/services_internal_interfaces_http_swagger.SwaggerError'
+            $ref: '#/definitions/response.Response'
         "500":
           description: 服务器内部错误
           schema:
-            $ref: '#/definitions/services_internal_interfaces_http_swagger.SwaggerError'
+            $ref: '#/definitions/response.Response'
       security:
       - BearerAuth: []
       summary: 获取用户详细信息

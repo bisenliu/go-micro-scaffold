@@ -52,28 +52,40 @@ const docTemplate = `{
                     "200": {
                         "description": "登录成功，返回token",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "additionalProperties": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
                         "description": "请求参数验证失败",
                         "schema": {
-                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.SwaggerError"
+                            "$ref": "#/definitions/response.Response"
                         }
                     },
                     "401": {
                         "description": "用户名或密码错误",
                         "schema": {
-                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.SwaggerError"
+                            "$ref": "#/definitions/response.Response"
                         }
                     },
                     "500": {
                         "description": "服务器内部错误",
                         "schema": {
-                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.SwaggerError"
+                            "$ref": "#/definitions/response.Response"
                         }
                     }
                 }
@@ -101,22 +113,31 @@ const docTemplate = `{
                     "200": {
                         "description": "登出成功",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "401": {
                         "description": "未授权或Token无效",
                         "schema": {
-                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.SwaggerError"
+                            "$ref": "#/definitions/response.Response"
                         }
                     },
                     "500": {
                         "description": "服务器内部错误",
                         "schema": {
-                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.SwaggerError"
+                            "$ref": "#/definitions/response.Response"
                         }
                     }
                 }
@@ -150,28 +171,40 @@ const docTemplate = `{
                     "200": {
                         "description": "登录成功，返回token",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "additionalProperties": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
                         "description": "请求参数验证失败",
                         "schema": {
-                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.SwaggerError"
+                            "$ref": "#/definitions/response.Response"
                         }
                     },
                     "401": {
                         "description": "微信授权失败",
                         "schema": {
-                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.SwaggerError"
+                            "$ref": "#/definitions/response.Response"
                         }
                     },
                     "500": {
                         "description": "服务器内部错误",
                         "schema": {
-                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.SwaggerError"
+                            "$ref": "#/definitions/response.Response"
                         }
                     }
                 }
@@ -194,13 +227,25 @@ const docTemplate = `{
                     "200": {
                         "description": "系统健康",
                         "schema": {
-                            "$ref": "#/definitions/internal_interfaces_http_handler.HealthResponse"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/internal_interfaces_http_handler.HealthResponse"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "503": {
                         "description": "系统不健康",
                         "schema": {
-                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.SwaggerError"
+                            "$ref": "#/definitions/response.Response"
                         }
                     }
                 }
@@ -282,25 +327,52 @@ const docTemplate = `{
                     "200": {
                         "description": "获取成功",
                         "schema": {
-                            "$ref": "#/definitions/services_internal_interfaces_http_dto_response.UserListResponse"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.PageData"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "items": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/services_internal_interfaces_http_dto_response.UserInfoResponse"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
                         "description": "请求参数验证失败",
                         "schema": {
-                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.SwaggerError"
+                            "$ref": "#/definitions/response.Response"
                         }
                     },
                     "401": {
                         "description": "未授权访问",
                         "schema": {
-                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.SwaggerError"
+                            "$ref": "#/definitions/response.Response"
                         }
                     },
                     "500": {
                         "description": "服务器内部错误",
                         "schema": {
-                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.SwaggerError"
+                            "$ref": "#/definitions/response.Response"
                         }
                     }
                 }
@@ -337,25 +409,37 @@ const docTemplate = `{
                     "200": {
                         "description": "创建成功",
                         "schema": {
-                            "$ref": "#/definitions/services_internal_interfaces_http_dto_response.UserInfoResponse"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/services_internal_interfaces_http_dto_response.UserInfoResponse"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
                         "description": "请求参数验证失败",
                         "schema": {
-                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.SwaggerError"
+                            "$ref": "#/definitions/response.Response"
                         }
                     },
                     "409": {
                         "description": "用户已存在",
                         "schema": {
-                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.SwaggerError"
+                            "$ref": "#/definitions/response.Response"
                         }
                     },
                     "500": {
                         "description": "服务器内部错误",
                         "schema": {
-                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.SwaggerError"
+                            "$ref": "#/definitions/response.Response"
                         }
                     }
                 }
@@ -393,31 +477,43 @@ const docTemplate = `{
                     "200": {
                         "description": "获取成功",
                         "schema": {
-                            "$ref": "#/definitions/services_internal_interfaces_http_dto_response.UserInfoResponse"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/services_internal_interfaces_http_dto_response.UserInfoResponse"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
                         "description": "请求参数错误",
                         "schema": {
-                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.SwaggerError"
+                            "$ref": "#/definitions/response.Response"
                         }
                     },
                     "401": {
                         "description": "未授权访问",
                         "schema": {
-                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.SwaggerError"
+                            "$ref": "#/definitions/response.Response"
                         }
                     },
                     "404": {
                         "description": "用户不存在",
                         "schema": {
-                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.SwaggerError"
+                            "$ref": "#/definitions/response.Response"
                         }
                     },
                     "500": {
                         "description": "服务器内部错误",
                         "schema": {
-                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.SwaggerError"
+                            "$ref": "#/definitions/response.Response"
                         }
                     }
                 }
@@ -445,6 +541,40 @@ const docTemplate = `{
                 "version": {
                     "type": "string",
                     "example": "1.0.0"
+                }
+            }
+        },
+        "response.PageData": {
+            "type": "object",
+            "properties": {
+                "items": {},
+                "page": {
+                    "description": "当前页",
+                    "type": "integer"
+                },
+                "page_size": {
+                    "description": "每页大小",
+                    "type": "integer"
+                },
+                "total": {
+                    "description": "总数量",
+                    "type": "integer"
+                },
+                "total_pages": {
+                    "description": "总页数",
+                    "type": "integer"
+                }
+            }
+        },
+        "response.Response": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {},
+                "message": {
+                    "type": "string"
                 }
             }
         },
@@ -568,51 +698,6 @@ const docTemplate = `{
                 "updated_at": {
                     "type": "integer",
                     "example": 1640995200
-                }
-            }
-        },
-        "services_internal_interfaces_http_dto_response.UserListResponse": {
-            "type": "object",
-            "properties": {
-                "page": {
-                    "type": "integer",
-                    "example": 1
-                },
-                "page_size": {
-                    "type": "integer",
-                    "example": 10
-                },
-                "total": {
-                    "type": "integer",
-                    "example": 100
-                },
-                "total_pages": {
-                    "type": "integer",
-                    "example": 10
-                },
-                "users": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/services_internal_interfaces_http_dto_response.UserInfoResponse"
-                    }
-                }
-            }
-        },
-        "services_internal_interfaces_http_swagger.SwaggerError": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "integer",
-                    "example": 400
-                },
-                "details": {},
-                "error": {
-                    "type": "string",
-                    "example": "Bad Request"
-                },
-                "message": {
-                    "type": "string",
-                    "example": "Invalid input parameters"
                 }
             }
         }

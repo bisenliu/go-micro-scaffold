@@ -39,10 +39,10 @@ func NewAuthHandler(
 // @Accept json
 // @Produce json
 // @Param request body requestdto.LoginRequest true "登录请求"
-// @Success 200 {object} map[string]string "登录成功，返回token"
-// @Failure 400 {object} services_internal_interfaces_http_swagger.SwaggerError "请求参数验证失败"
-// @Failure 401 {object} services_internal_interfaces_http_swagger.SwaggerError "用户名或密码错误"
-// @Failure 500 {object} services_internal_interfaces_http_swagger.SwaggerError "服务器内部错误"
+// @Success 200 {object} response.Response{data=map[string]string} "登录成功，返回token"
+// @Failure 400 {object} response.Response "请求参数验证失败"
+// @Failure 401 {object} response.Response "用户名或密码错误"
+// @Failure 500 {object} response.Response "服务器内部错误"
 // @Router /auth/login [post]
 func (h *AuthHandler) LoginByPassword(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -77,10 +77,10 @@ func (h *AuthHandler) LoginByPassword(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param request body requestdto.WeChatLoginRequest true "微信登录请求"
-// @Success 200 {object} map[string]string "登录成功，返回token"
-// @Failure 400 {object} services_internal_interfaces_http_swagger.SwaggerError "请求参数验证失败"
-// @Failure 401 {object} services_internal_interfaces_http_swagger.SwaggerError "微信授权失败"
-// @Failure 500 {object} services_internal_interfaces_http_swagger.SwaggerError "服务器内部错误"
+// @Success 200 {object} response.Response{data=map[string]string} "登录成功，返回token"
+// @Failure 400 {object} response.Response "请求参数验证失败"
+// @Failure 401 {object} response.Response "微信授权失败"
+// @Failure 500 {object} response.Response "服务器内部错误"
 // @Router /auth/wechat [post]
 func (h *AuthHandler) LoginByWeChat(c *gin.Context) {
 	// 1. Get code from request
@@ -95,9 +95,9 @@ func (h *AuthHandler) LoginByWeChat(c *gin.Context) {
 // @Tags 认证授权
 // @Accept json
 // @Produce json
-// @Success 200 {object} map[string]string "登出成功"
-// @Failure 401 {object} services_internal_interfaces_http_swagger.SwaggerError "未授权或Token无效"
-// @Failure 500 {object} services_internal_interfaces_http_swagger.SwaggerError "服务器内部错误"
+// @Success 200 {object} response.Response{data=string} "登出成功"
+// @Failure 401 {object} response.Response "未授权或Token无效"
+// @Failure 500 {object} response.Response "服务器内部错误"
 // @Security BearerAuth
 // @Router /auth/logout [post]
 func (h *AuthHandler) Logout(c *gin.Context) {

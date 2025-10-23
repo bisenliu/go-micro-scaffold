@@ -44,10 +44,10 @@ func NewUserHandler(
 // @Accept json
 // @Produce json
 // @Param request body requestdto.CreateUserRequest true "创建用户请求"
-// @Success 200 {object} responsedto.UserInfoResponse "创建成功"
-// @Failure 400 {object} services_internal_interfaces_http_swagger.SwaggerError "请求参数验证失败"
-// @Failure 409 {object} services_internal_interfaces_http_swagger.SwaggerError "用户已存在"
-// @Failure 500 {object} services_internal_interfaces_http_swagger.SwaggerError "服务器内部错误"
+// @Success 200 {object} response.Response{data=responsedto.UserInfoResponse} "创建成功"
+// @Failure 400 {object} response.Response "请求参数验证失败"
+// @Failure 409 {object} response.Response "用户已存在"
+// @Failure 500 {object} response.Response "服务器内部错误"
 // @Security BearerAuth
 // @Router /users [post]
 func (h *UserHandler) CreateUser(c *gin.Context) {
@@ -88,10 +88,10 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 // @Param gender query int false "性别" Enums(100,200,300) example(100)
 // @Param start_time query string false "开始时间" format(date) example("2023-01-01")
 // @Param end_time query string false "结束时间" format(date) example("2023-12-31")
-// @Success 200 {object} responsedto.UserListResponse "获取成功"
-// @Failure 400 {object} services_internal_interfaces_http_swagger.SwaggerError "请求参数验证失败"
-// @Failure 401 {object} services_internal_interfaces_http_swagger.SwaggerError "未授权访问"
-// @Failure 500 {object} services_internal_interfaces_http_swagger.SwaggerError "服务器内部错误"
+// @Success 200 {object} response.Response{data=response.PageData{items=[]responsedto.UserInfoResponse}} "获取成功"
+// @Failure 400 {object} response.Response "请求参数验证失败"
+// @Failure 401 {object} response.Response "未授权访问"
+// @Failure 500 {object} response.Response "服务器内部错误"
 // @Security BearerAuth
 // @Router /users [get]
 func (h *UserHandler) ListUsers(c *gin.Context) {
@@ -147,11 +147,11 @@ func (h *UserHandler) ListUsers(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path string true "用户ID" example("user_123456789")
-// @Success 200 {object} responsedto.UserInfoResponse "获取成功"
-// @Failure 400 {object} services_internal_interfaces_http_swagger.SwaggerError "请求参数错误"
-// @Failure 401 {object} services_internal_interfaces_http_swagger.SwaggerError "未授权访问"
-// @Failure 404 {object} services_internal_interfaces_http_swagger.SwaggerError "用户不存在"
-// @Failure 500 {object} services_internal_interfaces_http_swagger.SwaggerError "服务器内部错误"
+// @Success 200 {object} response.Response{data=responsedto.UserInfoResponse} "获取成功"
+// @Failure 400 {object} response.Response "请求参数错误"
+// @Failure 401 {object} response.Response "未授权访问"
+// @Failure 404 {object} response.Response "用户不存在"
+// @Failure 500 {object} response.Response "服务器内部错误"
 // @Security BearerAuth
 // @Router /users/{id} [get]
 func (h *UserHandler) GetUser(c *gin.Context) {
