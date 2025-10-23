@@ -28,7 +28,7 @@ func AuthMiddleware(jwtService *jwt.JWT, cfg config.AuthConfig) gin.HandlerFunc 
 		}
 
 		// 获取Authorization头
-		authHeader := c.GetHeader(contextutil.AuthHeaderKey)
+		authHeader := c.GetHeader(string(contextutil.AuthHeaderKey))
 		if authHeader == "" {
 			logger.Warn(ctx, "Missing authorization header")
 			err := response.NewUnauthorizedError("Missing authorization header")
