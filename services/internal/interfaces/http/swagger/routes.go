@@ -37,7 +37,7 @@ func SetupSwaggerRoutes(engine *gin.Engine, cfg *config.Config, logger *zap.Logg
 		return
 	}
 
-	routes.setupRoutes(engine)
+	routes.setupRoutes(engine, cfg, logger)
 	logger.Info("Swagger routes setup completed",
 		zap.String("url", "/swagger/index.html"))
 }
@@ -48,23 +48,31 @@ func (sr *SwaggerRoutes) shouldEnableSwagger(env string) bool {
 }
 
 // setupRoutes 设置具体的路由
-func (sr *SwaggerRoutes) setupRoutes(engine *gin.Engine) {
+func (sr *SwaggerRoutes) setupRoutes(engine *gin.Engine, cfg *config.Config, logger *zap.Logger) {
 	swaggerConfig := sr.manager.GetConfig()
+
+	// 创建Swagger中间件（需要JWT服务，但这里我们简化处理）
+	// 在实际使用中，如果需要JWT验证，应该通过DI注入
+	middleware := NewSwaggerMiddleware(cfg, nil, logger)
 
 	// 配置Swagger中间件，使用生成的文档
 	url := ginSwagger.URL("/swagger/doc.json") // 指向生成的API定义
 
-	// 添加重定向路由，方便访问
-	engine.GET("/docs", sr.redirectToSwagger)
-	engine.GET("/api-docs", sr.redirectToSwagger)
+	// 创建Swagger路由组，应用访问控制中间件
+	swaggerGroup := engine.Group("/swagger")
+	swaggerGroup.Use(middleware.AccessControlMiddleware())
+
+	// 添加重定向路由，方便访问（也需要中间件保护）
+	engine.GET("/docs", middleware.AccessControlMiddleware(), sr.redirectToSwagger)
+	engine.GET("/api-docs", middleware.AccessControlMiddleware(), sr.redirectToSwagger)
 
 	// 设置Swagger路由 - 使用生成的文档
-	engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, url))
+	swaggerGroup.GET("/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, url))
 
 	// 添加Swagger健康检查路由（独立路由，避免与wildcard冲突）
-	engine.GET("/swagger-health", sr.swaggerHealthCheck)
+	engine.GET("/swagger-health", middleware.AccessControlMiddleware(), sr.swaggerHealthCheck)
 
-	sr.logger.Info("Swagger routes configured",
+	sr.logger.Info("Swagger routes configured with access control",
 		zap.String("title", swaggerConfig.Title),
 		zap.String("version", swaggerConfig.Version),
 		zap.String("base_path", swaggerConfig.BasePath))

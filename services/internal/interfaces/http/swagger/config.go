@@ -21,7 +21,7 @@ func NewSwaggerManager(cfg *config.Config) *SwaggerManager {
 	applyEnvironmentOverrides(&swaggerConfig)
 
 	// 设置默认值
-	setDefaults(&swaggerConfig, &cfg.System)
+	setDefaults(&swaggerConfig)
 
 	return &SwaggerManager{
 		config: &swaggerConfig,
@@ -54,16 +54,6 @@ func (sm *SwaggerManager) ShouldEnableInEnvironment(env string) bool {
 	return sm.config.Enabled
 }
 
-// GetSwaggerURL 获取Swagger UI访问URL
-func (sm *SwaggerManager) GetSwaggerURL() string {
-	return "/swagger/*any"
-}
-
-// GetAPIDocsURL 获取API文档JSON URL
-func (sm *SwaggerManager) GetAPIDocsURL() string {
-	return "/swagger/doc.json"
-}
-
 // applyEnvironmentOverrides 应用环境变量覆盖配置
 func applyEnvironmentOverrides(cfg *config.SwaggerConfig) {
 	// SWAGGER_ENABLED 环境变量
@@ -72,70 +62,17 @@ func applyEnvironmentOverrides(cfg *config.SwaggerConfig) {
 			cfg.Enabled = enabled
 		}
 	}
-
-	// SWAGGER_TITLE 环境变量
-	if title := os.Getenv("SWAGGER_TITLE"); title != "" {
-		cfg.Title = title
-	}
-
-	// SWAGGER_DESCRIPTION 环境变量
-	if description := os.Getenv("SWAGGER_DESCRIPTION"); description != "" {
-		cfg.Description = description
-	}
-
-	// SWAGGER_VERSION 环境变量
-	if version := os.Getenv("SWAGGER_VERSION"); version != "" {
-		cfg.Version = version
-	}
-
-	// SWAGGER_HOST 环境变量
-	if host := os.Getenv("SWAGGER_HOST"); host != "" {
-		cfg.Host = host
-	}
-
-	// SWAGGER_BASE_PATH 环境变量
-	if basePath := os.Getenv("SWAGGER_BASE_PATH"); basePath != "" {
-		cfg.BasePath = basePath
-	}
 }
 
 // setDefaults 设置默认值
-func setDefaults(cfg *config.SwaggerConfig, systemCfg *config.SystemConfig) {
-	// 根据环境设置默认启用状态
-	if systemCfg.Env == "production" {
-		// 生产环境默认禁用，除非明确配置启用
-		if cfg.Title == "" { // 如果没有配置过，则设置默认禁用
-			cfg.Enabled = false
-		}
-	}
-
+func setDefaults(cfg *config.SwaggerConfig) {
 	// 设置默认标题
 	if cfg.Title == "" {
 		cfg.Title = "API Documentation"
 	}
 
-	// 设置默认描述
-	if cfg.Description == "" {
-		cfg.Description = "API documentation for " + systemCfg.ServerName
-	}
-
 	// 设置默认版本
 	if cfg.Version == "" {
 		cfg.Version = "1.0.0"
-	}
-
-	// 设置默认基础路径
-	if cfg.BasePath == "" {
-		cfg.BasePath = "/api/v1"
-	}
-
-	// 设置默认联系信息
-	if cfg.Contact.Name == "" {
-		cfg.Contact.Name = "API Support"
-	}
-
-	// 设置默认许可证
-	if cfg.License.Name == "" {
-		cfg.License.Name = "MIT"
 	}
 }

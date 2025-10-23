@@ -52,7 +52,7 @@ type HealthResponse struct {
 // @Accept json
 // @Produce json
 // @Success 200 {object} HealthResponse "系统健康"
-// @Failure 503 {object} services_internal_interfaces_http_swagger.ServiceUnavailableErrorResponse "系统不健康"
+// @Failure 503 {object} services_internal_interfaces_http_swagger.SwaggerError "系统不健康"
 // @Router /health [get]
 func (h *HealthHandler) Health(c *gin.Context) {
 	ctx := c.Request.Context()

@@ -61,19 +61,19 @@ const docTemplate = `{
                     "400": {
                         "description": "请求参数验证失败",
                         "schema": {
-                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.ValidationErrorResponse"
+                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.SwaggerError"
                         }
                     },
                     "401": {
                         "description": "用户名或密码错误",
                         "schema": {
-                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.UnauthorizedErrorResponse"
+                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.SwaggerError"
                         }
                     },
                     "500": {
                         "description": "服务器内部错误",
                         "schema": {
-                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.InternalServerErrorResponse"
+                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.SwaggerError"
                         }
                     }
                 }
@@ -110,13 +110,13 @@ const docTemplate = `{
                     "401": {
                         "description": "未授权或Token无效",
                         "schema": {
-                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.UnauthorizedErrorResponse"
+                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.SwaggerError"
                         }
                     },
                     "500": {
                         "description": "服务器内部错误",
                         "schema": {
-                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.InternalServerErrorResponse"
+                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.SwaggerError"
                         }
                     }
                 }
@@ -159,19 +159,19 @@ const docTemplate = `{
                     "400": {
                         "description": "请求参数验证失败",
                         "schema": {
-                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.ValidationErrorResponse"
+                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.SwaggerError"
                         }
                     },
                     "401": {
                         "description": "微信授权失败",
                         "schema": {
-                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.UnauthorizedErrorResponse"
+                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.SwaggerError"
                         }
                     },
                     "500": {
                         "description": "服务器内部错误",
                         "schema": {
-                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.InternalServerErrorResponse"
+                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.SwaggerError"
                         }
                     }
                 }
@@ -200,7 +200,7 @@ const docTemplate = `{
                     "503": {
                         "description": "系统不健康",
                         "schema": {
-                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.ServiceUnavailableErrorResponse"
+                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.SwaggerError"
                         }
                     }
                 }
@@ -288,19 +288,19 @@ const docTemplate = `{
                     "400": {
                         "description": "请求参数验证失败",
                         "schema": {
-                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.ValidationErrorResponse"
+                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.SwaggerError"
                         }
                     },
                     "401": {
                         "description": "未授权访问",
                         "schema": {
-                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.UnauthorizedErrorResponse"
+                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.SwaggerError"
                         }
                     },
                     "500": {
                         "description": "服务器内部错误",
                         "schema": {
-                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.InternalServerErrorResponse"
+                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.SwaggerError"
                         }
                     }
                 }
@@ -343,19 +343,19 @@ const docTemplate = `{
                     "400": {
                         "description": "请求参数验证失败",
                         "schema": {
-                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.ValidationErrorResponse"
+                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.SwaggerError"
                         }
                     },
                     "409": {
                         "description": "用户已存在",
                         "schema": {
-                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.ConflictErrorResponse"
+                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.SwaggerError"
                         }
                     },
                     "500": {
                         "description": "服务器内部错误",
                         "schema": {
-                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.InternalServerErrorResponse"
+                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.SwaggerError"
                         }
                     }
                 }
@@ -399,25 +399,25 @@ const docTemplate = `{
                     "400": {
                         "description": "请求参数错误",
                         "schema": {
-                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.ErrorResponse"
+                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.SwaggerError"
                         }
                     },
                     "401": {
                         "description": "未授权访问",
                         "schema": {
-                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.UnauthorizedErrorResponse"
+                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.SwaggerError"
                         }
                     },
                     "404": {
                         "description": "用户不存在",
                         "schema": {
-                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.NotFoundErrorResponse"
+                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.SwaggerError"
                         }
                     },
                     "500": {
                         "description": "服务器内部错误",
                         "schema": {
-                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.InternalServerErrorResponse"
+                            "$ref": "#/definitions/services_internal_interfaces_http_swagger.SwaggerError"
                         }
                     }
                 }
@@ -598,24 +598,7 @@ const docTemplate = `{
                 }
             }
         },
-        "services_internal_interfaces_http_swagger.ConflictErrorResponse": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "integer",
-                    "example": 409
-                },
-                "error": {
-                    "type": "string",
-                    "example": "Conflict"
-                },
-                "message": {
-                    "type": "string",
-                    "example": "Resource already exists"
-                }
-            }
-        },
-        "services_internal_interfaces_http_swagger.ErrorResponse": {
+        "services_internal_interfaces_http_swagger.SwaggerError": {
             "type": "object",
             "properties": {
                 "code": {
@@ -630,122 +613,6 @@ const docTemplate = `{
                 "message": {
                     "type": "string",
                     "example": "Invalid input parameters"
-                }
-            }
-        },
-        "services_internal_interfaces_http_swagger.FieldError": {
-            "type": "object",
-            "properties": {
-                "field": {
-                    "type": "string",
-                    "example": "name"
-                },
-                "message": {
-                    "type": "string",
-                    "example": "Name is required"
-                },
-                "value": {
-                    "type": "string",
-                    "example": ""
-                }
-            }
-        },
-        "services_internal_interfaces_http_swagger.InternalServerErrorResponse": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "integer",
-                    "example": 500
-                },
-                "error": {
-                    "type": "string",
-                    "example": "Internal Server Error"
-                },
-                "message": {
-                    "type": "string",
-                    "example": "An internal server error occurred"
-                }
-            }
-        },
-        "services_internal_interfaces_http_swagger.NotFoundErrorResponse": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "integer",
-                    "example": 404
-                },
-                "error": {
-                    "type": "string",
-                    "example": "Not Found"
-                },
-                "message": {
-                    "type": "string",
-                    "example": "Resource not found"
-                }
-            }
-        },
-        "services_internal_interfaces_http_swagger.ServiceUnavailableErrorResponse": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "integer",
-                    "example": 503
-                },
-                "error": {
-                    "type": "string",
-                    "example": "Service Unavailable"
-                },
-                "message": {
-                    "type": "string",
-                    "example": "Service is temporarily unavailable"
-                }
-            }
-        },
-        "services_internal_interfaces_http_swagger.UnauthorizedErrorResponse": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "integer",
-                    "example": 401
-                },
-                "error": {
-                    "type": "string",
-                    "example": "Unauthorized"
-                },
-                "message": {
-                    "type": "string",
-                    "example": "Authentication required"
-                }
-            }
-        },
-        "services_internal_interfaces_http_swagger.ValidationErrorDetails": {
-            "type": "object",
-            "properties": {
-                "fields": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/services_internal_interfaces_http_swagger.FieldError"
-                    }
-                }
-            }
-        },
-        "services_internal_interfaces_http_swagger.ValidationErrorResponse": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "integer",
-                    "example": 400
-                },
-                "details": {
-                    "$ref": "#/definitions/services_internal_interfaces_http_swagger.ValidationErrorDetails"
-                },
-                "error": {
-                    "type": "string",
-                    "example": "Validation Failed"
-                },
-                "message": {
-                    "type": "string",
-                    "example": "Request validation failed"
                 }
             }
         }

@@ -124,19 +124,7 @@ definitions:
           $ref: '#/definitions/services_internal_interfaces_http_dto_response.UserInfoResponse'
         type: array
     type: object
-  services_internal_interfaces_http_swagger.ConflictErrorResponse:
-    properties:
-      code:
-        example: 409
-        type: integer
-      error:
-        example: Conflict
-        type: string
-      message:
-        example: Resource already exists
-        type: string
-    type: object
-  services_internal_interfaces_http_swagger.ErrorResponse:
+  services_internal_interfaces_http_swagger.SwaggerError:
     properties:
       code:
         example: 400
@@ -147,87 +135,6 @@ definitions:
         type: string
       message:
         example: Invalid input parameters
-        type: string
-    type: object
-  services_internal_interfaces_http_swagger.FieldError:
-    properties:
-      field:
-        example: name
-        type: string
-      message:
-        example: Name is required
-        type: string
-      value:
-        example: ""
-        type: string
-    type: object
-  services_internal_interfaces_http_swagger.InternalServerErrorResponse:
-    properties:
-      code:
-        example: 500
-        type: integer
-      error:
-        example: Internal Server Error
-        type: string
-      message:
-        example: An internal server error occurred
-        type: string
-    type: object
-  services_internal_interfaces_http_swagger.NotFoundErrorResponse:
-    properties:
-      code:
-        example: 404
-        type: integer
-      error:
-        example: Not Found
-        type: string
-      message:
-        example: Resource not found
-        type: string
-    type: object
-  services_internal_interfaces_http_swagger.ServiceUnavailableErrorResponse:
-    properties:
-      code:
-        example: 503
-        type: integer
-      error:
-        example: Service Unavailable
-        type: string
-      message:
-        example: Service is temporarily unavailable
-        type: string
-    type: object
-  services_internal_interfaces_http_swagger.UnauthorizedErrorResponse:
-    properties:
-      code:
-        example: 401
-        type: integer
-      error:
-        example: Unauthorized
-        type: string
-      message:
-        example: Authentication required
-        type: string
-    type: object
-  services_internal_interfaces_http_swagger.ValidationErrorDetails:
-    properties:
-      fields:
-        items:
-          $ref: '#/definitions/services_internal_interfaces_http_swagger.FieldError'
-        type: array
-    type: object
-  services_internal_interfaces_http_swagger.ValidationErrorResponse:
-    properties:
-      code:
-        example: 400
-        type: integer
-      details:
-        $ref: '#/definitions/services_internal_interfaces_http_swagger.ValidationErrorDetails'
-      error:
-        example: Validation Failed
-        type: string
-      message:
-        example: Request validation failed
         type: string
     type: object
 host: localhost:8080
@@ -268,15 +175,15 @@ paths:
         "400":
           description: 请求参数验证失败
           schema:
-            $ref: '#/definitions/services_internal_interfaces_http_swagger.ValidationErrorResponse'
+            $ref: '#/definitions/services_internal_interfaces_http_swagger.SwaggerError'
         "401":
           description: 用户名或密码错误
           schema:
-            $ref: '#/definitions/services_internal_interfaces_http_swagger.UnauthorizedErrorResponse'
+            $ref: '#/definitions/services_internal_interfaces_http_swagger.SwaggerError'
         "500":
           description: 服务器内部错误
           schema:
-            $ref: '#/definitions/services_internal_interfaces_http_swagger.InternalServerErrorResponse'
+            $ref: '#/definitions/services_internal_interfaces_http_swagger.SwaggerError'
       summary: 用户密码登录
       tags:
       - 认证授权
@@ -297,11 +204,11 @@ paths:
         "401":
           description: 未授权或Token无效
           schema:
-            $ref: '#/definitions/services_internal_interfaces_http_swagger.UnauthorizedErrorResponse'
+            $ref: '#/definitions/services_internal_interfaces_http_swagger.SwaggerError'
         "500":
           description: 服务器内部错误
           schema:
-            $ref: '#/definitions/services_internal_interfaces_http_swagger.InternalServerErrorResponse'
+            $ref: '#/definitions/services_internal_interfaces_http_swagger.SwaggerError'
       security:
       - BearerAuth: []
       summary: 用户登出
@@ -331,15 +238,15 @@ paths:
         "400":
           description: 请求参数验证失败
           schema:
-            $ref: '#/definitions/services_internal_interfaces_http_swagger.ValidationErrorResponse'
+            $ref: '#/definitions/services_internal_interfaces_http_swagger.SwaggerError'
         "401":
           description: 微信授权失败
           schema:
-            $ref: '#/definitions/services_internal_interfaces_http_swagger.UnauthorizedErrorResponse'
+            $ref: '#/definitions/services_internal_interfaces_http_swagger.SwaggerError'
         "500":
           description: 服务器内部错误
           schema:
-            $ref: '#/definitions/services_internal_interfaces_http_swagger.InternalServerErrorResponse'
+            $ref: '#/definitions/services_internal_interfaces_http_swagger.SwaggerError'
       summary: 微信登录
       tags:
       - 认证授权
@@ -358,7 +265,7 @@ paths:
         "503":
           description: 系统不健康
           schema:
-            $ref: '#/definitions/services_internal_interfaces_http_swagger.ServiceUnavailableErrorResponse'
+            $ref: '#/definitions/services_internal_interfaces_http_swagger.SwaggerError'
       summary: 系统健康检查
       tags:
       - 健康检查
@@ -417,15 +324,15 @@ paths:
         "400":
           description: 请求参数验证失败
           schema:
-            $ref: '#/definitions/services_internal_interfaces_http_swagger.ValidationErrorResponse'
+            $ref: '#/definitions/services_internal_interfaces_http_swagger.SwaggerError'
         "401":
           description: 未授权访问
           schema:
-            $ref: '#/definitions/services_internal_interfaces_http_swagger.UnauthorizedErrorResponse'
+            $ref: '#/definitions/services_internal_interfaces_http_swagger.SwaggerError'
         "500":
           description: 服务器内部错误
           schema:
-            $ref: '#/definitions/services_internal_interfaces_http_swagger.InternalServerErrorResponse'
+            $ref: '#/definitions/services_internal_interfaces_http_swagger.SwaggerError'
       security:
       - BearerAuth: []
       summary: 获取用户列表
@@ -452,15 +359,15 @@ paths:
         "400":
           description: 请求参数验证失败
           schema:
-            $ref: '#/definitions/services_internal_interfaces_http_swagger.ValidationErrorResponse'
+            $ref: '#/definitions/services_internal_interfaces_http_swagger.SwaggerError'
         "409":
           description: 用户已存在
           schema:
-            $ref: '#/definitions/services_internal_interfaces_http_swagger.ConflictErrorResponse'
+            $ref: '#/definitions/services_internal_interfaces_http_swagger.SwaggerError'
         "500":
           description: 服务器内部错误
           schema:
-            $ref: '#/definitions/services_internal_interfaces_http_swagger.InternalServerErrorResponse'
+            $ref: '#/definitions/services_internal_interfaces_http_swagger.SwaggerError'
       security:
       - BearerAuth: []
       summary: 创建新用户
@@ -488,19 +395,19 @@ paths:
         "400":
           description: 请求参数错误
           schema:
-            $ref: '#/definitions/services_internal_interfaces_http_swagger.ErrorResponse'
+            $ref: '#/definitions/services_internal_interfaces_http_swagger.SwaggerError'
         "401":
           description: 未授权访问
           schema:
-            $ref: '#/definitions/services_internal_interfaces_http_swagger.UnauthorizedErrorResponse'
+            $ref: '#/definitions/services_internal_interfaces_http_swagger.SwaggerError'
         "404":
           description: 用户不存在
           schema:
-            $ref: '#/definitions/services_internal_interfaces_http_swagger.NotFoundErrorResponse'
+            $ref: '#/definitions/services_internal_interfaces_http_swagger.SwaggerError'
         "500":
           description: 服务器内部错误
           schema:
-            $ref: '#/definitions/services_internal_interfaces_http_swagger.InternalServerErrorResponse'
+            $ref: '#/definitions/services_internal_interfaces_http_swagger.SwaggerError'
       security:
       - BearerAuth: []
       summary: 获取用户详细信息

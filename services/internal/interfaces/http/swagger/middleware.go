@@ -32,7 +32,7 @@ func NewSwaggerMiddleware(cfg *config.Config, jwtService *jwt.JWT, logger *zap.L
 func (sm *SwaggerMiddleware) AccessControlMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// 检查环境和配置
-		if !sm.shouldAllowAccess(c) {
+		if !sm.shouldAllowAccess() {
 			sm.logger.Warn("Swagger access denied",
 				zap.String("path", c.Request.URL.Path),
 				zap.String("environment", sm.config.System.Env),
@@ -46,8 +46,8 @@ func (sm *SwaggerMiddleware) AccessControlMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// 在生产环境中可能需要额外的认证
-		if sm.config.System.Env == "production" && sm.requiresAuthentication() {
+		// 在生产环境中需要额外的认证
+		if sm.config.System.Env == "production" {
 			if !sm.validateAccess(c) {
 				sm.logger.Warn("Swagger authentication failed",
 					zap.String("path", c.Request.URL.Path),
@@ -68,7 +68,7 @@ func (sm *SwaggerMiddleware) AccessControlMiddleware() gin.HandlerFunc {
 }
 
 // shouldAllowAccess 检查是否应该允许访问
-func (sm *SwaggerMiddleware) shouldAllowAccess(c *gin.Context) bool {
+func (sm *SwaggerMiddleware) shouldAllowAccess() bool {
 	// 检查Swagger是否启用
 	if !sm.config.Swagger.Enabled {
 		return false
@@ -80,30 +80,14 @@ func (sm *SwaggerMiddleware) shouldAllowAccess(c *gin.Context) bool {
 	switch env {
 	case "production":
 		// 生产环境需要明确启用
-		return sm.isExplicitlyEnabled()
-	case "development", "dev":
-		// 开发环境默认允许
-		return true
-	case "test", "testing":
-		// 测试环境默认允许
+		return sm.config.Swagger.Enabled
+	case "development", "dev", "test", "testing":
+		// 开发和测试环境默认允许
 		return true
 	default:
 		// 未知环境，谨慎处理
 		return false
 	}
-}
-
-// isExplicitlyEnabled 检查是否明确启用
-func (sm *SwaggerMiddleware) isExplicitlyEnabled() bool {
-	// 可以通过环境变量或配置文件明确启用
-	return sm.config.Swagger.Enabled
-}
-
-// requiresAuthentication 检查是否需要认证
-func (sm *SwaggerMiddleware) requiresAuthentication() bool {
-	// 生产环境默认需要认证
-	// 可以通过配置或环境变量控制
-	return sm.config.System.Env == "production"
 }
 
 // validateAccess 验证访问权限
@@ -151,61 +135,4 @@ func (sm *SwaggerMiddleware) addSecurityHeaders(c *gin.Context) {
 
 	// 引用策略
 	c.Header("Referrer-Policy", "strict-origin-when-cross-origin")
-}
-
-// IPWhitelistMiddleware IP白名单中间件（可选功能）
-func (sm *SwaggerMiddleware) IPWhitelistMiddleware(allowedIPs []string) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		if len(allowedIPs) == 0 {
-			// 如果没有配置白名单，则跳过检查
-			c.Next()
-			return
-		}
-
-		clientIP := c.ClientIP()
-
-		// 检查IP是否在白名单中
-		for _, allowedIP := range allowedIPs {
-			if clientIP == allowedIP || allowedIP == "*" {
-				c.Next()
-				return
-			}
-		}
-
-		sm.logger.Warn("Swagger access denied - IP not in whitelist",
-			zap.String("client_ip", clientIP),
-			zap.Strings("allowed_ips", allowedIPs))
-
-		c.JSON(http.StatusForbidden, gin.H{
-			"error":   "Forbidden",
-			"message": "Access denied - IP not in whitelist",
-		})
-		c.Abort()
-	}
-}
-
-// RateLimitMiddleware 简单的速率限制中间件（可选功能）
-func (sm *SwaggerMiddleware) RateLimitMiddleware() gin.HandlerFunc {
-	// 这里可以实现基于IP的简单速率限制
-	// 或者集成现有的rate limit中间件
-	return func(c *gin.Context) {
-		// 目前直接通过，后续可以根据需要实现具体的限制逻辑
-		c.Next()
-	}
-}
-
-// SecurityConfig Swagger安全配置
-type SecurityConfig struct {
-	RequireAuth     bool     `json:"require_auth"`      // 是否需要认证
-	AllowedIPs      []string `json:"allowed_ips"`       // IP白名单
-	EnableRateLimit bool     `json:"enable_rate_limit"` // 是否启用速率限制
-}
-
-// GetSecurityConfig 获取安全配置
-func (sm *SwaggerMiddleware) GetSecurityConfig() SecurityConfig {
-	return SecurityConfig{
-		RequireAuth:     sm.requiresAuthentication(),
-		AllowedIPs:      []string{}, // 可以从配置文件读取
-		EnableRateLimit: false,      // 可以从配置文件读取
-	}
 }
