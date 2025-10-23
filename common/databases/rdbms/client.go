@@ -95,13 +95,3 @@ func (c *Client) WithTx(ctx context.Context, fn func(*sql.Tx) error) error {
 	err = fn(tx)
 	return err
 }
-
-// configureConnectionPool 配置数据库连接池
-func (c *Client) configureConnectionPool() {
-	c.db.SetMaxOpenConns(c.config.MaxOpenConns)
-	c.db.SetMaxIdleConns(c.config.MaxIdleConns)
-	c.db.SetConnMaxLifetime(c.config.ConnMaxLifetime)
-	if c.config.ConnMaxIdleTime > 0 {
-		c.db.SetConnMaxIdleTime(c.config.ConnMaxIdleTime)
-	}
-}

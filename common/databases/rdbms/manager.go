@@ -165,7 +165,7 @@ func (m *Manager) buildDSN(cfg config.DatabaseConfig) (string, string, error) {
 	}
 }
 
-// configureConnectionPool 配置连接池（合并Builder功能）
+// configureConnectionPool 配置连接池
 func (m *Manager) configureConnectionPool(db *sql.DB, cfg config.DatabaseConfig) {
 	db.SetMaxOpenConns(cfg.MaxOpenConns)
 	db.SetMaxIdleConns(cfg.MaxIdleConns)
