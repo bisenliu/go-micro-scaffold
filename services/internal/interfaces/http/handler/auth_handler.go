@@ -120,6 +120,5 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 		logger.Error(ctx, "Logout failed", zap.Error(err))
 	}
 
-	// 使用带日志功能的统一API，自动判断成功或错误并记录DomainError上下文
 	HandleWithLogging(c, "登出成功", err)
 }

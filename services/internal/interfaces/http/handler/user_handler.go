@@ -73,7 +73,6 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 		logger.Info(ctx, "User created successfully", zap.String("open_id", req.OpenID))
 	}
 
-	// 使用带日志功能的统一API，自动判断成功或错误并记录DomainError上下文
 	HandleWithLogging(c, responsedto.ToUserInfoResponse(user), err)
 }
 
@@ -138,7 +137,6 @@ func (h *UserHandler) ListUsers(c *gin.Context) {
 	// 将领域实体转换为DTO
 	userResponses := responsedto.ToUserListResponse(users)
 
-	// 使用带日志功能的统一分页API，自动判断成功或错误并记录DomainError上下文
 	HandlePagingWithLogging(c, userResponses, req.Page, req.PageSize, total, err)
 }
 
@@ -170,6 +168,5 @@ func (h *UserHandler) GetUser(c *gin.Context) {
 		logger.Error(ctx, "Failed to get user info", zap.Error(err), zap.String("user_id", userID))
 	}
 
-	// 使用带日志功能的统一API，自动判断成功或错误并记录DomainError上下文
 	HandleWithLogging(c, responsedto.ToUserInfoResponse(userInfo), err)
 }
