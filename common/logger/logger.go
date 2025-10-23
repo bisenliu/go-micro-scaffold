@@ -184,7 +184,7 @@ func GetTraceID(ctx context.Context) string {
 // WithContext 创建带有 traceID 的 logger
 func WithContext(logger *zap.Logger, ctx context.Context) *zap.Logger {
 	traceID := GetTraceID(ctx)
-	return logger.With(zap.String(contextutil.TraceIDKey, traceID))
+	return logger.With(zap.String("traceID", traceID))
 }
 
 // ToContext 将 logger 存入 context
