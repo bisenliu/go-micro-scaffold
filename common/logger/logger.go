@@ -14,11 +14,7 @@ import (
 	"go.uber.org/zap/zapcore"
 
 	"common/config"
-)
-
-const (
-	// TraceIDKey 是 context 中 traceID 的键名
-	TraceIDKey = "traceID"
+	"common/pkg/contextutil"
 )
 
 // NewLogger 创建logger实例
@@ -174,12 +170,12 @@ func GenerateTraceID() string {
 
 // WithTraceID 在 context 中设置 traceID
 func WithTraceID(ctx context.Context, traceID string) context.Context {
-	return context.WithValue(ctx, TraceIDKey, traceID)
+	return context.WithValue(ctx, contextutil.TraceIDKey, traceID)
 }
 
 // GetTraceID 从 context 中获取 traceID
 func GetTraceID(ctx context.Context) string {
-	if traceID, ok := ctx.Value(TraceIDKey).(string); ok {
+	if traceID, ok := ctx.Value(contextutil.TraceIDKey).(string); ok {
 		return traceID
 	}
 	return ""
@@ -188,17 +184,17 @@ func GetTraceID(ctx context.Context) string {
 // WithContext 创建带有 traceID 的 logger
 func WithContext(logger *zap.Logger, ctx context.Context) *zap.Logger {
 	traceID := GetTraceID(ctx)
-	return logger.With(zap.String("traceID", traceID))
+	return logger.With(zap.String(contextutil.TraceIDKey, traceID))
 }
 
 // ToContext 将 logger 存入 context
 func ToContext(ctx context.Context, logger *zap.Logger) context.Context {
-	return context.WithValue(ctx, "contextLogger", logger)
+	return context.WithValue(ctx, contextutil.ContextLoggerKey, logger)
 }
 
 // FromContext 从 context 中获取 logger
 func FromContext(ctx context.Context) *zap.Logger {
-	if logger, ok := ctx.Value("contextLogger").(*zap.Logger); ok {
+	if logger, ok := ctx.Value(contextutil.ContextLoggerKey).(*zap.Logger); ok {
 		return logger
 	}
 	// 返回 noop logger，避免 panic
