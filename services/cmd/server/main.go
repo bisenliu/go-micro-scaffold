@@ -25,15 +25,6 @@
 //	@name						Authorization
 //	@description				JWT Token，格式：Bearer {token}
 //
-//	@tag.name					用户管理
-//	@tag.description			用户相关的 API 接口
-//
-//	@tag.name					认证授权
-//	@tag.description			认证和授权相关的 API 接口
-//
-//	@tag.name					健康检查
-//	@tag.description			系统健康检查相关的 API 接口
-//
 //	@schemes					http https
 //	@produce					json
 //	@consumes					json

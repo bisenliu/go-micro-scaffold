@@ -2,6 +2,9 @@ package routes
 
 import (
 	"net/http"
+	"os"
+	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
@@ -10,18 +13,15 @@ import (
 
 	"common/config"
 	_ "services/docs" // 导入生成的Swagger文档
-	"services/internal/interfaces/http/swagger"
 )
 
 // SetupSwaggerRoutes 设置Swagger相关路由
 func SetupSwaggerRoutes(engine *gin.Engine, cfg *config.Config, logger *zap.Logger) {
 	// 检查Swagger是否应该启用
-	swaggerManager := swagger.NewSwaggerManager(cfg)
-
-	if !swaggerManager.ShouldEnableInEnvironment(cfg.System.Env) {
+	if !isSwaggerEnabled(cfg.System.Env) {
 		logger.Info("Swagger is disabled for current environment",
 			zap.String("environment", cfg.System.Env),
-			zap.Bool("config_enabled", cfg.Swagger.Enabled))
+			zap.Bool("enabled", false))
 		return
 	}
 
@@ -49,4 +49,32 @@ func SetupSwaggerRoutes(engine *gin.Engine, cfg *config.Config, logger *zap.Logg
 		zap.String("environment", cfg.System.Env),
 		zap.String("swagger_url", "/swagger/index.html"),
 		zap.String("api_docs_url", "/swagger/doc.json"))
+}
+
+// isSwaggerEnabled 检查Swagger是否应该启用
+func isSwaggerEnabled(env string) bool {
+	// 首先检查环境变量 SWAGGER_ENABLED
+	if enabledEnv := os.Getenv("SWAGGER_ENABLED"); enabledEnv != "" {
+		enabled, err := strconv.ParseBool(enabledEnv)
+		if err == nil {
+			return enabled
+		}
+	}
+
+	// 根据环境自动判断
+	envLower := strings.ToLower(env)
+	switch envLower {
+	case "production", "prod":
+		// 生产环境默认禁用
+		return false
+	case "development", "dev", "local":
+		// 开发环境默认启用
+		return true
+	case "testing", "test", "staging":
+		// 测试环境默认启用
+		return true
+	default:
+		// 未知环境默认禁用
+		return false
+	}
 }

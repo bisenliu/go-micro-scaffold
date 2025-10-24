@@ -156,33 +156,7 @@ redis:
   pool_size: 10
 
 # ===================================================================
-# 5. Swagger API 文档配置 (Swagger Documentation)
-# ===================================================================
-swagger:
-  # 是否启用Swagger文档 (开发环境建议启用，生产环境建议禁用)
-  enabled: true
-  # API文档标题
-  title: "Go Micro Scaffold API"
-  # API描述
-  description: "微服务脚手架 API 文档"
-  # API版本
-  version: "1.0.0"
-  # API主机地址 (留空则使用当前请求的host)
-  host: ""
-  # API基础路径
-  base_path: "/api/v1"
-  # 联系信息
-  contact:
-    name: "API Support"
-    email: "support@example.com"
-    url: ""
-  # 许可证信息
-  license:
-    name: "MIT"
-    url: "https://opensource.org/licenses/MIT"
-
-# ===================================================================
-# 6. 日志配置 (Logging)
+# 5. 日志配置 (Logging)
 # ===================================================================
 zap:
   # 日志级别(DEBUG/INFO/WARN/ERROR/DPANIC/PANIC/FATAL)
