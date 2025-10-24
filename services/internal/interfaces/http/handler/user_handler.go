@@ -82,12 +82,7 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 // @Tags 用户管理
 // @Accept json
 // @Produce json
-// @Param page query int false "页码" default(1) minimum(1)
-// @Param page_size query int false "每页数量" default(10) minimum(1) maximum(100)
-// @Param name query string false "用户姓名（模糊搜索）" maxlength(50)
-// @Param gender query int false "性别" Enums(100,200,300) example(100)
-// @Param start_time query string false "开始时间" format(date) example("2023-01-01")
-// @Param end_time query string false "结束时间" format(date) example("2023-12-31")
+// @Param request query requestdto.ListUsersRequest false "列表用户请求"
 // @Success 200 {object} response.Response{data=response.PageData{items=[]responsedto.UserInfoResponse}} "获取成功"
 // @Failure 400 {object} response.Response "请求参数验证失败"
 // @Failure 401 {object} response.Response "未授权访问"

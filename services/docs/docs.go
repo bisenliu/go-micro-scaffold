@@ -271,27 +271,10 @@ const docTemplate = `{
                 "summary": "获取用户列表",
                 "parameters": [
                     {
-                        "minimum": 1,
-                        "type": "integer",
-                        "default": 1,
-                        "description": "页码",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "maximum": 100,
-                        "minimum": 1,
-                        "type": "integer",
-                        "default": 10,
-                        "description": "每页数量",
-                        "name": "page_size",
-                        "in": "query"
-                    },
-                    {
-                        "maxLength": 50,
                         "type": "string",
-                        "description": "用户姓名（模糊搜索）",
-                        "name": "name",
+                        "example": "2023-12-31",
+                        "description": "创建时间范围的结束时间，格式：YYYY-MM-DD",
+                        "name": "end_time",
                         "in": "query"
                     },
                     {
@@ -302,24 +285,52 @@ const docTemplate = `{
                         ],
                         "type": "integer",
                         "example": 100,
-                        "description": "性别",
+                        "x-enum-comments": {
+                            "GenderFemale": "女性",
+                            "GenderMale": "男性",
+                            "GenderOther": "其他"
+                        },
+                        "x-enum-descriptions": [
+                            "男性",
+                            "女性",
+                            "其他"
+                        ],
+                        "x-enum-varnames": [
+                            "GenderMale",
+                            "GenderFemale",
+                            "GenderOther"
+                        ],
+                        "description": "性别过滤：100-男性，200-女性，300-其他",
                         "name": "gender",
                         "in": "query"
                     },
                     {
+                        "maxLength": 50,
                         "type": "string",
-                        "format": "date",
-                        "example": "\"2023-01-01\"",
-                        "description": "开始时间",
-                        "name": "start_time",
+                        "example": "张三",
+                        "description": "用户姓名，支持模糊搜索",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "description": "页码(默认1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "description": "每页大小(默认10)",
+                        "name": "page_size",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "format": "date",
-                        "example": "\"2023-12-31\"",
-                        "description": "结束时间",
-                        "name": "end_time",
+                        "example": "2023-01-01",
+                        "description": "创建时间范围的开始时间，格式：YYYY-MM-DD",
+                        "name": "start_time",
                         "in": "query"
                     }
                 ],
@@ -684,7 +695,7 @@ const docTemplate = `{
                     "example": 1640995200000
                 },
                 "gender": {
-                    "description": "性别：100-未知，200-男，300-女",
+                    "description": "性别：100-男性，200-女性，300-其他",
                     "type": "integer",
                     "example": 200
                 },

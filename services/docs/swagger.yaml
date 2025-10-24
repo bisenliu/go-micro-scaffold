@@ -119,7 +119,7 @@ definitions:
         example: 1640995200000
         type: integer
       gender:
-        description: 性别：100-未知，200-男，300-女
+        description: 性别：100-男性，200-女性，300-其他
         example: 200
         type: integer
       id:
@@ -299,25 +299,12 @@ paths:
       - application/json
       description: 分页获取用户列表，支持按姓名、性别、时间范围等条件过滤
       parameters:
-      - default: 1
-        description: 页码
+      - description: 创建时间范围的结束时间，格式：YYYY-MM-DD
+        example: "2023-12-31"
         in: query
-        minimum: 1
-        name: page
-        type: integer
-      - default: 10
-        description: 每页数量
-        in: query
-        maximum: 100
-        minimum: 1
-        name: page_size
-        type: integer
-      - description: 用户姓名（模糊搜索）
-        in: query
-        maxLength: 50
-        name: name
+        name: end_time
         type: string
-      - description: 性别
+      - description: 性别过滤：100-男性，200-女性，300-其他
         enum:
         - 100
         - 200
@@ -326,17 +313,38 @@ paths:
         in: query
         name: gender
         type: integer
-      - description: 开始时间
-        example: '"2023-01-01"'
-        format: date
+        x-enum-comments:
+          GenderFemale: 女性
+          GenderMale: 男性
+          GenderOther: 其他
+        x-enum-descriptions:
+        - 男性
+        - 女性
+        - 其他
+        x-enum-varnames:
+        - GenderMale
+        - GenderFemale
+        - GenderOther
+      - description: 用户姓名，支持模糊搜索
+        example: 张三
+        in: query
+        maxLength: 50
+        name: name
+        type: string
+      - description: 页码(默认1)
+        in: query
+        minimum: 1
+        name: page
+        type: integer
+      - description: 每页大小(默认10)
+        in: query
+        minimum: 1
+        name: page_size
+        type: integer
+      - description: 创建时间范围的开始时间，格式：YYYY-MM-DD
+        example: "2023-01-01"
         in: query
         name: start_time
-        type: string
-      - description: 结束时间
-        example: '"2023-12-31"'
-        format: date
-        in: query
-        name: end_time
         type: string
       produces:
       - application/json
