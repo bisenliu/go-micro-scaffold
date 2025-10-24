@@ -612,6 +612,7 @@ const docTemplate = `{
             ],
             "properties": {
                 "gender": {
+                    "description": "性别：100-男性，200-女性，300-其他",
                     "allOf": [
                         {
                             "$ref": "#/definitions/services_internal_domain_user_valueobject.Gender"
@@ -620,20 +621,23 @@ const docTemplate = `{
                     "example": 100
                 },
                 "name": {
+                    "description": "用户姓名，长度不超过50个字符",
                     "type": "string",
                     "maxLength": 50,
                     "example": "张三"
                 },
                 "open_id": {
+                    "description": "微信OpenID或其他第三方平台的唯一标识",
                     "type": "string",
                     "example": "wx_123456789"
                 },
                 "password": {
+                    "description": "用户密码，长度至少6位",
                     "type": "string",
-                    "minLength": 6,
                     "example": "password123"
                 },
                 "phone_number": {
+                    "description": "手机号码，需要符合中国大陆手机号格式",
                     "type": "string",
                     "example": "13800138000"
                 }
@@ -647,10 +651,12 @@ const docTemplate = `{
             ],
             "properties": {
                 "password": {
+                    "description": "用户密码",
                     "type": "string",
                     "example": "password123"
                 },
                 "phone_number": {
+                    "description": "用户手机号码",
                     "type": "string",
                     "example": "13800138000"
                 }
@@ -663,6 +669,7 @@ const docTemplate = `{
             ],
             "properties": {
                 "code": {
+                    "description": "微信授权后获得的临时授权码",
                     "type": "string",
                     "example": "wx_auth_code_123456"
                 }
@@ -672,32 +679,39 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "created_at": {
+                    "description": "创建时间戳（毫秒）",
                     "type": "integer",
-                    "example": 1640995200
+                    "example": 1640995200000
                 },
                 "gender": {
+                    "description": "性别：100-未知，200-男，300-女",
                     "type": "integer",
                     "example": 200
                 },
                 "id": {
+                    "description": "用户唯一标识ID",
                     "type": "string",
                     "example": "user_123456789"
                 },
                 "name": {
+                    "description": "用户姓名",
                     "type": "string",
                     "example": "张三"
                 },
                 "open_id": {
+                    "description": "第三方平台的唯一标识",
                     "type": "string",
                     "example": "wx_123456789"
                 },
                 "phone_number": {
+                    "description": "手机号码",
                     "type": "string",
                     "example": "13800138000"
                 },
                 "updated_at": {
+                    "description": "更新时间戳（毫秒）",
                     "type": "integer",
-                    "example": 1640995200
+                    "example": 1640995200000
                 }
             }
         }

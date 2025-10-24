@@ -6,22 +6,22 @@ import (
 
 // UserInfoResponse 用户信息响应
 type UserInfoResponse struct {
-	ID          string `json:"id" example:"user_123456789" description:"用户唯一标识ID"`
-	OpenID      string `json:"open_id" example:"wx_123456789" description:"第三方平台的唯一标识"`
-	Name        string `json:"name" example:"张三" description:"用户姓名"`
-	Gender      int    `json:"gender" example:"200" description:"性别：100-未知，200-男，300-女"`
-	PhoneNumber string `json:"phone_number" example:"13800138000" description:"手机号码"`
-	CreatedAt   int64  `json:"created_at" example:"1640995200" description:"创建时间戳（秒）"`
-	UpdatedAt   int64  `json:"updated_at" example:"1640995200" description:"更新时间戳（秒）"`
+	ID          string `json:"id" example:"user_123456789"`        // 用户唯一标识ID
+	OpenID      string `json:"open_id" example:"wx_123456789"`     // 第三方平台的唯一标识
+	Name        string `json:"name" example:"张三"`                  // 用户姓名
+	Gender      int    `json:"gender" example:"200"`               // 性别：100-男性，200-女性，300-其他
+	PhoneNumber string `json:"phone_number" example:"13800138000"` // 手机号码
+	CreatedAt   int64  `json:"created_at" example:"1640995200000"` // 创建时间戳（毫秒）
+	UpdatedAt   int64  `json:"updated_at" example:"1640995200000"` // 更新时间戳（毫秒）
 }
 
 // UserListResponse 用户列表响应
 type UserListResponse struct {
-	Users      []*UserInfoResponse `json:"users" description:"用户列表"`
-	Total      int64               `json:"total" example:"100" description:"总记录数"`
-	Page       int                 `json:"page" example:"1" description:"当前页码"`
-	PageSize   int                 `json:"page_size" example:"10" description:"每页记录数"`
-	TotalPages int                 `json:"total_pages" example:"10" description:"总页数"`
+	Users      []*UserInfoResponse `json:"users"`                    // 用户列表
+	Total      int64               `json:"total" example:"100"`      // 总记录数
+	Page       int                 `json:"page" example:"1"`         // 当前页码
+	PageSize   int                 `json:"page_size" example:"10"`   // 每页记录数
+	TotalPages int                 `json:"total_pages" example:"10"` // 总页数
 }
 
 // ToUserInfoResponse 将用户实体转换为用户信息响应

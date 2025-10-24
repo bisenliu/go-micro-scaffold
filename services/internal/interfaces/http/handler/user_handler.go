@@ -114,7 +114,7 @@ func (h *UserHandler) ListUsers(c *gin.Context) {
 		query.Name = &req.Name
 	}
 	if req.Gender != nil {
-		query.Gender = req.Gender
+		query.Gender = req.Gender.IntPointer()
 	}
 	if req.StartTime != nil {
 		query.StartTime = req.StartTime

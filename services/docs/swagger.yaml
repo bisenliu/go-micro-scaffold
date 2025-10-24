@@ -63,19 +63,23 @@ definitions:
       gender:
         allOf:
         - $ref: '#/definitions/services_internal_domain_user_valueobject.Gender'
+        description: 性别：100-男性，200-女性，300-其他
         example: 100
       name:
+        description: 用户姓名，长度不超过50个字符
         example: 张三
         maxLength: 50
         type: string
       open_id:
+        description: 微信OpenID或其他第三方平台的唯一标识
         example: wx_123456789
         type: string
       password:
+        description: 用户密码，长度至少6位
         example: password123
-        minLength: 6
         type: string
       phone_number:
+        description: 手机号码，需要符合中国大陆手机号格式
         example: "13800138000"
         type: string
     required:
@@ -88,9 +92,11 @@ definitions:
   services_internal_interfaces_http_dto_request.LoginRequest:
     properties:
       password:
+        description: 用户密码
         example: password123
         type: string
       phone_number:
+        description: 用户手机号码
         example: "13800138000"
         type: string
     required:
@@ -100,6 +106,7 @@ definitions:
   services_internal_interfaces_http_dto_request.WeChatLoginRequest:
     properties:
       code:
+        description: 微信授权后获得的临时授权码
         example: wx_auth_code_123456
         type: string
     required:
@@ -108,25 +115,32 @@ definitions:
   services_internal_interfaces_http_dto_response.UserInfoResponse:
     properties:
       created_at:
-        example: 1640995200
+        description: 创建时间戳（毫秒）
+        example: 1640995200000
         type: integer
       gender:
+        description: 性别：100-未知，200-男，300-女
         example: 200
         type: integer
       id:
+        description: 用户唯一标识ID
         example: user_123456789
         type: string
       name:
+        description: 用户姓名
         example: 张三
         type: string
       open_id:
+        description: 第三方平台的唯一标识
         example: wx_123456789
         type: string
       phone_number:
+        description: 手机号码
         example: "13800138000"
         type: string
       updated_at:
-        example: 1640995200
+        description: 更新时间戳（毫秒）
+        example: 1640995200000
         type: integer
     type: object
 host: localhost:8080

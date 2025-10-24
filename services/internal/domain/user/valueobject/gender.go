@@ -19,3 +19,8 @@ func (g Gender) IsValid() bool {
 func (g Gender) Int() int {
 	return int(g)
 }
+
+func (g Gender) IntPointer() *int {
+	i := int(g)
+	return &i
+}
