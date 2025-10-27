@@ -564,8 +564,10 @@ func (r *userRepositoryImpl) entToModel(entUser *gen.User) *models.User {
         UpdatedAt:   entUser.UpdatedAt,
     }
 }
-```### 🔧
- 第三阶段：业务层迁移
+
+```
+
+###  🔧 第三阶段：业务层迁移
 
 #### 3.1 迁移验证器
 ```go
@@ -643,7 +645,10 @@ func (v *UserValidator) validateBusinessRules(ctx context.Context, req *request.
 }
 ```
 
+
+
 #### 3.2 迁移业务服务
+
 ```go
 // 新传统架构：services/services/user_service.go
 package services
