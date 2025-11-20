@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  server:
+    container_name: go-micro-scaffold-server
+    build:
+      context: .
+      dockerfile: services/Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql
+      - redis
+    restart: always
+    networks:
+      - micro-network
+
+  mysql:
+    image: mysql:8.0
+    container_name: go-micro-scaffold-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: go-micro-scaffold
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    restart: always
+    networks:
+      - micro-network
+
+  redis:
+    image: redis:latest
+    container_name: go-micro-scaffold-redis
+    ports:
+      - "6379:6379"
+    restart: always
+    networks:
+      - micro-network
+
+networks:
+  micro-network:
+    driver: bridge
+
+volumes:
+  mysql_data:

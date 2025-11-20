@@ -1,0 +1,39 @@
+# 运行设置
+run:
+  timeout: 5m # 超时时间
+  tests: false # 是否检查测试文件
+
+# Linter 设置
+linters:
+  enable:
+    - errcheck      # 检查未处理的错误
+    - gosimple      # 简化代码建议
+    - govet         # Go 官方静态检查
+    - ineffassign   # 检查无效赋值
+    - staticcheck   # 更加智能的静态检查
+    - typecheck     # 类型检查
+    - unused        # 检查未使用的常量、变量、函数
+    - goimports     # 检查导入包的格式
+    - misspell      # 检查拼写错误
+    - unconvert     # 检查不必要的类型转换
+    - goconst       # 查找重复的字符串，建议提取为常量
+    - gocyclo       # 检查函数复杂度 (圈复杂度)
+    - gofmt         # 强制格式化
+    - revive        # Golint 的替代品，检查代码风格
+    # - gosec       # (可选) 检查安全隐患，如硬编码密码
+
+# Linter 具体配置
+linters-settings:
+  gocyclo:
+    min-complexity: 15 # 如果一个函数复杂度超过15，报错（提示你需要重构）
+  goconst:
+    min-len: 3
+    min-occurrences: 3 # 如果一个字符串重复出现3次，提示提取为常量
+  goimports:
+    local-prefixes: services,common # 本地包前缀，用于自动分组
+
+# 问题过滤设置
+issues:
+  exclude-use-default: false # 是否使用默认排除规则
+  max-issues-per-linter: 0   # 每个 linter 的最大问题数 (0 表示不限制)
+  max-same-issues: 0         # 相同问题的最大数量 (0 表示不限制)
