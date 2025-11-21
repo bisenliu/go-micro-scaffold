@@ -15,7 +15,7 @@ func NewContextManager() *ContextManager {
 	return &ContextManager{
 		pool: sync.Pool{
 			New: func() any {
-				return make(map[string]any, 4) // 预分配4个元素的容量
+				return make(map[string]any, 2) // 降低初始容量，减少内存占用
 			},
 		},
 	}
@@ -24,16 +24,14 @@ func NewContextManager() *ContextManager {
 // GetContext 从对象池获取一个空的上下文map
 func (cm *ContextManager) GetContext() map[string]any {
 	ctx := cm.pool.Get().(map[string]any)
-	// 清空map，但保留容量
-	for k := range ctx {
-		delete(ctx, k)
-	}
 	return ctx
 }
 
 // ReleaseContext 将上下文map归还到对象池
 func (cm *ContextManager) ReleaseContext(ctx map[string]any) {
-	if ctx != nil && len(ctx) <= 16 { // 只回收小容量的map，避免内存浪费
+	if ctx != nil && len(ctx) <= 8 { // 降低阈值，避免大对象占用内存
+		// 清空map但保留容量
+		clear(ctx)
 		cm.pool.Put(ctx)
 	}
 }

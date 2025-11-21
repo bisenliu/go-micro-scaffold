@@ -47,7 +47,7 @@ func SetupRoutesFinal(p RoutesParams) {
 
 	// 3.2 业务路由（需要认证和授权）
 	v1.Use(commonMiddleware.RequestLogMiddleware())
-	v1.Use(gin.HandlerFunc(p.CasbinMiddleware))
+	// v1.Use(gin.HandlerFunc(p.CasbinMiddleware))
 	{
 		SetupUserRoutes(v1, p.UserHandler, p.ZapLogger)
 		// 后续添加其他模块

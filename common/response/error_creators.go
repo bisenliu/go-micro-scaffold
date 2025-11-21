@@ -1,89 +1,16 @@
 package response
 
-// ErrorFactory 统一的错误工厂接口
-type ErrorFactory interface {
-	// Create 创建领域错误
-	Create(errorType ErrorType, message string, cause ...error) *DomainError
-	// CreateWithContext 创建带有上下文的领域错误
-	CreateWithContext(errorType ErrorType, message string, context map[string]any, cause ...error) *DomainError
-}
-
-// errorFactory 错误工厂实现
-type errorFactory struct {
-	contextManager *ContextManager
-}
-
-// NewErrorFactory 创建新的错误工厂
-func NewErrorFactory() ErrorFactory {
-	return &errorFactory{
-		contextManager: GetDefaultContextManager(),
-	}
-}
-
-// NewErrorFactoryWithContextManager 使用指定的上下文管理器创建错误工厂
-func NewErrorFactoryWithContextManager(cm *ContextManager) ErrorFactory {
-	return &errorFactory{
-		contextManager: cm,
-	}
-}
-
-// Create 创建领域错误
-func (f *errorFactory) Create(errorType ErrorType, message string, cause ...error) *DomainError {
-	var rootCause error
-	if len(cause) > 0 {
-		rootCause = cause[0]
-	}
-
-	return &DomainError{
-		Type:    errorType,
-		Message: message,
-		Cause:   rootCause,
-		Context: nil, // 延迟分配，只在需要时创建
-	}
-}
-
-// CreateWithContext 创建带有上下文的领域错误
-func (f *errorFactory) CreateWithContext(errorType ErrorType, message string, context map[string]any, cause ...error) *DomainError {
-	var rootCause error
-	if len(cause) > 0 {
-		rootCause = cause[0]
-	}
-
-	// 使用上下文管理器复制上下文，避免不必要的分配
-	var ctx map[string]any
-	if len(context) > 0 {
-		ctx = f.contextManager.Copy(context)
-	}
-
-	return &DomainError{
-		Type:    errorType,
-		Message: message,
-		Cause:   rootCause,
-		Context: ctx,
-	}
-}
-
-// 全局错误工厂实例
-var defaultErrorFactory = NewErrorFactory()
-
-// GetDefaultErrorFactory 获取默认的错误工厂
-func GetDefaultErrorFactory() ErrorFactory {
-	return defaultErrorFactory
-}
-
-// 便捷函数：使用默认工厂创建错误
+// 便捷函数：使用统一的错误工厂
 
 // CreateError 使用默认工厂创建领域错误
 func CreateError(errorType ErrorType, message string, cause ...error) *DomainError {
-	return defaultErrorFactory.Create(errorType, message, cause...)
+	return GetDefaultErrorFactory().Create(errorType, message, cause...)
 }
 
 // CreateErrorWithContext 使用默认工厂创建带有上下文的领域错误
 func CreateErrorWithContext(errorType ErrorType, message string, context map[string]any, cause ...error) *DomainError {
-	return defaultErrorFactory.CreateWithContext(errorType, message, context, cause...)
+	return GetDefaultErrorFactory().CreateWithContext(errorType, message, context, cause...)
 }
-
-// 便捷函数：使用统一的错误工厂
 
 // NewNotFoundError 创建资源不存在错误
 func NewNotFoundError(message string, cause ...error) *DomainError {
