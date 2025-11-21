@@ -51,23 +51,26 @@ func (h *AuthHandler) LoginByPassword(c *gin.Context) {
 		return
 	}
 
+	// 验证用户密码
 	userID, userName, err := h.authService.LoginByPassword(ctx, req.PhoneNumber, req.Password)
 	if err != nil {
 		logger.Error(ctx, "Login failed", zap.Error(err))
-		HandleWithLogging(c, nil, err)
+		HandleError(c, err) // 使用语义化的 HandleError
 		return
 	}
 
-	// 生成token
+	// 生成 JWT Token
 	token, err := h.jwtService.Generate(userID, userName)
 	if err != nil {
-		HandleWithLogging(c, nil, response.NewInternalServerError("Failed to generate token", err))
+		logger.Error(ctx, "Failed to generate token", zap.Error(err))
+		HandleError(c, response.NewInternalServerError("Failed to generate token", err))
 		return
 	}
 
-	response.Handle(c, gin.H{
+	// 返回成功响应
+	HandleSuccess(c, gin.H{
 		"token": token,
-	}, nil)
+	})
 }
 
 // LoginByWeChat 微信登录
@@ -103,22 +106,27 @@ func (h *AuthHandler) LoginByWeChat(c *gin.Context) {
 func (h *AuthHandler) Logout(c *gin.Context) {
 	ctx := c.Request.Context()
 
+	// 获取用户Claims
 	claimsValue, exists := c.Get("claims")
 	if !exists {
-		HandleWithLogging(c, nil, response.NewUnauthorizedError("无法获取用户信息"))
+		HandleError(c, response.NewUnauthorizedError("无法获取用户信息"))
 		return
 	}
 
 	claims, ok := claimsValue.(*jwt.CustomClaims)
 	if !ok {
-		HandleWithLogging(c, nil, response.NewInternalServerError("用户信息类型断言失败"))
+		HandleError(c, response.NewInternalServerError("用户信息类型断言失败"))
 		return
 	}
 
+	// 执行登出操作
 	err := h.authService.Logout(ctx, claims.ID, claims.ExpiresAt.Time)
 	if err != nil {
 		logger.Error(ctx, "Logout failed", zap.Error(err))
+		HandleError(c, err)
+		return
 	}
 
-	HandleWithLogging(c, "登出成功", err)
+	// 返回成功响应
+	HandleSuccess(c, "登出成功")
 }

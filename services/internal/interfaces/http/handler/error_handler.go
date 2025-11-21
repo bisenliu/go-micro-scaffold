@@ -65,7 +65,29 @@ func logDomainError(c *gin.Context, domainErr *response.DomainError) {
 	logger.Error(c.Request.Context(), "domain error occurred", logFields...)
 }
 
-// HandleError 处理错误响应
+// HandleSuccess 处理成功响应（语义化辅助函数）
+// 明确表示操作成功，仅在确定没有错误时使用
+// 示例：
+//
+//	user, err := h.userRepo.GetByID(ctx, id)
+//	if err != nil {
+//	    HandleError(c, err)
+//	    return
+//	}
+//	HandleSuccess(c, responsedto.ToUserInfoResponse(user))
+func HandleSuccess(c *gin.Context, data any) {
+	HandleWithLogging(c, data, nil)
+}
+
+// HandleError 处理错误响应（语义化辅助函数）
+// 明确表示操作失败，仅在已确认有错误时使用
+// 示例：
+//
+//	user, err := h.userRepo.GetByID(ctx, id)
+//	if err != nil {
+//	    HandleError(c, err)
+//	    return
+//	}
 func HandleError(c *gin.Context, err error) {
 	HandleWithLogging(c, nil, err)
 }
