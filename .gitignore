@@ -42,6 +42,7 @@ services/main
 
 # Configuration files
 services/configs/app.yaml
+services/configs/app.yaml.docker
 
 # Logs
 logs/
