@@ -1,4 +1,4 @@
-[TOC]
+[toc]
 
 # Go Micro Scaffold
 
@@ -7,36 +7,23 @@ Go Micro Scaffold 是一个基于 Go 语言的微服务脚手架项目，采用 
 ## 🚀 项目特点
 
 - **🏗️ Clean Architecture**: 采用领域驱动设计（DDD）和六边形架构
-
 - **🔧 模块化设计**: 使用 Uber FX 进行依赖注入和模块管理
-
 - **⚡ 高性能**: 基于 Gin Web 框架构建
-
 - **💾 数据库集成**: 集成 Ent ORM，支持 MySQL/PostgreSQL/SQLite
-
 - **⚙️ 配置管理**: 基于 Viper 的配置管理，支持多环境
-
 - **📝 日志系统**: 集成 Zap 高性能日志库，支持日志分割和多输出
-
 - **✅ 验证系统**: 集成验证器，支持多语言错误提示
-
 - **🛡️ 中间件**: 内置常用中间件（CORS、认证、限流、日志等）
-
 - **🔐 JWT 认证**: 完整的 JWT 认证体系
-
 - **🆔 ID 生成**: 集成雪花算法生成唯一ID
-
 - **🌍 时区管理**: 全局时区管理支持
-
 - **📊 多数据源**: 支持主从数据库配置
-
 - **🔄 Redis 缓存**: 集成 Redis 缓存支持
-
-  
 
 ## 🛠️ 技术栈
 
 ### 核心框架
+
 - **Go**: 1.24.1 - 编程语言
 - **Gin**: v1.11.0 - 高性能HTTP Web框架
 - **Uber FX**: v1.24.0 - 依赖注入框架，模块化应用管理
@@ -46,16 +33,19 @@ Go Micro Scaffold 是一个基于 Go 语言的微服务脚手架项目，采用 
 - **Cobra**: v1.10.1 - 现代CLI应用构建器
 
 ### 数据库与缓存
+
 - **MySQL**: 8.0+ - 主数据库 (驱动: go-sql-driver/mysql v1.9.3)
 - **Redis**: 6.0+ - 缓存数据库 (客户端: go-redis/redis/v8 v8.11.5)
 - **支持**: PostgreSQL 12+, SQLite 3+ - 可选数据库
 
 ### 安全与认证
+
 - **JWT**: golang-jwt/jwt/v4 v4.5.2 - JSON Web Token 实现
 - **Casbin**: v2.127.0 - 权限控制框架
 - **Validator**: go-playground/validator/v10 v10.27.0 - 数据验证库
 
 ### 工具库
+
 - **UUID**: google/uuid v1.6.0 - UUID 生成库
 - **Snowflake**: bwmarrin/snowflake v0.3.0 - 雪花算法ID生成
 - **Rate Limit**: juju/ratelimit v1.0.2 - 令牌桶限流算法
@@ -138,13 +128,13 @@ go-micro-scaffold/
 
 ### 🏗️ 架构层次说明
 
-| 层次 | 目录 | 职责 | 依赖方向 |
-|------|------|------|----------|
-| **🌐 接口层** | `interfaces/` | HTTP API、路由、DTO | → 应用层 |
-| **🔧 应用层** | `application/` | 用例编排、命令查询处理 | → 领域层 |
-| **🎯 领域层** | `domain/` | 核心业务逻辑、实体、规则 | 独立核心 |
-| **🏭 基础设施层** | `infrastructure/` | 数据库、外部服务实现 | ← 领域层接口 |
-| **🔧 公共层** | `common/` | 跨服务共享组件 | 被各层使用 |
+| 层次                    | 目录                | 职责                     | 依赖方向      |
+| ----------------------- | ------------------- | ------------------------ | ------------- |
+| **🌐 接口层**     | `interfaces/`     | HTTP API、路由、DTO      | → 应用层     |
+| **🔧 应用层**     | `application/`    | 用例编排、命令查询处理   | → 领域层     |
+| **🎯 领域层**     | `domain/`         | 核心业务逻辑、实体、规则 | 独立核心      |
+| **🏭 基础设施层** | `infrastructure/` | 数据库、外部服务实现     | ← 领域层接口 |
+| **🔧 公共层**     | `common/`         | 跨服务共享组件           | 被各层使用    |
 
 ## 快速开始
 
@@ -181,6 +171,7 @@ go run -mod=mod entgo.io/ent/cmd/ent generate ./schema
 ### 配置文件
 
 1. 复制配置文件模板：
+
 ```bash
 cd services/configs
 cp app.yaml.example app.yaml
@@ -204,6 +195,7 @@ cd services
 ```
 
 脚本会自动：
+
 - ✅ 检查并引导安装 Atlas
 - ✅ 验证 MySQL 连接
 - ✅ 提供交互式菜单进行迁移操作
@@ -263,6 +255,7 @@ GOWORK=off atlas migrate status --env dev
 详细的 Atlas 使用指南，请查看：**[ATLAS_GUIDE.md](docs/guides/ATLAS_GUIDE.md)**
 
 包含内容：
+
 - 快速开始（3 种使用方式）
 - 安装和配置详解
 - 常用命令参考
@@ -327,6 +320,7 @@ POST /api/v1/auth/refresh   # 刷新令牌
 ### 📝 请求示例
 
 **创建用户**
+
 ```bash
 curl -X POST http://localhost:8080/api/v1/users \
   -H "Content-Type: application/json" \
@@ -340,6 +334,7 @@ curl -X POST http://localhost:8080/api/v1/users \
 ```
 
 **响应格式**
+
 ```json
 {
     "code": 0,
@@ -356,7 +351,6 @@ curl -X POST http://localhost:8080/api/v1/users \
 }
 ```
 
-
 ## 🏗️ Clean Architecture 设计
 
 本项目采用 Clean Architecture 设计原则，实现高内聚、低耦合的微服务架构。
@@ -369,27 +363,27 @@ graph TB
         subgraph "🔧 Common Layer"
             CM[公共组件层<br/>配置·日志·数据库·工具]
         end
-        
+  
         subgraph "🏗️ Clean Architecture Layers"
             subgraph "🌐 Interface Layer"
                 HTTP[HTTP 处理器]
                 DTO[数据传输对象]
                 ROUTE[路由配置]
             end
-            
+      
             subgraph "🔧 Application Layer"
                 CMD[命令处理器]
                 QRY[查询处理器]
                 SVC[应用服务]
             end
-            
+      
             subgraph "🎯 Domain Layer"
                 ENT[实体]
                 VO[值对象]
                 REPO[仓储接口]
                 DOM_SVC[领域服务]
             end
-            
+      
             subgraph "🏭 Infrastructure Layer"
                 REPO_IMPL[仓储实现]
                 DB[数据库]
@@ -397,7 +391,7 @@ graph TB
             end
         end
     end
-    
+  
     HTTP --> CMD
     HTTP --> QRY
     CMD --> DOM_SVC
@@ -407,7 +401,7 @@ graph TB
     DB --> REPO_IMPL
     CM --> HTTP
     CM --> REPO_IMPL
-    
+  
     style CM fill:#E6F3FF,stroke:#0066CC
     style HTTP fill:#D0F0C0,stroke:#333
     style CMD fill:#ADD8E6,stroke:#333
@@ -417,13 +411,13 @@ graph TB
 
 ### 📋 各层职责说明
 
-| 层次 | 核心职责 | 主要组件 | 依赖方向 |
-|------|----------|----------|----------|
-| **🌐 接口层** | 外部请求适配 | HTTP处理器、DTO、路由、中间件 | → 应用层 |
-| **🔧 应用层** | 业务用例编排 | 命令/查询处理器、应用服务 | → 领域层 |
-| **🎯 领域层** | 核心业务逻辑 | 实体、值对象、仓储接口、领域服务 | 独立核心 |
-| **🏭 基础设施层** | 外部技术实现 | 仓储实现、数据库、消息队列 | ← 实现领域接口 |
-| **🔧 公共层** | 跨服务基础设施 | 配置、日志、数据库连接、工具包 | 被各层使用 |
+| 层次                    | 核心职责       | 主要组件                         | 依赖方向        |
+| ----------------------- | -------------- | -------------------------------- | --------------- |
+| **🌐 接口层**     | 外部请求适配   | HTTP处理器、DTO、路由、中间件    | → 应用层       |
+| **🔧 应用层**     | 业务用例编排   | 命令/查询处理器、应用服务        | → 领域层       |
+| **🎯 领域层**     | 核心业务逻辑   | 实体、值对象、仓储接口、领域服务 | 独立核心        |
+| **🏭 基础设施层** | 外部技术实现   | 仓储实现、数据库、消息队列       | ← 实现领域接口 |
+| **🔧 公共层**     | 跨服务基础设施 | 配置、日志、数据库连接、工具包   | 被各层使用      |
 
 ### 🔄 核心设计原则
 
@@ -443,6 +437,7 @@ HTTP响应 ← 响应格式 ← DTO ← 处理结果 ← 业务逻辑 ← 数据
 ### 🎯 领域驱动设计 (DDD)
 
 **用户领域示例**：
+
 ```go
 package domain
 
@@ -514,13 +509,12 @@ MIT License
 
 项目集成了验证器，支持请求参数验证和多语言错误提示。
 
-
-
 ## 🛡️ 中间件系统
 
 项目内置了丰富的中间件，支持各种常见的 Web 服务需求：
 
 ### 核心中间件
+
 - **🌐 CORS 中间件**: 跨域资源共享支持
 - **🔐 认证中间件**: JWT 令牌验证
 - **🚦 限流中间件**: 基于令牌桶算法的请求限流
@@ -550,7 +544,6 @@ func setupRoutes(router *gin.Engine, cfg *Config, jwtService *JWTService) {
 }
 ```
 
-
 ### 🌍 时区管理
 
 项目提供了时区管理模块，用于全局设置应用程序的时区。该模块从配置文件中读取时区设置，如果没有配置则默认使用 "Asia/Shanghai"。
@@ -558,12 +551,14 @@ func setupRoutes(router *gin.Engine, cfg *Config, jwtService *JWTService) {
 **使用方法：**
 
 1. **配置时区设置**：
+
 ```yaml
 system:
   timezone: "Asia/Shanghai"  # 或其他时区，如 "America/New_York"
 ```
 
 2. **自动初始化**：
+
 ```go
 package di
 
@@ -590,6 +585,7 @@ var CommonModules = fx.Options(
 #### 1️⃣ 领域层 (Domain Layer)
 
 **创建实体**
+
 ```bash
 # 创建目录结构
 mkdir -p services/internal/domain/order/{entity,valueobject,repository,service,validator,errors}
@@ -633,6 +629,7 @@ func (o *Order) Status() valueobject.OrderStatus { return o.status }
 ```
 
 **创建值对象**
+
 ```go
 // services/internal/domain/order/valueobject/order_status.go
 package valueobject
@@ -666,6 +663,7 @@ func (s OrderStatus) String() string {
 ```
 
 **定义仓储接口**
+
 ```go
 // services/internal/domain/order/repository/order_repository.go
 package repository
@@ -684,6 +682,7 @@ type OrderRepository interface {
 ```
 
 **创建领域服务**
+
 ```go
 // services/internal/domain/order/service/order_domain_service.go
 package service
@@ -707,17 +706,18 @@ func (s *OrderDomainService) CreateOrder(ctx context.Context, userID string, tot
     if totalAmount <= 0 {
         return nil, errors.New("订单金额必须大于0")
     }
-    
+  
     order := entity.NewOrder(userID, totalAmount)
     if err := s.orderRepo.Create(ctx, order); err != nil {
         return nil, err
     }
-    
+  
     return order, nil
 }
 ```
 
 **依赖注入配置**
+
 ```go
 // services/internal/domain/order/di.go
 package order
@@ -742,6 +742,7 @@ var DomainModule = fx.Module("order_domain",
 #### 2️⃣ 应用层 (Application Layer)
 
 **创建命令**
+
 ```go
 // services/internal/application/command/order/create_order_command.go
 package order
@@ -753,6 +754,7 @@ type CreateOrderCommand struct {
 ```
 
 **创建命令处理器**
+
 ```go
 // services/internal/application/commandhandler/order_command_handler.go
 package commandhandler
@@ -780,6 +782,7 @@ func (h *OrderCommandHandler) HandleCreateOrder(ctx context.Context, cmd *comman
 #### 3️⃣ 基础设施层 (Infrastructure Layer)
 
 **创建数据库模式**
+
 ```go
 // services/internal/infrastructure/persistence/ent/schema/order.go
 package schema
@@ -817,6 +820,7 @@ func (Order) Indexes() []ent.Index {
 ```
 
 **实现仓储**
+
 ```go
 // services/internal/infrastructure/persistence/ent/repository/order_repository_impl.go
 package repository
@@ -850,6 +854,7 @@ func (r *OrderRepositoryImpl) Create(ctx context.Context, order *entity.Order) e
 #### 4️⃣ 接口层 (Interface Layer)
 
 **创建 DTO**
+
 ```go
 // services/internal/interfaces/http/dto/request/order_request.go
 package request
@@ -871,6 +876,7 @@ type OrderResponse struct {
 ```
 
 **创建处理器**
+
 ```go
 // services/internal/interfaces/http/handler/order_handler.go
 package handler
@@ -898,24 +904,24 @@ func (h *OrderHandler) CreateOrder(c *gin.Context) {
         response.Unauthorized(c, "用户未登录")
         return
     }
-    
+  
     var req request.CreateOrderRequest
     if err := c.ShouldBindJSON(&req); err != nil {
         response.BadRequest(c, err.Error())
         return
     }
-    
+  
     command := &command.CreateOrderCommand{
         UserID:      userID,
         TotalAmount: req.TotalAmount,
     }
-    
+  
     order, err := h.commandHandler.HandleCreateOrder(c.Request.Context(), command)
     if err != nil {
         response.Handle(c, nil, err)
         return
     }
-    
+  
     response.Handle(c, toOrderResponse(order), nil)
 }
 ```
@@ -926,7 +932,7 @@ func (h *OrderHandler) CreateOrder(c *gin.Context) {
 // services/internal/interfaces/http/routes.go
 func SetupRoutesFinal(engine *gin.Engine, ..., orderHandler *handler.OrderHandler, ...) {
     // ... 现有代码
-    
+  
     v1 := engine.Group("/api/v1")
     v1.Use(authMiddleware.RequireAuth()) // 需要认证
     {
@@ -984,10 +990,10 @@ func TestOrderDomainService_CreateOrder(t *testing.T) {
     // 设置测试
     mockRepo := &MockOrderRepository{}
     service := service.NewOrderDomainService(mockRepo)
-    
+  
     // 执行测试
     order, err := service.CreateOrder(context.Background(), "user123", 10000)
-    
+  
     // 验证结果
     assert.NoError(t, err)
     assert.NotNil(t, order)
@@ -1014,6 +1020,7 @@ func TestOrderDomainService_CreateOrder(t *testing.T) {
 - [ ] API 文档已更新
 
 这样的模块化开发流程确保了：
+
 - ✅ 架构层次清晰
 - ✅ 职责分离明确
 - ✅ 代码可测试性强
@@ -1047,6 +1054,7 @@ make build
 ### 🐳 Docker 部署
 
 **Dockerfile 示例：**
+
 ```dockerfile
 # Dockerfile 示例
 FROM golang:1.24-alpine AS builder
@@ -1077,6 +1085,7 @@ docker run -p 8080:8080 go-micro-scaffold
 ### 🔧 生产环境配置
 
 1. **环境变量配置**
+
 ```bash
 export GO_ENV=production
 export DB_HOST=your-db-host
@@ -1084,6 +1093,7 @@ export REDIS_HOST=your-redis-host
 ```
 
 2. **系统服务配置**
+
 ```ini
 # /etc/systemd/system/go-micro-scaffold.service
 [Unit]
@@ -1103,6 +1113,7 @@ WantedBy=multi-user.target
 ```
 
 3. **启动服务**
+
 ```bash
 sudo systemctl enable go-micro-scaffold
 sudo systemctl start go-micro-scaffold
@@ -1119,6 +1130,7 @@ sudo systemctl status go-micro-scaffold
 ## 🔒 安全配置
 
 ### JWT 安全
+
 ```yaml
 # 配置强密钥
 system:
@@ -1130,12 +1142,14 @@ token:
 ```
 
 ### 数据库安全
+
 - 使用专用数据库用户，避免使用 root
 - 启用 SSL 连接
 - 定期备份数据库
 - 限制数据库访问 IP
 
 ### Redis 安全
+
 - 设置强密码
 - 禁用危险命令
 - 使用 SSL/TLS 连接
@@ -1143,6 +1157,7 @@ token:
 ## 🧪 测试
 
 ### 单元测试
+
 ```bash
 # 运行所有测试
 go test ./...
@@ -1156,6 +1171,7 @@ go tool cover -html=coverage.out
 ```
 
 ### 集成测试
+
 ```bash
 # 启动测试数据库
 docker run -d --name test-mysql -e MYSQL_ROOT_PASSWORD=test -p 3307:3306 mysql:8.0
@@ -1165,6 +1181,7 @@ go test -tags=integration ./...
 ```
 
 ### 性能测试
+
 ```bash
 # 使用 wrk 进行压力测试
 wrk -t12 -c400 -d30s http://localhost:8080/health
@@ -1176,18 +1193,21 @@ ab -n 10000 -c 100 http://localhost:8080/ping
 ## 📈 性能优化建议
 
 ### 数据库优化
+
 - 合理设计索引
 - 使用连接池
 - 启用查询缓存
 - 定期分析慢查询
 
 ### 缓存策略
+
 - 热点数据 Redis 缓存
 - 合理设置过期时间
 - 使用缓存预热
 - 避免缓存雪崩
 
 ### 应用优化
+
 - 启用 Gzip 压缩
 - 使用 CDN 加速静态资源
 - 合理设置超时时间
@@ -1207,17 +1227,20 @@ ab -n 10000 -c 100 http://localhost:8080/ping
 ### 🔄 开发流程
 
 1. **Fork 项目**
+
 ```bash
 git clone https://github.com/your-username/go-micro-scaffold.git
 cd go-micro-scaffold
 ```
 
 2. **创建功能分支**
+
 ```bash
 git checkout -b feature/your-feature-name
 ```
 
 3. **开发和测试**
+
 ```bash
 # 运行测试
 go test ./...
@@ -1230,6 +1253,7 @@ go vet ./...
 ```
 
 4. **提交代码**
+
 ```bash
 git add .
 git commit -m "feat: add your feature description"
@@ -1260,91 +1284,6 @@ test: 测试相关
 chore: 构建工具或辅助工具的变动
 ```
 
-## 🔧 开发工具
-
-### Makefile 示例
-```
-.PHONY: build test clean run fmt lint migrate gen
-
-# 构建应用
-build:
-	cd services && go build -o ../bin/server cmd/server/main.go
-	cd services && go build -o ../bin/cli cmd/cli/main.go
-
-# 运行测试
-test:
-	go test -v ./...
-
-# 代码格式化
-fmt:
-	go fmt ./...
-
-# 代码检查
-lint:
-	golangci-lint run
-
-# 清理构建文件
-clean:
-	rm -rf bin/
-
-# 运行服务
-run:
-	cd services && go run cmd/server/main.go
-
-# 数据库迁移
-migrate:
-	cd services && go run cmd/cli/main.go migrate
-
-# 生成 Ent 代码
-gen:
-	cd services/internal/infrastructure/persistence/ent && \
-	go run -mod=mod entgo.io/ent/cmd/ent generate ./schema
-
-# 运行所有测试并显示覆盖率
-test-cover:
-	go test -cover ./...
-
-# 生成覆盖率报告
-cover:
-	go test -coverprofile=coverage.out ./...
-	go tool cover -html=coverage.out
-```
-
-### Docker Compose 示例
-
-```yaml
-version: '3.8'
-services:
-  app:
-    build: .
-    ports:
-      - "8080:8080"
-    depends_on:
-      - mysql
-      - redis
-    environment:
-      - DB_HOST=mysql
-      - REDIS_HOST=redis
-
-  mysql:
-    image: mysql:8.0
-    environment:
-      MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: go-micro-scaffold
-    ports:
-      - "3306:3306"
-    volumes:
-      - mysql_data:/var/lib/mysql
-
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "6379:6379"
-    command: redis-server --requirepass password
-
-volumes:
-  mysql_data:
-```
 
 ## 📚 相关资源
 
@@ -1375,23 +1314,30 @@ volumes:
 ## ❓ 常见问题
 
 ### Q: 如何切换数据库？
+
 A: 修改配置文件中的数据库连接信息，Ent ORM 支持 MySQL、PostgreSQL、SQLite 等。
 
 ### Q: 如何添加新的中间件？
+
 A: 在 `common/middleware` 目录下创建新的中间件文件，然后在路由中注册使用。
 
 ### Q: 如何自定义日志格式？
+
 A: 修改 `common/logger/logger.go` 中的 Zap 配置，支持 JSON 和 Console 格式。
 
 ### Q: 如何进行性能优化？
-A: 
+
+A:
+
 - 使用连接池优化数据库连接
 - 添加 Redis 缓存减少数据库查询
 - 使用 pprof 进行性能分析
 - 启用 Gzip 压缩
 
 ### Q: 如何添加新的领域模块？
-A: 
+
+A:
+
 1. 在 `services/internal/domain/` 下创建新模块目录
 2. 定义实体、值对象、仓储接口
 3. 在 `services/internal/application/` 中添加应用服务
