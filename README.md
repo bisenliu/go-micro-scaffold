@@ -300,7 +300,7 @@ go run cmd/server/main.go
 - **在线测试**: 支持直接在浏览器中测试 API
 - **认证支持**: 集成 JWT 认证，支持安全接口测试
 
-详细使用说明请参考：[Swagger 使用指南](services/docs/SWAGGER_USAGE_GUIDE.md)
+详细使用说明请参考：[Swagger 使用指南](docs/guides/SWAGGER_USAGE_GUIDE.md)
 
 ### 🏥 健康检查
 
