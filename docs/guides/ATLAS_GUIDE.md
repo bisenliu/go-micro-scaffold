@@ -267,7 +267,7 @@ atlas migrate diff initial --env dev
 - ✅ `atlas-quickstart.sh` - 所有命令已添加 `GOWORK=off`
 - ✅ `Makefile` - 所有 migrate-* 命令已添加 `GOWORK=off`
 
-**详细说明**: 参见 `services/docs/ATLAS_GOWORKSPACE_FIX.md`
+**详细说明**: 请参考本指南的"Go Workspace 兼容性"章节。
 
 ---
 
@@ -577,21 +577,19 @@ GOWORK=off atlas migrate apply --env dev
 
 ```
 go-micro-scaffold/
+├── docs/
+│   └── guides/
+│       └── ATLAS_GUIDE.md         # 本文档
 ├── services/
-│   ├── atlas.hcl                          # Atlas 配置文件
-│   ├── atlas-quickstart.sh                # 快速启动脚本
-│   ├── go.mod                             # 包含 replace 指令
-│   ├── docs/
-│   │   ├── ATLAS_MIGRATION_GUIDE.md       # 详细指南
-│   │   ├── ATLAS_COMMANDS_CHEATSHEET.md   # 命令速查表
-│   │   └── ATLAS_GOWORKSPACE_FIX.md       # Go Workspace 兼容性说明
+│   ├── atlas.hcl                  # Atlas 配置文件
+│   ├── atlas-quickstart.sh        # 快速启动脚本
+│   ├── go.mod                     # 包含 replace 指令
 │   └── internal/infrastructure/persistence/ent/
-│       ├── schema/                        # Ent Schema 定义
-│       └── migrations/                    # 迁移文件目录
+│       ├── schema/                # Ent Schema 定义
+│       └── migrations/            # 迁移文件目录
 │           ├── 20251121100000_initial.sql
 │           └── atlas.sum
-├── Makefile                               # 项目命令工具
-└── ATLAS_GUIDE.md                         # 本文档
+└── Makefile                       # 项目命令工具
 ```
 
 ---
@@ -600,10 +598,9 @@ go-micro-scaffold/
 
 ### 项目文档
 
-- **本文档**: `ATLAS_GUIDE.md` - Atlas 使用完整指南
-- **详细教程**: `services/docs/ATLAS_MIGRATION_GUIDE.md` - 35KB+ 详细教程
-- **命令速查**: `services/docs/ATLAS_COMMANDS_CHEATSHEET.md` - 常用命令参考
-- **兼容性说明**: `services/docs/ATLAS_GOWORKSPACE_FIX.md` - Go Workspace 问题解决
+- **本文档**: `docs/guides/ATLAS_GUIDE.md` - Atlas 使用完整指南
+- **架构指南**: `docs/architecture/FX_FRAMEWORK_GUIDE.md`
+- **依赖架构**: `docs/architecture/FX_DEPENDENCY_ARCHITECTURE.md`
 
 ### 官方文档
 

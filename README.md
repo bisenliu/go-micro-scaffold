@@ -260,7 +260,7 @@ GOWORK=off atlas migrate status --env dev
 
 #### 📚 完整文档
 
-详细的 Atlas 使用指南，请查看：**[ATLAS_GUIDE.md](ATLAS_GUIDE.md)**
+详细的 Atlas 使用指南，请查看：**[ATLAS_GUIDE.md](docs/guides/ATLAS_GUIDE.md)**
 
 包含内容：
 - 快速开始（3 种使用方式）
@@ -487,9 +487,20 @@ type UserDomainService struct {
 
 项目使用 Uber FX 进行依赖注入管理，各模块通过 FX 模块进行组织和注入。
 
-有关 Uber FX 框架核心概念的详细说明，请参考 [FX 框架指南](FX_FRAMEWORK_GUIDE.md)。
+### 相关文档
 
-有关项目中各模块之间的具体依赖关系，请参考 [FX 依赖架构图](FX_DEPENDENCY_ARCHITECTURE.md)。
+- [Atlas 数据库迁移指南](docs/guides/ATLAS_GUIDE.md)
+- [Uber FX 框架指南](docs/architecture/FX_FRAMEWORK_GUIDE.md)
+- [FX 依赖注入架构](docs/architecture/FX_DEPENDENCY_ARCHITECTURE.md)
+- [传统分层架构迁移指南](docs/archive/TRADITIONAL_LAYERED_ARCHITECTURE_MIGRATION_GUIDE.md)
+
+## 🤝 贡献
+
+欢迎提交 Pull Request 或 Issue！
+
+## 📄 许可证
+
+MIT License
 
 ## 配置说明
 

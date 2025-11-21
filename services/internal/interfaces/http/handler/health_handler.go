@@ -21,9 +21,6 @@ type HealthHandler struct {
 	config      *config.Config
 }
 
-// Ensure HealthHandler implements Handler interface
-var _ Handler = (*HealthHandler)(nil)
-
 // NewHealthHandler 创建健康检查处理器
 func NewHealthHandler(
 	dbProvider *persistence.DatabaseProvider,

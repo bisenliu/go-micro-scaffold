@@ -21,9 +21,6 @@ type UserHandler struct {
 	validator      *validation.Validator
 }
 
-// Ensure UserHandler implements Handler interface
-var _ Handler = (*UserHandler)(nil)
-
 // NewUserHandler 创建用户HTTP处理器
 func NewUserHandler(
 	commandHandler *commandhandler.UserCommandHandler,
