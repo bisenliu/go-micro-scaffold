@@ -246,7 +246,7 @@ db-seed: ## 🌱 填充测试数据
 
 deps-graph: ## 📊 生成依赖关系图
 	@echo "$(COLOR_BLUE)生成依赖关系图...$(COLOR_RESET)"
-	@cd services && go run cmd/server/main.go -graph -graph-output=../assets/dependency-graph.dot
+	@cd services && go run cmd/server/main.go -graph=true -graph-output=../assets/dependency-graph.dot
 	@dot -Tpng assets/dependency-graph.dot -o assets/dependency-graph.png
 	@echo "$(COLOR_GREEN)✅ 依赖图生成完成: assets/dependency-graph.png$(COLOR_RESET)"
 

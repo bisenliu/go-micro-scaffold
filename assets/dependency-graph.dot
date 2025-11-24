@@ -34,18 +34,18 @@ digraph {
 	}
 	constructor_5 -> "*config.Config" [ltail=cluster_5];
 	subgraph cluster_6 {
-		label = "common/databases/dbms";
+		label = "common/databases/rdbms";
 		constructor_6 [shape=plaintext label="NewManager"];
-		"*mysql.Manager" [label=<*mysql.Manager>];
+		"*rdbms.Manager" [label=<*rdbms.Manager>];
 	}
 	constructor_6 -> "*config.Config" [ltail=cluster_6];
 	constructor_6 -> "*zap.Logger" [ltail=cluster_6];
 	subgraph cluster_7 {
-		label = "common/databases/dbms";
+		label = "common/databases/rdbms";
 		constructor_7 [shape=plaintext label="init.func1"];
-		"mysql.ManagerInterface" [label=<mysql.ManagerInterface>];
+		"rdbms.ManagerInterface" [label=<rdbms.ManagerInterface>];
 	}
-	constructor_7 -> "*mysql.Manager" [ltail=cluster_7];
+	constructor_7 -> "*rdbms.Manager" [ltail=cluster_7];
 	subgraph cluster_8 {
 		label = "common/databases/redis";
 		constructor_8 [shape=plaintext label="NewRedisClient"];
@@ -72,83 +72,128 @@ digraph {
 	constructor_11 -> "*config.Config" [ltail=cluster_11];
 	subgraph cluster_12 {
 		label = "common/http";
-		constructor_12 [shape=plaintext label="NewServer"];
-		"*http.Server" [label=<*http.Server>];
+		constructor_12 [shape=plaintext label="NewBaseEngine"];
+		"*gin.Engine" [label=<*gin.Engine>];
 	}
 	constructor_12 -> "*config.Config" [ltail=cluster_12];
 	constructor_12 -> "*zap.Logger" [ltail=cluster_12];
 	subgraph cluster_13 {
-		label = "common/http";
-		constructor_13 [shape=plaintext label="init.func1"];
-		"*gin.Engine" [label=<*gin.Engine>];
-	}
-	constructor_13 -> "*http.Server" [ltail=cluster_13];
-	subgraph cluster_14 {
 		label = "services/internal/domain/user/validator";
-		constructor_14 [shape=plaintext label="NewUserValidator"];
+		constructor_13 [shape=plaintext label="NewUserValidator"];
 		"validator.UserValidator" [label=<validator.UserValidator>];
 	}
-	constructor_14 -> "repository.UserRepository" [ltail=cluster_14];
-	subgraph cluster_15 {
+	constructor_13 -> "repository.UserRepository" [ltail=cluster_13];
+	subgraph cluster_14 {
 		label = "services/internal/domain/user/service";
-		constructor_15 [shape=plaintext label="NewUserDomainService"];
+		constructor_14 [shape=plaintext label="NewUserDomainService"];
 		"*service.UserDomainService" [label=<*service.UserDomainService>];
 	}
-	constructor_15 -> "repository.UserRepository" [ltail=cluster_15];
-	constructor_15 -> "validator.UserValidator" [ltail=cluster_15];
-	subgraph cluster_16 {
+	constructor_14 -> "repository.UserRepository" [ltail=cluster_14];
+	constructor_14 -> "validator.UserValidator" [ltail=cluster_14];
+	subgraph cluster_15 {
 		label = "reflect";
-		constructor_16 [shape=plaintext label="makeFuncStub"];
+		constructor_15 [shape=plaintext label="makeFuncStub"];
 		"repository.UserRepository" [label=<repository.UserRepository>];
 	}
-	constructor_16 -> "*gen.Client" [ltail=cluster_16];
-	subgraph cluster_17 {
+	constructor_15 -> "*gen.Client" [ltail=cluster_15];
+	subgraph cluster_16 {
 		label = "services/internal/application/commandhandler";
-		constructor_17 [shape=plaintext label="NewUserCommandHandler"];
+		constructor_16 [shape=plaintext label="NewUserCommandHandler"];
 		"*commandhandler.UserCommandHandler" [label=<*commandhandler.UserCommandHandler>];
 	}
-	constructor_17 -> "repository.UserRepository" [ltail=cluster_17];
-	constructor_17 -> "*service.UserDomainService" [ltail=cluster_17];
-	constructor_17 -> "messaging.EventPublisher" [ltail=cluster_17];
-	subgraph cluster_18 {
+	constructor_16 -> "repository.UserRepository" [ltail=cluster_16];
+	constructor_16 -> "*service.UserDomainService" [ltail=cluster_16];
+	constructor_16 -> "messaging.EventPublisher" [ltail=cluster_16];
+	subgraph cluster_17 {
 		label = "services/internal/application/queryhandler";
-		constructor_18 [shape=plaintext label="NewUserQueryHandler"];
+		constructor_17 [shape=plaintext label="NewUserQueryHandler"];
 		"*queryhandler.UserQueryHandler" [label=<*queryhandler.UserQueryHandler>];
 	}
-	constructor_18 -> "repository.UserRepository" [ltail=cluster_18];
-	constructor_18 -> "*redis.RedisClient" [ltail=cluster_18];
+	constructor_17 -> "repository.UserRepository" [ltail=cluster_17];
+	constructor_17 -> "*redis.RedisClient" [ltail=cluster_17];
+	subgraph cluster_18 {
+		label = "services/internal/application/service";
+		constructor_18 [shape=plaintext label="NewPermissionService"];
+		"service.PermissionServiceInterface" [label=<service.PermissionServiceInterface>];
+	}
+	constructor_18 -> "*casbin.SyncedCachedEnforcer" [ltail=cluster_18];
 	subgraph cluster_19 {
+		label = "services/internal/application/service";
+		constructor_19 [shape=plaintext label="NewAuthService"];
+		"service.AuthServiceInterface" [label=<service.AuthServiceInterface>];
+	}
+	constructor_19 -> "repository.UserRepository" [ltail=cluster_19];
+	subgraph cluster_20 {
 		label = "services/internal/infrastructure/messaging";
-		constructor_19 [shape=plaintext label="NewRedisEventPublisher"];
+		constructor_20 [shape=plaintext label="NewRedisEventPublisher"];
 		"messaging.EventPublisher" [label=<messaging.EventPublisher>];
 	}
-	constructor_19 -> "*redis.RedisClient" [ltail=cluster_19];
-	constructor_19 -> "*zap.Logger" [ltail=cluster_19];
-	constructor_19 -> "idgen.Generator" [ltail=cluster_19];
-	subgraph cluster_20 {
+	constructor_20 -> "*redis.RedisClient" [ltail=cluster_20];
+	constructor_20 -> "*zap.Logger" [ltail=cluster_20];
+	constructor_20 -> "idgen.Generator" [ltail=cluster_20];
+	subgraph cluster_21 {
+		label = "services/internal/infrastructure/persistence";
+		constructor_21 [shape=plaintext label="NewDatabaseProvider"];
+		"*persistence.DatabaseProvider" [label=<*persistence.DatabaseProvider>];
+	}
+	constructor_21 -> "rdbms.ManagerInterface" [ltail=cluster_21];
+	constructor_21 -> "*zap.Logger" [ltail=cluster_21];
+	subgraph cluster_22 {
 		label = "services/internal/infrastructure/persistence/ent";
-		constructor_20 [shape=plaintext label="init.func1"];
+		constructor_22 [shape=plaintext label="init.func1"];
 		"*gen.Client" [label=<*gen.Client>];
 	}
-	constructor_20 -> "mysql.ManagerInterface" [ltail=cluster_20];
-	constructor_20 -> "*zap.Logger" [ltail=cluster_20];
-	subgraph cluster_21 {
+	constructor_22 -> "*persistence.DatabaseProvider" [ltail=cluster_22];
+	subgraph cluster_23 {
+		label = "common/pkg/casbin";
+		constructor_23 [shape=plaintext label="init.func1"];
+		"*casbin.SyncedCachedEnforcer" [label=<*casbin.SyncedCachedEnforcer>];
+	}
+	constructor_23 -> "rdbms.ManagerInterface" [ltail=cluster_23];
+	constructor_23 -> "*zap.Logger" [ltail=cluster_23];
+	subgraph cluster_24 {
 		label = "services/internal/interfaces/http/handler";
-		constructor_21 [shape=plaintext label="NewUserHandler"];
+		constructor_24 [shape=plaintext label="NewUserHandler"];
 		"*handler.UserHandler" [label=<*handler.UserHandler>];
 	}
-	constructor_21 -> "*commandhandler.UserCommandHandler" [ltail=cluster_21];
-	constructor_21 -> "*queryhandler.UserQueryHandler" [ltail=cluster_21];
-	constructor_21 -> "*zap.Logger" [ltail=cluster_21];
-	constructor_21 -> "*validation.Validator" [ltail=cluster_21];
-	constructor_21 -> "*jwt.JWT" [ltail=cluster_21];
-	subgraph cluster_22 {
+	constructor_24 -> "*commandhandler.UserCommandHandler" [ltail=cluster_24];
+	constructor_24 -> "*queryhandler.UserQueryHandler" [ltail=cluster_24];
+	constructor_24 -> "*validation.Validator" [ltail=cluster_24];
+	subgraph cluster_25 {
 		label = "services/internal/interfaces/http/handler";
-		constructor_22 [shape=plaintext label="NewHealthHandler"];
+		constructor_25 [shape=plaintext label="NewHealthHandler"];
 		"*handler.HealthHandler" [label=<*handler.HealthHandler>];
 	}
-	constructor_22 -> "mysql.ManagerInterface" [ltail=cluster_22];
-	constructor_22 -> "*redis.RedisClient" [ltail=cluster_22];
-	constructor_22 -> "*config.Config" [ltail=cluster_22];
-	constructor_22 -> "*zap.Logger" [ltail=cluster_22];
+	constructor_25 -> "*persistence.DatabaseProvider" [ltail=cluster_25];
+	constructor_25 -> "*redis.RedisClient" [ltail=cluster_25];
+	constructor_25 -> "*config.Config" [ltail=cluster_25];
+	subgraph cluster_26 {
+		label = "services/internal/interfaces/http/handler";
+		constructor_26 [shape=plaintext label="NewAuthHandler"];
+		"*handler.AuthHandler" [label=<*handler.AuthHandler>];
+	}
+	constructor_26 -> "service.AuthServiceInterface" [ltail=cluster_26];
+	constructor_26 -> "*validation.Validator" [ltail=cluster_26];
+	constructor_26 -> "*jwt.JWT" [ltail=cluster_26];
+	subgraph cluster_27 {
+		label = "services/internal/interfaces/http";
+		constructor_27 [shape=plaintext label="NewServer"];
+		"*http.Server" [label=<*http.Server>];
+	}
+	constructor_27 -> "*gin.Engine" [ltail=cluster_27];
+	constructor_27 -> "*config.Config" [ltail=cluster_27];
+	constructor_27 -> "*zap.Logger" [ltail=cluster_27];
+	subgraph cluster_28 {
+		label = "services/internal/interfaces/http";
+		constructor_28 [shape=plaintext label="NewCasbinMiddleware"];
+		"routes.CasbinMiddleware" [label=<routes.CasbinMiddleware>];
+	}
+	constructor_28 -> "service.PermissionServiceInterface" [ltail=cluster_28];
+	subgraph cluster_29 {
+		label = "services/internal/interfaces/http";
+		constructor_29 [shape=plaintext label="NewAuthMiddleware"];
+		"routes.AuthMiddleware" [label=<routes.AuthMiddleware>];
+	}
+	constructor_29 -> "*jwt.JWT" [ltail=cluster_29];
+	constructor_29 -> "*config.Config" [ltail=cluster_29];
 }

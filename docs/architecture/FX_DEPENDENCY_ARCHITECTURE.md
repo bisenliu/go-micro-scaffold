@@ -131,8 +131,8 @@ graph TD
 
 ## 可视化图表
 
-![依赖关系图](./assets/graph.png)
+![依赖关系图](../../assets/dependency-graph.png)
 
 ## 依赖关系文件
 
-[dependency-graph.dot](./assets/dependency-graph.dot)
+[dependency-graph.dot](../../assets/dependency-graph.dot)

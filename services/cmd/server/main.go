@@ -98,8 +98,8 @@ func generateDependencyGraph(app *fx.App, outputFile string) {
 	var dotGraph string
 
 	graphApp := fx.New(
-		// 使用common库的核心模块（不包括HTTP模块）
-		commonDI.GetCoreModules(),
+		// 使用common库的Web模块（包括HTTP模块）
+		commonDI.GetWebModules(),
 
 		// 领域模块
 		user.DomainModule,
