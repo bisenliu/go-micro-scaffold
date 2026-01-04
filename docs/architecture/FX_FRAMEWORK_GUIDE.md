@@ -351,7 +351,7 @@ package repository
 
 import (
     "context"
-    "services/internal/domain/user/entity"
+    "user-services/internal/domain/user/entity"
 )
 
 type UserRepository interface {
@@ -365,8 +365,8 @@ type UserRepository interface {
 package repository
 
 import (
-    "services/internal/infrastructure/persistence/ent/gen"
-    domainrepo "services/internal/domain/user/repository"
+    "user-services/internal/infrastructure/persistence/ent/gen"
+    domainrepo "user-services/internal/domain/user/repository"
 )
 
 type UserRepositoryImpl struct {
@@ -683,10 +683,10 @@ import (
     "go.uber.org/fx"
     
     commonDI "common/di"
-    "services/internal/application"
-    "services/internal/domain/user"
-    "services/internal/infrastructure"
-    "services/internal/interfaces/http"
+    "user-services/internal/application"
+    "user-services/internal/domain/user"
+    "user-services/internal/infrastructure"
+    "user-services/internal/interfaces/http"
 )
 
 func main() {
@@ -811,7 +811,7 @@ package repository
 
 import (
     "context"
-    "services/internal/domain/user/entity"
+    "user-services/internal/domain/user/entity"
 )
 
 type UserRepository interface {
@@ -1195,7 +1195,7 @@ package routes
 import (
     "github.com/gin-gonic/gin"
     "go.uber.org/zap"
-    "services/internal/interfaces/http/handler"
+    "user-services/internal/interfaces/http/handler"
 )
 
 type RoutesParams struct {
@@ -1503,7 +1503,7 @@ var InfrastructureModule = fx.Module("infrastructure",
 package service
 
 import (
-    "services/internal/domain/user/repository"
+    "user-services/internal/domain/user/repository"
     "go.uber.org/zap"
 )
 

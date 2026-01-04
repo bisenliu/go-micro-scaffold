@@ -78,13 +78,13 @@ digraph {
 	constructor_12 -> "*config.Config" [ltail=cluster_12];
 	constructor_12 -> "*zap.Logger" [ltail=cluster_12];
 	subgraph cluster_13 {
-		label = "services/internal/domain/user/validator";
+		label = "user-services/internal/domain/user/validator";
 		constructor_13 [shape=plaintext label="NewUserValidator"];
 		"validator.UserValidator" [label=<validator.UserValidator>];
 	}
 	constructor_13 -> "repository.UserRepository" [ltail=cluster_13];
 	subgraph cluster_14 {
-		label = "services/internal/domain/user/service";
+		label = "user-services/internal/domain/user/service";
 		constructor_14 [shape=plaintext label="NewUserDomainService"];
 		"*service.UserDomainService" [label=<*service.UserDomainService>];
 	}
@@ -97,7 +97,7 @@ digraph {
 	}
 	constructor_15 -> "*gen.Client" [ltail=cluster_15];
 	subgraph cluster_16 {
-		label = "services/internal/application/commandhandler";
+		label = "user-services/internal/application/commandhandler";
 		constructor_16 [shape=plaintext label="NewUserCommandHandler"];
 		"*commandhandler.UserCommandHandler" [label=<*commandhandler.UserCommandHandler>];
 	}
@@ -105,26 +105,26 @@ digraph {
 	constructor_16 -> "*service.UserDomainService" [ltail=cluster_16];
 	constructor_16 -> "messaging.EventPublisher" [ltail=cluster_16];
 	subgraph cluster_17 {
-		label = "services/internal/application/queryhandler";
+		label = "user-services/internal/application/queryhandler";
 		constructor_17 [shape=plaintext label="NewUserQueryHandler"];
 		"*queryhandler.UserQueryHandler" [label=<*queryhandler.UserQueryHandler>];
 	}
 	constructor_17 -> "repository.UserRepository" [ltail=cluster_17];
 	constructor_17 -> "*redis.RedisClient" [ltail=cluster_17];
 	subgraph cluster_18 {
-		label = "services/internal/application/service";
+		label = "user-services/internal/application/service";
 		constructor_18 [shape=plaintext label="NewPermissionService"];
 		"service.PermissionServiceInterface" [label=<service.PermissionServiceInterface>];
 	}
 	constructor_18 -> "*casbin.SyncedCachedEnforcer" [ltail=cluster_18];
 	subgraph cluster_19 {
-		label = "services/internal/application/service";
+		label = "user-services/internal/application/service";
 		constructor_19 [shape=plaintext label="NewAuthService"];
 		"service.AuthServiceInterface" [label=<service.AuthServiceInterface>];
 	}
 	constructor_19 -> "repository.UserRepository" [ltail=cluster_19];
 	subgraph cluster_20 {
-		label = "services/internal/infrastructure/messaging";
+		label = "user-services/internal/infrastructure/messaging";
 		constructor_20 [shape=plaintext label="NewRedisEventPublisher"];
 		"messaging.EventPublisher" [label=<messaging.EventPublisher>];
 	}
@@ -132,14 +132,14 @@ digraph {
 	constructor_20 -> "*zap.Logger" [ltail=cluster_20];
 	constructor_20 -> "idgen.Generator" [ltail=cluster_20];
 	subgraph cluster_21 {
-		label = "services/internal/infrastructure/persistence";
+		label = "user-services/internal/infrastructure/persistence";
 		constructor_21 [shape=plaintext label="NewDatabaseProvider"];
 		"*persistence.DatabaseProvider" [label=<*persistence.DatabaseProvider>];
 	}
 	constructor_21 -> "rdbms.ManagerInterface" [ltail=cluster_21];
 	constructor_21 -> "*zap.Logger" [ltail=cluster_21];
 	subgraph cluster_22 {
-		label = "services/internal/infrastructure/persistence/ent";
+		label = "user-services/internal/infrastructure/persistence/ent";
 		constructor_22 [shape=plaintext label="init.func1"];
 		"*gen.Client" [label=<*gen.Client>];
 	}
@@ -152,7 +152,7 @@ digraph {
 	constructor_23 -> "rdbms.ManagerInterface" [ltail=cluster_23];
 	constructor_23 -> "*zap.Logger" [ltail=cluster_23];
 	subgraph cluster_24 {
-		label = "services/internal/interfaces/http/handler";
+		label = "user-services/internal/interfaces/http/handler";
 		constructor_24 [shape=plaintext label="NewUserHandler"];
 		"*handler.UserHandler" [label=<*handler.UserHandler>];
 	}
@@ -160,7 +160,7 @@ digraph {
 	constructor_24 -> "*queryhandler.UserQueryHandler" [ltail=cluster_24];
 	constructor_24 -> "*validation.Validator" [ltail=cluster_24];
 	subgraph cluster_25 {
-		label = "services/internal/interfaces/http/handler";
+		label = "user-services/internal/interfaces/http/handler";
 		constructor_25 [shape=plaintext label="NewHealthHandler"];
 		"*handler.HealthHandler" [label=<*handler.HealthHandler>];
 	}
@@ -168,7 +168,7 @@ digraph {
 	constructor_25 -> "*redis.RedisClient" [ltail=cluster_25];
 	constructor_25 -> "*config.Config" [ltail=cluster_25];
 	subgraph cluster_26 {
-		label = "services/internal/interfaces/http/handler";
+		label = "user-services/internal/interfaces/http/handler";
 		constructor_26 [shape=plaintext label="NewAuthHandler"];
 		"*handler.AuthHandler" [label=<*handler.AuthHandler>];
 	}
@@ -176,7 +176,7 @@ digraph {
 	constructor_26 -> "*validation.Validator" [ltail=cluster_26];
 	constructor_26 -> "*jwt.JWT" [ltail=cluster_26];
 	subgraph cluster_27 {
-		label = "services/internal/interfaces/http";
+		label = "user-services/internal/interfaces/http";
 		constructor_27 [shape=plaintext label="NewServer"];
 		"*http.Server" [label=<*http.Server>];
 	}
@@ -184,13 +184,13 @@ digraph {
 	constructor_27 -> "*config.Config" [ltail=cluster_27];
 	constructor_27 -> "*zap.Logger" [ltail=cluster_27];
 	subgraph cluster_28 {
-		label = "services/internal/interfaces/http";
+		label = "user-services/internal/interfaces/http";
 		constructor_28 [shape=plaintext label="NewCasbinMiddleware"];
 		"routes.CasbinMiddleware" [label=<routes.CasbinMiddleware>];
 	}
 	constructor_28 -> "service.PermissionServiceInterface" [ltail=cluster_28];
 	subgraph cluster_29 {
-		label = "services/internal/interfaces/http";
+		label = "user-services/internal/interfaces/http";
 		constructor_29 [shape=plaintext label="NewAuthMiddleware"];
 		"routes.AuthMiddleware" [label=<routes.AuthMiddleware>];
 	}

@@ -478,7 +478,7 @@ package repositories
 
 import (
     "context"
-    "services/models"
+    "user-services/models"
 )
 
 // 用户仓库接口
@@ -513,9 +513,9 @@ package impl
 
 import (
     "context"
-    "services/models"
-    "services/repositories"
-    "services/database/ent/gen"
+    "user-services/models"
+    "user-services/repositories"
+    "user-services/database/ent/gen"
 )
 
 type userRepositoryImpl struct {
@@ -578,8 +578,8 @@ import (
     "context"
     "errors"
     "regexp"
-    "services/dto/request"
-    "services/repositories"
+    "user-services/dto/request"
+    "user-services/repositories"
 )
 
 type UserValidator struct {
@@ -657,11 +657,11 @@ import (
     "context"
     "errors"
     "time"
-    "services/dto/request"
-    "services/dto/response"
-    "services/models"
-    "services/repositories"
-    "services/validators"
+    "user-services/dto/request"
+    "user-services/dto/response"
+    "user-services/models"
+    "user-services/repositories"
+    "user-services/validators"
     "common/pkg/idgen"
     "go.uber.org/zap"
 )
@@ -787,8 +787,8 @@ package controllers
 import (
     "strconv"
     "github.com/gin-gonic/gin"
-    "services/dto/request"
-    "services/services"
+    "user-services/dto/request"
+    "user-services/services"
     "common/response"
 )
 
@@ -866,8 +866,8 @@ package routes
 
 import (
     "github.com/gin-gonic/gin"
-    "services/controllers"
-    "services/middleware"
+    "user-services/controllers"
+    "user-services/middleware"
 )
 
 type RouteConfig struct {
@@ -924,12 +924,12 @@ package di
 
 import (
     "go.uber.org/fx"
-    "services/controllers"
-    "services/services"
-    "services/repositories"
-    "services/repositories/impl"
-    "services/validators"
-    "services/routes"
+    "user-services/controllers"
+    "user-services/services"
+    "user-services/repositories"
+    "user-services/repositories/impl"
+    "user-services/validators"
+    "user-services/routes"
     commonDI "common/di"
 )
 
@@ -985,7 +985,7 @@ package main
 import (
     "flag"
     "log"
-    "services/di"
+    "user-services/di"
 )
 
 func main() {
@@ -1040,7 +1040,7 @@ type UserListRequest struct {
 package response
 
 import (
-    "services/models"
+    "user-services/models"
     "time"
 )
 
@@ -1243,10 +1243,10 @@ import (
     "testing"
     "github.com/stretchr/testify/assert"
     "github.com/stretchr/testify/mock"
-    "services/dto/request"
-    "services/models"
-    "services/services"
-    "services/tests/mocks"
+    "user-services/dto/request"
+    "user-services/models"
+    "user-services/services"
+    "user-services/tests/mocks"
 )
 
 func TestUserService_CreateUser(t *testing.T) {
@@ -1299,8 +1299,8 @@ import (
     "testing"
     "github.com/gin-gonic/gin"
     "github.com/stretchr/testify/assert"
-    "services/dto/request"
-    "services/tests/fixtures"
+    "user-services/dto/request"
+    "user-services/tests/fixtures"
 )
 
 func TestUserAPI_CreateUser(t *testing.T) {

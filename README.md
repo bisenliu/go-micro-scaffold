@@ -598,7 +598,7 @@ package entity
 import (
     "time"
     "github.com/google/uuid"
-    "services/internal/domain/order/valueobject"
+    "user-services/internal/domain/order/valueobject"
 )
 
 type Order struct {
@@ -670,7 +670,7 @@ package repository
 
 import (
     "context"
-    "services/internal/domain/order/entity"
+    "user-services/internal/domain/order/entity"
 )
 
 type OrderRepository interface {
@@ -689,8 +689,8 @@ package service
 
 import (
     "context"
-    "services/internal/domain/order/entity"
-    "services/internal/domain/order/repository"
+    "user-services/internal/domain/order/entity"
+    "user-services/internal/domain/order/repository"
 )
 
 type OrderDomainService struct {
@@ -724,8 +724,8 @@ package order
 
 import (
     "go.uber.org/fx"
-    "services/internal/domain/order/service"
-    "services/internal/infrastructure/persistence/ent/repository"
+    "user-services/internal/domain/order/service"
+    "user-services/internal/infrastructure/persistence/ent/repository"
 )
 
 var DomainModule = fx.Module("order_domain",
@@ -761,9 +761,9 @@ package commandhandler
 
 import (
     "context"
-    command "services/internal/application/command/order"
-    "services/internal/domain/order/entity"
-    "services/internal/domain/order/service"
+    command "user-services/internal/application/command/order"
+    "user-services/internal/domain/order/entity"
+    "user-services/internal/domain/order/service"
 )
 
 type OrderCommandHandler struct {
@@ -828,8 +828,8 @@ package repository
 import (
     "context"
     "github.com/google/uuid"
-    "services/internal/domain/order/entity"
-    "services/internal/infrastructure/persistence/ent/gen"
+    "user-services/internal/domain/order/entity"
+    "user-services/internal/infrastructure/persistence/ent/gen"
 )
 
 type OrderRepositoryImpl struct {
@@ -883,9 +883,9 @@ package handler
 
 import (
     "github.com/gin-gonic/gin"
-    "services/internal/application/commandhandler"
-    "services/internal/interfaces/http/dto/request"
-    "services/internal/interfaces/http/middleware"
+    "user-services/internal/application/commandhandler"
+    "user-services/internal/interfaces/http/dto/request"
+    "user-services/internal/interfaces/http/middleware"
     "common/response"
 )
 
@@ -982,7 +982,7 @@ package service_test
 import (
     "context"
     "testing"
-    "services/internal/domain/order/service"
+    "user-services/internal/domain/order/service"
     // ... 其他导入
 )
 

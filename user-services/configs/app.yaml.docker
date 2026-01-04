@@ -1,0 +1,144 @@
+# ===================================================================
+# 1. 系统与服务器配置 (System & Server)
+# ===================================================================
+system:
+  # 运行环境 (development/production/test)
+  env: "development"
+  # 系统密钥，用于JWT签名等安全操作
+  secret_key: "dev_secret_key_12345"
+  # 服务名称
+  server_name: "services"
+  # 系统时区，默认为 "Asia/Shanghai"
+  timezone: "Asia/Shanghai"
+
+server:
+  # 服务端口
+  port: "8080"
+  # 运行模式(debug/release/test)
+  mode: debug
+  # 是否开启CORS (跨域中间件)
+  enable_cors: true
+  # 请求超时时间
+  read_timeout: 5s
+  # 写入超时时间
+  write_timeout: 10s
+  # 空闲超时
+  idle_timeout: 120s
+  # 请求头最大字节数(默认1M)
+  maxHeaderBytes: 1048576
+
+# ===================================================================
+# 2. 中间件配置 (Middlewares)
+# ===================================================================
+auth:
+  # 认证白名单路径 (Auth Middleware)
+  whitelist:
+    - /health
+    - /ping
+    - /swagger/*
+    - /api/v1/auth/login/password # 密码登录
+    - /api/v1/auth/login/wechat   # 微信登录
+
+rate_limit:
+  # 是否启用 (Rate Limit Middleware)
+  enabled: false
+  # 令牌桶填充间隔
+  fill_interval: 1s
+  # 令牌桶容量
+  capacity: 100
+  # 每次填充的令牌数量
+  quantum: 10
+  # 过期IP清理间隔
+  cleanup_interval: 10m
+  # IP过期时间
+  bucket_expiry: 30m
+
+# ===================================================================
+# 3. 业务逻辑相关配置 (Business Logic)
+# ===================================================================
+token:
+  # Token过期时间(分钟)
+  expired_time: 30 # 分钟
+
+snow_flake:
+  # 起始时间(格式: YYYY-MM-DD)，用于生成唯一ID
+  start_time: "2024-01-01"
+  # 机器ID(0-1023)
+  machine_id: 1
+
+validation:
+  # 验证错误的本地化设置(zh/en等)
+  locale: "zh"
+
+# ===================================================================
+# 4. 外部服务依赖配置 (External Services)
+# ===================================================================
+# 数据库公共配置 (可被多个数据源继承)
+database_common: &database_common
+  # 数据库类型(mysql/postgres/sqlite)
+  type: "mysql"
+  # 数据库主机地址
+  host: "mysql"
+  # 数据库端口
+  port: 3306
+  # 数据库用户名
+  username: "root"
+  # 数据库密码
+  password: "root"
+  # 字符集
+  charset: utf8mb4
+  # 最大打开连接数
+  max_open_conns: 100
+  # 最大空闲连接数
+  max_idle_conns: 10
+  # 连接最大生命周期
+  conn_max_lifetime: 1h
+  # 连接最大空闲时间
+  conn_max_idle_time: 30m
+
+# 多数据源配置
+databases:
+  # 数据库实例1
+  db1:
+    # 继承公共配置，可覆盖特定值
+    <<: *database_common
+    # 数据库名称
+    database: go-micro-scaffold
+
+  # 数据库实例2
+  db2:
+    # 继承公共配置，可覆盖特定值
+    <<: *database_common
+    # 数据库名称
+    database: go-micro-scaffold
+
+# Redis配置
+redis:
+  # Redis主机地址
+  host: "redis"
+  # Redis端口
+  port: 6379
+  # Redis密码(如果未设置密码则留空)
+  password: ""
+  # Redis数据库编号
+  database: 0
+  # 默认数据库编号
+  default_db: 0
+  # 连接池大小
+  pool_size: 10
+
+
+# ===================================================================
+# 5. 日志配置 (Logging)
+# ===================================================================
+zap:
+  # 日志级别(DEBUG/INFO/WARN/ERROR/DPANIC/PANIC/FATAL)
+  level: "DEBUG"
+  # 日志文件目录
+  director: "./logs"
+  # 日志文件最大保留天数
+  max_age: 30
+  # 单个日志文件最大大小(MB)
+  max_size: 500
+  # 最大备份文件数量
+  max_backups: 7
